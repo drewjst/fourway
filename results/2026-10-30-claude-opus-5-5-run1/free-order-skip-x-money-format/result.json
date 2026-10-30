@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": "regression_a",
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 4627,
+    "output_tokens": 4128,
+    "scenarios": {
+      "test_free_order_events.py": {
+        "kind": "intent_a",
+        "rationale": "Change A stops charge() from publishing charge.succeeded for free orders. Change B makes currency matter, because it adds JPY with no minor unit. These tests check that free orders publish nothing and add no revenue in every currency B knows, including JPY. They also check that a paid JPY order next to a free one is still counted. Both fail on trees without A, where free orders still publish. Note that A's cutoff is `>= 100` minor units, so a 50-yen order would not publish either. That gap already exists with A alone, so no test here covers it."
+      },
+      "test_amount_formatting.py": {
+        "kind": "intent_b",
+        "rationale": "Change B adds format_amount, which uses the right number of decimals for each currency. These tests format amounts that come out of the charge path that A changed: captures and revenue totals. They also format zero amounts, which is the case A affects. The tests fail on trees without B because payments.money does not exist there."
+      },
+      "test_paid_order_events.py": {
+        "kind": "invariant",
+        "rationale": "On every tree, a clearly paid order in USD, EUR, or JPY must publish exactly one success event carrying its capture. A retry after a lost gateway response must also capture and publish only once. Both changes touch the event and currency path, and neither should break these delivery guarantees. The tests use FakeGateway's timeout_after fault to drive the failure path."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:fee1212fa617fc4919bf29917a039fa222fcdca71078b548baef78f3201f3961",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "afd2461bf888f4bcf5f16c17f5832f8b9725a094",
+      "a": "67e8cd6fd2825899c8fb7c0d15637b543a8fc79b",
+      "b": "9352b765f369c514cb9f053a9607a22b07d8f44b",
+      "ab": "7204e0561d32082326cbeb4acec65660efd08f9c",
+      "env": "sha256:08438a02fa79787cb15897d80abd9a1c07ca3957887ed6baaca4cb7a291b08e3",
+      "scenarios": "sha256:6ead6ec1ae513358660e258d9cbb74fd1358cbadf42037221662c0da562c353d"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:d09f65aab36846d18b9d8545a1d22dd4d336e7506a3a216f5f94c9f204efbb22"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_amount_formatting.py::test_captured_amounts_format_in_their_currency": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_amount_formatting.py::test_revenue_from_a_yen_charge_formats_without_decimals": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_free_order_events.py::test_free_orders_do_not_count_as_revenue_next_to_paid_ones": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_free_order_events.py::test_free_orders_in_any_currency_publish_nothing": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_paid_order_events.py::test_paid_orders_publish_exactly_one_success_event": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_paid_order_events.py::test_retry_after_lost_response_publishes_once": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-30T22:36:45.626043+00:00"
+  }
+}

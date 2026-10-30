@@ -1,0 +1,119 @@
+{
+  "summary": {
+    "generator": "claude",
+    "detected": 3,
+    "conflicts": 3,
+    "false_positives": 1,
+    "cleans": 3,
+    "unverified": 0,
+    "errors": 0,
+    "fallbacks": 0,
+    "total": 6,
+    "cost_usd": 0.505744,
+    "models": [
+      "claude-opus-5-5"
+    ]
+  },
+  "cases": [
+    {
+      "id": "cache-x-quote",
+      "label": "clean",
+      "class": "cache x invalidation",
+      "verdict": "conflict",
+      "findings": {
+        "fourway_scenarios/test_price_cache_reads.py::test_interleaved_lookups_read_each_sku_once": "ok",
+        "fourway_scenarios/test_quote_freshness.py::test_quote_reflects_price_change_after_earlier_quote": "differential_b",
+        "fourway_scenarios/test_quote_freshness.py::test_quote_reflects_price_change_after_single_lookup": "differential_b",
+        "fourway_scenarios/test_quote_repeats.py::test_quote_counts_repeats_with_warm_cache": "ok"
+      },
+      "cost_usd": 0.05748,
+      "seconds": 23.82,
+      "evidence": "sha256:ece0b6fd8331810ba73b687572ea2551d71b1b17097a4d7e1d83899b2c042068"
+    },
+    {
+      "id": "cache-x-set-price",
+      "label": "conflict",
+      "class": "cache x invalidation",
+      "verdict": "conflict",
+      "findings": {
+        "fourway_scenarios/test_cache_after_price_write.py::test_repeated_lookups_after_a_price_write_read_backend_once": "ok",
+        "fourway_scenarios/test_rejected_set_price_keeps_price.py::test_rejected_then_accepted_price_change_after_read": "differential_b",
+        "fourway_scenarios/test_set_price_after_cached_read.py::test_set_price_is_visible_after_price_was_already_read": "differential_b",
+        "fourway_scenarios/test_set_price_after_cached_read.py::test_successive_set_price_calls_are_each_visible": "differential_b"
+      },
+      "cost_usd": 0.067268,
+      "seconds": 25.38,
+      "evidence": "sha256:cac6059ad376b85c957c0de839062499aa16d08da771f3c11869fd2ca5228ec0"
+    },
+    {
+      "id": "free-order-skip-x-money-format",
+      "label": "clean",
+      "class": "single-side regression",
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_amount_formatting.py::test_captured_amounts_format_in_their_currency": "ok",
+        "fourway_scenarios/test_amount_formatting.py::test_revenue_from_a_yen_charge_formats_without_decimals": "ok",
+        "fourway_scenarios/test_free_order_events.py::test_free_orders_do_not_count_as_revenue_next_to_paid_ones": "ok",
+        "fourway_scenarios/test_free_order_events.py::test_free_orders_in_any_currency_publish_nothing": "ok",
+        "fourway_scenarios/test_paid_order_events.py::test_paid_orders_publish_exactly_one_success_event": "ok",
+        "fourway_scenarios/test_paid_order_events.py::test_retry_after_lost_response_publishes_once": "ok"
+      },
+      "cost_usd": 0.101068,
+      "seconds": 38.35,
+      "evidence": "sha256:fee1212fa617fc4919bf29917a039fa222fcdca71078b548baef78f3201f3961"
+    },
+    {
+      "id": "receipt-x-event-rename",
+      "label": "conflict",
+      "class": "rename x new consumer",
+      "verdict": "conflict",
+      "findings": {
+        "fourway_scenarios/test_payment_captured_event.py::test_charge_publishes_payment_captured_only": "ok",
+        "fourway_scenarios/test_payment_captured_event.py::test_revenue_counts_payment_captured": "ok",
+        "fourway_scenarios/test_receipts_on_charge.py::test_charging_an_order_sends_a_receipt": "differential_a",
+        "fourway_scenarios/test_receipts_on_charge.py::test_receipts_and_revenue_both_see_the_charge": "differential_a",
+        "fourway_scenarios/test_subscribers_reach_publisher.py::test_each_consumer_handles_a_charge_exactly_once": "emergent",
+        "fourway_scenarios/test_subscribers_reach_publisher.py::test_every_subscribed_event_is_published_by_charge": "emergent"
+      },
+      "cost_usd": 0.084592,
+      "seconds": 28.03,
+      "evidence": "sha256:5a65baa72ae7dcb5a33b650343dddad09131ba49a1a542623de8565779b34d2a"
+    },
+    {
+      "id": "retry-x-currency-key",
+      "label": "clean",
+      "class": "retry x idempotency",
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_charge_invariants.py::test_charging_the_same_order_twice_captures_once": "ok",
+        "fourway_scenarios/test_charge_invariants.py::test_decline_is_not_retried_or_published": "ok",
+        "fourway_scenarios/test_charge_invariants.py::test_timeout_never_double_captures_or_double_publishes[timeout_after]": "ok",
+        "fourway_scenarios/test_charge_invariants.py::test_timeout_never_double_captures_or_double_publishes[timeout_before]": "ok",
+        "fourway_scenarios/test_currency_requote.py::test_requote_in_new_currency_gets_its_own_capture": "ok",
+        "fourway_scenarios/test_currency_requote.py::test_requote_revenue_counts_both_currencies": "ok",
+        "fourway_scenarios/test_retry_with_currency_keys.py::test_retry_after_lost_response_counts_revenue_once": "ok",
+        "fourway_scenarios/test_retry_with_currency_keys.py::test_retry_after_lost_response_reuses_the_capture_for_a_currency_order": "ok"
+      },
+      "cost_usd": 0.092832,
+      "seconds": 36.16,
+      "evidence": "sha256:a9d5f24ec1cd009cf140d5c6e73633c4849816524ffe65487fb6da1e281c754b"
+    },
+    {
+      "id": "retry-x-nonce-key",
+      "label": "conflict",
+      "class": "retry x idempotency",
+      "verdict": "conflict",
+      "findings": {
+        "fourway_scenarios/test_charge_after_decline.py::test_charge_succeeds_after_card_is_fixed": "ok",
+        "fourway_scenarios/test_retry_after_lost_response.py::test_charge_recovers_from_a_lost_response_with_one_capture": "differential_a",
+        "fourway_scenarios/test_retry_after_lost_response.py::test_revenue_matches_gateway_after_retry": "differential_a",
+        "fourway_scenarios/test_retry_idempotency.py::test_lost_response_does_not_double_capture": "emergent",
+        "fourway_scenarios/test_retry_idempotency.py::test_one_charge_call_uses_one_key_across_attempts": "emergent",
+        "fourway_scenarios/test_retry_idempotency.py::test_repeated_lost_responses_capture_at_most_once": "emergent"
+      },
+      "cost_usd": 0.102504,
+      "seconds": 36.88,
+      "evidence": "sha256:daeab9862e398ea5bfb8cfcb603f8a64f214d506f7eae4367746c76c4019febf"
+    }
+  ]
+}

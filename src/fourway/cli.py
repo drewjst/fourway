@@ -12,6 +12,10 @@ from .case import load_corpus
 from .classify import CONFLICTS, REGRESSIONS
 from .generators import BLIND, CONTROLS
 
+# The corpus ships with the repository, not the package; find it from a checkout.
+_REPO_CORPUS = Path(__file__).resolve().parents[2] / "corpus"
+DEFAULT_CORPUS = _REPO_CORPUS if _REPO_CORPUS.is_dir() else Path("corpus")
+
 
 def _check_corpus(args: argparse.Namespace) -> int:
     failed = 0
@@ -82,12 +86,12 @@ def main(argv: list[str] | None = None) -> int:
         p.add_argument("--ledger", type=Path, help="append evidence records to this JSONL file")
 
     check = sub.add_parser("check-corpus", help="validate every benchmark case against its own answer key")
-    check.add_argument("--corpus", type=Path, default=Path("corpus"))
+    check.add_argument("--corpus", type=Path, default=DEFAULT_CORPUS)
     check.set_defaults(func=_check_corpus)
 
     run = sub.add_parser("bench", help="score a generator on the benchmark corpus")
     run.add_argument("--generator", required=True, choices=sorted({*BLIND, *CONTROLS}))
-    run.add_argument("--corpus", type=Path, default=Path("corpus"))
+    run.add_argument("--corpus", type=Path, default=DEFAULT_CORPUS)
     run.add_argument("--out", type=Path, help="save each case's scenarios and outcomes under this directory")
     run.add_argument("--model", help="Claude model id (generator claude only; default claude-opus-5-5)")
     run.add_argument("--effort", choices=["low", "medium", "high", "xhigh", "max"],

@@ -1,0 +1,81 @@
+{
+  "label": "conflict",
+  "expect": "differential_b",
+  "verdict": "conflict",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 4822,
+    "output_tokens": 2399,
+    "scenarios": {
+      "test_set_price_after_cached_read.py": {
+        "kind": "intent_b",
+        "rationale": "Change B says the admin editor now sets prices through Catalog.set_price and that the new price takes effect. Change A makes Catalog keep every price it has read. In the merge, set_price writes only to the backend and leaves the cached entry alone. A SKU whose price was already read therefore keeps returning the old price after the change. B's own test sets the price before any read, so it never sees this. These tests read the price first, then call set_price, so they pass on B alone and fail on the merge."
+      },
+      "test_rejected_set_price_keeps_price.py": {
+        "kind": "intent_b",
+        "rationale": "Change B's set_price rejects prices of zero or less. A rejected change must not alter the price, whether or not change A has already cached it. This test reads the price first so that it is cached on the merge, attempts an invalid change, and checks the price is still served. It then sets a valid price and checks the new price is served. That last check fails on the merge because the cached value is stale."
+      },
+      "test_cache_after_price_write.py": {
+        "kind": "intent_a",
+        "rationale": "Change A exists to stop repeated lookups from hitting the slow backend. This test writes a new price before the first read, using set_price when change B is present and the backend directly otherwise. It then checks that repeated lookups return the new price with a single backend read. On the merge, any fix for stale prices must keep the cache working rather than reading the backend on every lookup. The test fails on base and on B, which read the backend on every lookup."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:cac6059ad376b85c957c0de839062499aa16d08da771f3c11869fd2ca5228ec0",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "afd2461bf888f4bcf5f16c17f5832f8b9725a094",
+      "a": "de12b99afa71384a0774b86fddcf7381c73f01b9",
+      "b": "e57c15cae3f735807f99a9675c8854a2f1ca205d",
+      "ab": "bc30715a0871e771955ea653763a1a660c6464fb",
+      "env": "sha256:08438a02fa79787cb15897d80abd9a1c07ca3957887ed6baaca4cb7a291b08e3",
+      "scenarios": "sha256:04f11418f23652aa3bf07c6ac94e317f8f4409f13f292a139293d13a4d5a1a05"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:d09f65aab36846d18b9d8545a1d22dd4d336e7506a3a216f5f94c9f204efbb22"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_cache_after_price_write.py::test_repeated_lookups_after_a_price_write_read_backend_once": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_rejected_set_price_keeps_price.py::test_rejected_then_accepted_price_change_after_read": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "differential_b"
+      },
+      "fourway_scenarios/test_set_price_after_cached_read.py::test_set_price_is_visible_after_price_was_already_read": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "differential_b"
+      },
+      "fourway_scenarios/test_set_price_after_cached_read.py::test_successive_set_price_calls_are_each_visible": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "differential_b"
+      }
+    },
+    "verdict": "conflict",
+    "recorded_at": "2026-10-30T22:36:07.275191+00:00"
+  }
+}
