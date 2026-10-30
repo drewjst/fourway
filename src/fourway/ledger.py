@@ -72,10 +72,14 @@ def record(
     return {"id": _digest(_canonical(body)), **body, "recorded_at": datetime.now(UTC).isoformat()}
 
 
-def append(path: Path, rec: Mapping) -> None:
+def append(path: Path, rec: Mapping) -> bool:
+    """Append ``rec`` unless a record with its id is already there. Return whether it was written."""
+    if path.exists() and any(json.loads(line)["id"] == rec["id"] for line in path.read_text().splitlines()):
+        return False
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a") as f:
         f.write(json.dumps(rec, sort_keys=True) + "\n")
+    return True
 
 
 def lookup(path: Path, guards: Mapping[str, str]) -> dict | None:

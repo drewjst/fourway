@@ -18,6 +18,13 @@ def test_the_same_verification_gets_the_same_id():
     assert first["id"] == second["id"]
 
 
+def test_recording_the_same_verification_twice_writes_one_line(tmp_path):
+    path = tmp_path / "ledger.jsonl"
+    assert ledger.append(path, ledger.record(RESULT, SCENARIOS, generator="oracle"))
+    assert not ledger.append(path, ledger.record(RESULT, SCENARIOS, generator="oracle"))
+    assert len(path.read_text().splitlines()) == 1
+
+
 def test_a_different_scenario_set_is_different_evidence():
     first = ledger.record(RESULT, SCENARIOS, generator="oracle")
     second = ledger.record(RESULT, {"test_x.py": "def test_x(): pass\n"}, generator="oracle")
