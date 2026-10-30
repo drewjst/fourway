@@ -89,15 +89,22 @@ def load_corpus(root: Path) -> list[Case]:
     return [load_case(p) for p in sorted(cases_dir.iterdir()) if (p / "case.toml").exists()]
 
 
+def _copy(src: Path, dest: Path) -> None:
+    # shutil.copy, not the default copy2: copy2 keeps the source mtime. An
+    # overlay file with the same size and mtime as the file it replaces looks
+    # unchanged to git's stat cache, and `git add` silently skips it.
+    shutil.copytree(src, dest, dirs_exist_ok=True, ignore=_IGNORE, copy_function=shutil.copy)
+
+
 def materialize(case: Case, workdir: Path) -> Pair:
     """Build a git repo with the base commit on main and A and B on branches a and b."""
     repo = gitops.init(workdir / "repo")
-    shutil.copytree(case.base, repo, dirs_exist_ok=True, ignore=_IGNORE)
+    _copy(case.base, repo)
     base = gitops.commit_all(repo, "base")
     heads = []
     for name, side in (("a", case.a), ("b", case.b)):
         gitops.git(repo, "checkout", "--quiet", "-b", name, base)
-        shutil.copytree(side.overlay, repo, dirs_exist_ok=True, ignore=_IGNORE)
+        _copy(side.overlay, repo)
         for rel in side.deleted:
             (repo / rel).unlink()
         heads.append(gitops.commit_all(repo, side.intent.title))

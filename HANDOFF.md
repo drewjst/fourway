@@ -8,5 +8,6 @@ Decisions this session:
 - Every conflict case has a clean twin that changes only side B — stops a generator from scoring by matching on touched files — rejected: unrelated clean controls
 - A pair with no usable scenario is `unverified`, never `clean` — an agent asking "was this verified?" must not hear yes when nothing ran — rejected: empty result reads as clean
 - Corpus check allows a test that is missing from a tree — a side may delete a test; only a red test would alert CI — rejected: requiring every test to exist on the merge
+- Corpus files are copied with fresh mtimes — copy2 kept source mtimes, so on a fresh CI checkout git's stat cache skipped same-size overlay files and a seeded conflict read as clean (caught by check-corpus on CI; tests/test_case.py) — rejected: forcing `git add --renormalize` on every commit (re-hashes every tracked file in real repos)
 - Recall and false positives are reported as k/n with Wilson 95% intervals — six cases cannot support a percentage — rejected: bare percentages
-Pointers: main · `uv run pytest -q` (38 tests, about 30 s) · `uv run fourway bench --generator oracle|null|deranged` · corpus/README.md · docs/decisions/
+Pointers: main · github.com/drewjst/fourway (public) · issues #1–#4 hold deferred work · `uv run pytest -q` (39 tests, about 30 s) · `uv run fourway bench --generator oracle|null|deranged` · corpus/README.md · docs/decisions/
