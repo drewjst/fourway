@@ -1,0 +1,18 @@
+base = "../../apps/payments"
+label = "conflict"
+expect = "differential_b"
+class = "cache x invalidation"
+
+[a]
+title = "Cache prices in Catalog"
+body = """
+The pricing service takes about 80 ms per read, and the cart page reads each
+SKU several times. Catalog now keeps every price it has read.
+"""
+
+[b]
+title = "Add Catalog.set_price for the admin price editor"
+body = """
+The admin price editor wrote to the pricing backend directly. It now goes
+through Catalog.set_price, which rejects prices of zero or less.
+"""

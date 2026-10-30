@@ -1,0 +1,19 @@
+base = "../../apps/payments"
+label = "conflict"
+expect = "differential_a"
+class = "rename x new consumer"
+
+[a]
+title = "Send a receipt after each successful charge"
+body = """
+Customers asked for receipts. receipts.install() subscribes to the charge
+success event and writes one receipt per charge to the outbox.
+"""
+
+[b]
+title = "Rename the charge.succeeded event to payment.captured"
+body = """
+The event fires when the gateway captures funds. The new name matches the
+gateway's own term and the event names the data team uses. This updates the
+publisher and every subscriber.
+"""

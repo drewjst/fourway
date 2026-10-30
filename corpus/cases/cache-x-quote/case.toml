@@ -1,0 +1,18 @@
+base = "../../apps/payments"
+label = "clean"
+expect = "ok"
+class = "cache x invalidation"
+
+[a]
+title = "Cache prices in Catalog"
+body = """
+The pricing service takes about 80 ms per read, and the cart page reads each
+SKU several times. Catalog now keeps every price it has read.
+"""
+
+[b]
+title = "Add Catalog.quote for basket totals"
+body = """
+The cart page summed prices itself and counted a SKU once even when the
+basket listed it twice. Catalog.quote returns the basket total.
+"""

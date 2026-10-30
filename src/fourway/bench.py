@@ -1,0 +1,179 @@
+"""Check the corpus, and score a generator against it: recall, false positives, cost."""
+
+from __future__ import annotations
+
+import math
+import tempfile
+import time
+from collections import Counter
+from dataclasses import dataclass
+from pathlib import Path
+
+from . import gitops, ledger, pipeline, runner
+from .case import Case, materialize
+from .generators import BLIND, CONTROLS, PairContext, Scenarios, read_oracle
+
+
+@dataclass(frozen=True)
+class CaseResult:
+    case: Case
+    verdict: str
+    findings: dict[str, str]
+    cost_usd: float
+    seconds: float
+    record: dict
+
+    @property
+    def detected(self) -> bool:
+        return self.verdict == "conflict"
+
+
+@dataclass(frozen=True)
+class Summary:
+    generator: str
+    detected: int
+    conflicts: int
+    false_positives: int
+    cleans: int
+    unverified: int
+    total: int
+    cost_usd: float
+
+
+def check_case(case: Case) -> list[str]:
+    """Return what is wrong with a case. An empty list means the case is usable.
+
+    A usable case merges cleanly, its existing test suite passes on all four
+    trees (so ordinary CI on the merge cannot see the problem), and its oracle
+    produces the expected finding and a verdict that matches the label.
+    """
+    problems: list[str] = []
+    oracle = read_oracle(case)
+    if not oracle:
+        return ["oracle/ has no test_*.py files"]
+    with tempfile.TemporaryDirectory(prefix=f"fourway-check-{case.id}-") as tmp:
+        work = Path(tmp)
+        pair = materialize(case, work)
+        try:
+            _, trees = pipeline.build_trees(pair.repo, pair.base, pair.a, pair.b, work / "suite")
+        except gitops.MergeConflict as e:
+            return [str(e)]
+        suite = runner.run_four_way(trees, "tests", work / "suite-reports")
+        for test, by_variant in suite.items():
+            for variant, outcome in by_variant.items():
+                # "missing" means the tree does not have the test, for example
+                # because one side deleted it. Only a red test would alert CI.
+                if outcome not in ("passed", "missing"):
+                    problems.append(f"existing suite: {test} is {outcome} on {variant}")
+        result = pipeline.verify(pair.repo, pair.base, pair.a, pair.b, oracle, work / "oracle")
+    if case.expect not in result.findings.values():
+        problems.append(f"oracle findings {sorted(set(result.findings.values()))} lack {case.expect!r}")
+    if (result.verdict == "conflict") != (case.label == "conflict"):
+        problems.append(f"oracle verdict {result.verdict!r} contradicts label {case.label!r}")
+    return problems
+
+
+def run(
+    cases: list[Case],
+    generator: str,
+    *,
+    repeat: int = 1,
+    timeout: float = 120.0,
+    ledger_path: Path | None = None,
+) -> list[CaseResult]:
+    if generator in CONTROLS:
+        control = CONTROLS[generator](cases)
+
+        def source(case: Case, ctx: PairContext) -> Scenarios:
+            return control.for_case(case)
+    elif generator in BLIND:
+        blind = BLIND[generator]()
+
+        def source(case: Case, ctx: PairContext) -> Scenarios:
+            return blind.generate(ctx)
+    else:
+        raise ValueError(f"unknown generator {generator!r}")
+
+    results = []
+    for case in cases:
+        started = time.monotonic()
+        with tempfile.TemporaryDirectory(prefix=f"fourway-{case.id}-") as tmp:
+            work = Path(tmp)
+            pair = materialize(case, work)
+            ctx = PairContext(
+                base_tree=gitops.export(pair.repo, pair.base, work / "context"),
+                diff_a=gitops.diff(pair.repo, pair.base, pair.a),
+                diff_b=gitops.diff(pair.repo, pair.base, pair.b),
+                intent_a=case.a.intent,
+                intent_b=case.b.intent,
+            )
+            scenarios = source(case, ctx)
+            result = pipeline.verify(
+                pair.repo, pair.base, pair.a, pair.b, scenarios.files, work / "run",
+                repeat=repeat, timeout=timeout,
+            )
+        rec = ledger.record(
+            result, scenarios.files, generator=generator, models=scenarios.models, repeat=repeat
+        )
+        if ledger_path:
+            ledger.append(ledger_path, rec)
+        results.append(CaseResult(
+            case=case,
+            verdict=result.verdict,
+            findings=dict(result.findings),
+            cost_usd=scenarios.cost_usd,
+            seconds=time.monotonic() - started,
+            record=rec,
+        ))
+    return results
+
+
+def summarize(generator: str, results: list[CaseResult]) -> Summary:
+    conflicts = [r for r in results if r.case.label == "conflict"]
+    cleans = [r for r in results if r.case.label == "clean"]
+    return Summary(
+        generator=generator,
+        detected=sum(r.detected for r in conflicts),
+        conflicts=len(conflicts),
+        false_positives=sum(r.detected for r in cleans),
+        cleans=len(cleans),
+        unverified=sum(r.verdict == "unverified" for r in results),
+        total=len(results),
+        cost_usd=sum(r.cost_usd for r in results),
+    )
+
+
+def wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
+    """95% Wilson score interval for k successes in n trials."""
+    if n == 0:
+        return (0.0, 1.0)
+    p = k / n
+    denom = 1 + z * z / n
+    center = (p + z * z / (2 * n)) / denom
+    half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / denom
+    return (max(0.0, center - half), min(1.0, center + half))
+
+
+def _rate(k: int, n: int) -> str:
+    lo, hi = wilson(k, n)
+    return f"{k}/{n}  (95% CI {lo:.0%} to {hi:.0%})"
+
+
+def format_report(summary: Summary, results: list[CaseResult]) -> str:
+    rows = [("case", "label", "expect", "verdict", "findings", "secs")]
+    for r in results:
+        counts = Counter(r.findings.values())
+        findings = ", ".join(f"{k} ({v})" for k, v in sorted(counts.items())) or "-"
+        rows.append((r.case.id, r.case.label, r.case.expect, r.verdict, findings, f"{r.seconds:.1f}"))
+    widths = [max(len(row[i]) for row in rows) for i in range(len(rows[0]))]
+    lines = ["  ".join(cell.ljust(w) for cell, w in zip(row, widths)).rstrip() for row in rows]
+    per_pair = summary.cost_usd / summary.total if summary.total else 0.0
+    lines += [
+        "",
+        f"generator        {summary.generator}",
+        f"recall           {_rate(summary.detected, summary.conflicts)}",
+        f"false positives  {_rate(summary.false_positives, summary.cleans)}",
+        f"unverified       {summary.unverified}/{summary.total}",
+        f"cost             ${summary.cost_usd:.2f} total, ${per_pair:.2f} per pair",
+    ]
+    return "\n".join(lines)

@@ -1,0 +1,19 @@
+[project]
+name = "fourway"
+version = "0.0.1"
+description = "Run scenarios four ways (base, A, B, A+B) to catch changes that merge cleanly and break together."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.12"
+dependencies = ["pytest>=8"]
+
+[project.scripts]
+fourway = "fourway.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+norecursedirs = ["corpus"]

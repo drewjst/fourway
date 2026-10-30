@@ -1,0 +1,18 @@
+base = "../../apps/payments"
+label = "clean"
+expect = "regression_a"
+class = "single-side regression"
+
+[a]
+title = "Skip the success event for free orders"
+body = """
+Free trial orders are charged $0 and were sending receipts and counting as
+revenue events. charge() no longer publishes the success event for them.
+"""
+
+[b]
+title = "Add format_amount for showing amounts in their currency"
+body = """
+Amounts are stored in minor units. JPY has no minor unit, so 1250 means
+1250 yen, not 12.50. format_amount uses the right number of decimals.
+"""

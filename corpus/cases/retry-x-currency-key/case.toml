@@ -1,0 +1,20 @@
+base = "../../apps/payments"
+label = "clean"
+expect = "ok"
+class = "retry x idempotency"
+
+[a]
+title = "Retry gateway timeouts when charging"
+body = """
+Gateway timeouts are transient. About 0.3% of checkouts fail on a timeout that
+would have succeeded on a second try. charge() now retries a timeout up to
+three attempts before raising.
+"""
+
+[b]
+title = "Include the currency in idempotency keys"
+body = """
+An order re-quoted in another currency is charged again under the same order
+id. The gateway sees the old key and returns the capture in the first
+currency. Keys now name the currency, so each currency gets its own capture.
+"""

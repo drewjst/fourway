@@ -1,0 +1,21 @@
+base = "../../apps/payments"
+label = "conflict"
+expect = "emergent"
+class = "retry x idempotency"
+
+[a]
+title = "Retry gateway timeouts when charging"
+body = """
+Gateway timeouts are transient. About 0.3% of checkouts fail on a timeout that
+would have succeeded on a second try. charge() now retries a timeout up to
+three attempts before raising.
+"""
+
+[b]
+title = "Use a fresh idempotency key for every gateway request"
+body = """
+The gateway remembers the outcome of each key, declines included. When a card
+is declined and the customer fixes it, checkout calls charge() again with the
+same key and gets the old decline back. Keys now end in a random suffix, so
+every request is new to the gateway.
+"""
