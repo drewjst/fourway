@@ -3,10 +3,8 @@
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 import tempfile
-from dataclasses import asdict
 from pathlib import Path
 
 from . import bench, gitops, ledger, pipeline
@@ -28,21 +26,19 @@ def _check_corpus(args: argparse.Namespace) -> int:
 
 def _bench(args: argparse.Namespace) -> int:
     cases = load_corpus(args.corpus)
+    options = {k: v for k, v in (("model", args.model), ("effort", args.effort)) if v}
+    if options and args.generator != "claude":
+        print("--model and --effort apply only to --generator claude", file=sys.stderr)
+        return 2
     results = bench.run(
-        cases, args.generator, repeat=args.repeat, timeout=args.timeout, ledger_path=args.ledger
+        cases, args.generator, repeat=args.repeat, timeout=args.timeout,
+        ledger_path=args.ledger, options=options,
     )
     summary = bench.summarize(args.generator, results)
     print(bench.format_report(summary, results))
-    if args.json:
-        args.json.write_text(json.dumps({
-            "summary": asdict(summary),
-            "cases": [
-                {"id": r.case.id, "label": r.case.label, "class": r.case.conflict_class,
-                 "verdict": r.verdict, "findings": r.findings, "cost_usd": r.cost_usd,
-                 "seconds": round(r.seconds, 2), "evidence": r.record["id"]}
-                for r in results
-            ],
-        }, indent=2) + "\n")
+    if args.out:
+        bench.save(results, summary, args.out)
+        print(f"\nscenarios and outcomes saved to {args.out}")
     return 0
 
 
@@ -92,7 +88,10 @@ def main(argv: list[str] | None = None) -> int:
     run = sub.add_parser("bench", help="score a generator on the benchmark corpus")
     run.add_argument("--generator", required=True, choices=sorted({*BLIND, *CONTROLS}))
     run.add_argument("--corpus", type=Path, default=Path("corpus"))
-    run.add_argument("--json", type=Path, help="also write results as JSON to this path")
+    run.add_argument("--out", type=Path, help="save each case's scenarios and outcomes under this directory")
+    run.add_argument("--model", help="Claude model id (generator claude only; default claude-opus-5-5)")
+    run.add_argument("--effort", choices=["low", "medium", "high", "xhigh", "max"],
+                     help="Claude effort level (generator claude only; default high)")
     common(run)
     run.set_defaults(func=_bench)
 

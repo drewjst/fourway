@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import json
 import math
 import tempfile
 import time
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 
 from . import gitops, ledger, pipeline, runner
@@ -17,6 +18,7 @@ from .generators import BLIND, CONTROLS, PairContext, Scenarios, read_oracle
 @dataclass(frozen=True)
 class CaseResult:
     case: Case
+    scenarios: Scenarios
     verdict: str
     findings: dict[str, str]
     cost_usd: float
@@ -36,8 +38,11 @@ class Summary:
     false_positives: int
     cleans: int
     unverified: int
+    errors: int  # cases where the generator returned no scenarios because it failed
+    fallbacks: int  # cases a fallback model served; their scenarios belong to another model
     total: int
     cost_usd: float
+    models: tuple[str, ...]
 
 
 def check_case(case: Case) -> list[str]:
@@ -80,14 +85,16 @@ def run(
     repeat: int = 1,
     timeout: float = 120.0,
     ledger_path: Path | None = None,
+    options: dict | None = None,
 ) -> list[CaseResult]:
+    """Run ``generator`` on every case. ``options`` go to a blind generator's constructor."""
     if generator in CONTROLS:
         control = CONTROLS[generator](cases)
 
         def source(case: Case, ctx: PairContext) -> Scenarios:
             return control.for_case(case)
     elif generator in BLIND:
-        blind = BLIND[generator]()
+        blind = BLIND[generator](**(options or {}))
 
         def source(case: Case, ctx: PairContext) -> Scenarios:
             return blind.generate(ctx)
@@ -113,12 +120,14 @@ def run(
                 repeat=repeat, timeout=timeout,
             )
         rec = ledger.record(
-            result, scenarios.files, generator=generator, models=scenarios.models, repeat=repeat
+            result, scenarios.files, generator=generator, models=scenarios.models,
+            config=scenarios.config, repeat=repeat,
         )
         if ledger_path:
             ledger.append(ledger_path, rec)
         results.append(CaseResult(
             case=case,
+            scenarios=scenarios,
             verdict=result.verdict,
             findings=dict(result.findings),
             cost_usd=scenarios.cost_usd,
@@ -138,8 +147,11 @@ def summarize(generator: str, results: list[CaseResult]) -> Summary:
         false_positives=sum(r.detected for r in cleans),
         cleans=len(cleans),
         unverified=sum(r.verdict == "unverified" for r in results),
+        errors=sum("error" in r.scenarios.notes for r in results),
+        fallbacks=sum(bool(r.scenarios.notes.get("fallback")) for r in results),
         total=len(results),
         cost_usd=sum(r.cost_usd for r in results),
+        models=tuple(sorted({m for r in results for m in r.scenarios.models})),
     )
 
 
@@ -170,10 +182,42 @@ def format_report(summary: Summary, results: list[CaseResult]) -> str:
     per_pair = summary.cost_usd / summary.total if summary.total else 0.0
     lines += [
         "",
-        f"generator        {summary.generator}",
+        f"generator        {summary.generator} {' '.join(summary.models)}".rstrip(),
         f"recall           {_rate(summary.detected, summary.conflicts)}",
         f"false positives  {_rate(summary.false_positives, summary.cleans)}",
         f"unverified       {summary.unverified}/{summary.total}",
+        f"generator errors {summary.errors}/{summary.total}",
         f"cost             ${summary.cost_usd:.2f} total, ${per_pair:.2f} per pair",
     ]
+    if summary.fallbacks:
+        lines.append(
+            f"WARNING          a fallback model served {summary.fallbacks} case(s); "
+            "those scenarios are not the named model's, and their cost is a lower bound"
+        )
     return "\n".join(lines)
+
+
+def save(results: list[CaseResult], summary: Summary, out: Path) -> None:
+    """Write each case's scenarios and outcomes under ``out`` so misses can be read, not guessed at."""
+    out.mkdir(parents=True, exist_ok=True)
+    for r in results:
+        case_dir = out / r.case.id
+        (case_dir / "scenarios").mkdir(parents=True, exist_ok=True)
+        for name, source in r.scenarios.files.items():
+            (case_dir / "scenarios" / name).write_text(source)
+        (case_dir / "result.json").write_text(json.dumps({
+            "label": r.case.label,
+            "expect": r.case.expect,
+            "verdict": r.verdict,
+            "notes": r.scenarios.notes,
+            "evidence": r.record,
+        }, indent=2, default=str) + "\n")
+    (out / "summary.json").write_text(json.dumps({
+        "summary": asdict(summary),
+        "cases": [
+            {"id": r.case.id, "label": r.case.label, "class": r.case.conflict_class,
+             "verdict": r.verdict, "findings": r.findings, "cost_usd": r.cost_usd,
+             "seconds": round(r.seconds, 2), "evidence": r.record["id"]}
+            for r in results
+        ],
+    }, indent=2) + "\n")

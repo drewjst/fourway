@@ -34,7 +34,8 @@ class Scenarios:
     files: dict[str, str]
     models: tuple[str, ...] = ()
     cost_usd: float = 0.0
-    notes: dict = field(default_factory=dict)
+    notes: dict = field(default_factory=dict)  # per-run detail: stop reason, tokens, errors
+    config: dict = field(default_factory=dict)  # what produced the files: model, effort, prompt digest
 
 
 class Generator(Protocol):
@@ -84,7 +85,13 @@ class Deranged:
         return Scenarios(read_oracle(self._donor[case.id]))
 
 
-BLIND: dict[str, Callable[[], Generator]] = {"null": Null}
+def _claude(**options) -> Generator:
+    from .claude import ClaudeGenerator
+
+    return ClaudeGenerator(**options)
+
+
+BLIND: dict[str, Callable[..., Generator]] = {"null": lambda **options: Null(), "claude": _claude}
 CONTROLS: dict[str, Callable[[list[Case]], Control]] = {
     "oracle": lambda cases: Oracle(),
     "deranged": Deranged,

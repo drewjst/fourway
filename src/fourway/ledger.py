@@ -50,6 +50,7 @@ def record(
     *,
     generator: str,
     models: Sequence[str] = (),
+    config: Mapping | None = None,
     repeat: int = 1,
 ) -> dict:
     body = {
@@ -59,7 +60,7 @@ def record(
             "env": env_digest(),
             "scenarios": scenarios_digest(scenarios),
         },
-        "generator": {"name": generator, "models": sorted(models)},
+        "generator": {"name": generator, "models": sorted(models), "config": dict(config or {})},
         "repeat": repeat,
         "tests": {
             test: {**result.outcomes[test], "finding": result.findings[test]}

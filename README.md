@@ -54,9 +54,11 @@ The repository contains the following:
 - A seeded corpus: one small payments app and six pairs of changes with known
   answers. For details, see [`corpus/README.md`](corpus/README.md).
 - Three control generators: `null`, `oracle`, and `deranged`.
+- A Claude-backed generator, `claude`, that writes intent and invariant
+  scenarios from the base tree, both diffs, and both change descriptions. It
+  has not been scored yet.
 
-It doesn't contain a model-backed scenario generator, cases seeded into real
-repositories, or a sandboxed runner.
+It doesn't contain cases seeded into real repositories or a sandboxed runner.
 
 ## Usage
 
@@ -76,6 +78,14 @@ Score a generator:
 
 ```bash
 uv run fourway bench --generator oracle
+```
+
+Score the Claude generator. This calls the Claude API once per case and needs
+`ANTHROPIC_API_KEY` in the environment. The `--out` directory keeps every
+generated scenario and its four outcomes:
+
+```bash
+uv run fourway bench --generator claude --repeat 3 --out runs/claude
 ```
 
 Run your own scenario tests four ways on two branches of a repository:
