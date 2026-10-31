@@ -78,12 +78,29 @@ def test_not_root():
     assert os.getuid() != 0
 '''
 
+MOUNTS = '''
+from pathlib import Path
+
+VIRTUAL = {"tmpfs", "proc", "sysfs", "devpts", "mqueue", "cgroup", "cgroup2", "devtmpfs"}
+
+
+def test_no_writable_host_mount():
+    writable = []
+    for line in Path("/proc/self/mountinfo").read_text().splitlines():
+        fields = line.split()
+        point, options, fstype = fields[4], fields[5].split(","), fields[fields.index("-") + 1]
+        if fstype not in VIRTUAL and "rw" in options:
+            writable.append(point)
+    assert writable == []
+'''
+
 
 @dataclasses.dataclass(frozen=True)
 class Weakened(Sandbox):
     """The sandbox with one protection removed, to show the probe for it can fail."""
 
     hole: str = ""
+    scratch: str = ""  # host directory for the "writable mount" hole
 
     def command(self, *args):
         name, argv = super().command(*args)
@@ -92,6 +109,9 @@ class Weakened(Sandbox):
             del argv[at:at + 2]
         elif self.hole == "writable tree":
             argv = [arg.removesuffix(":ro") if arg.endswith(":/work/tree:ro") else arg for arg in argv]
+        elif self.hole == "writable mount":
+            at = argv.index(self.tag)
+            argv[at:at] = ["--volume", f"{self.scratch}:/scratch"]
         elif self.hole == "host environment":
             at = argv.index(self.tag)
             argv[at:at] = ["--env", "ANTHROPIC_API_KEY"]  # no value: Docker passes the host's through
@@ -158,29 +178,60 @@ def test_no_secret_or_host_file_reaches_the_scenario(box, tmp_path):
     ("writable tree", WRITES, "test_cannot_write_the_tree"),
     ("host environment", HOST, "test_no_secrets_in_the_environment"),
     ("network", NETWORK, "test_no_name_resolution"),
+    ("writable mount", MOUNTS, "test_no_writable_host_mount"),
 ])
 def test_each_probe_fails_when_its_hole_is_open(box, tmp_path, hole, source, test):
     """A probe that passes whatever the sandbox does would prove nothing."""
-    _, outcomes, _ = probe(Weakened(hole=hole), tmp_path, source)
+    (tmp_path / "scratch").mkdir()
+    _, outcomes, _ = probe(Weakened(hole=hole, scratch=str(tmp_path / "scratch")), tmp_path, source)
     if hole == "network" and outcomes[test] == "passed":
         pytest.skip("this machine has no network, so an open network can't be told from a closed one")
     assert outcomes[test] == "failed"
 
 
 @needs_docker
-def test_a_scenario_cannot_touch_another_trees_report(box, tmp_path):
-    """The four trees run at once; one tree's scenario must not rewrite the outcomes another tree reports."""
-    (tmp_path / "reports").mkdir()
-    (tmp_path / "reports" / "base-0.json").write_text('{"tests": {"t": "passed"}, "collect_errors": []}')
-    _, outcomes, _ = probe(box, tmp_path, '''
+def test_no_host_path_is_writable_from_the_container(box, tmp_path):
+    """The four trees run at once. With nothing from the host writable, a scenario can't rewrite another
+    tree's report, fill the host's disk, or leave a symlink for the host to follow when it reads a report."""
+    _, outcomes, _ = probe(box, tmp_path, MOUNTS)
+    assert outcomes == {"test_no_writable_host_mount": "passed"}
+
+
+@needs_docker
+def test_a_forged_report_reads_as_a_crash(box, tmp_path):
+    """A scenario can write to the stdout the report comes back on. Anything but the one report the
+    plugin printed must read as no evidence, never as outcomes the scenario chose."""
+    _, outcomes, report = probe(box, tmp_path, '''
 import os
-from pathlib import Path
 
 
-def test_cannot_see_other_reports():
-    assert os.listdir(Path(os.environ["FOURWAY_REPORT"]).parent) == []
+def test_forge():
+    written = 0
+    for fd in os.listdir("/proc/1/fd"):
+        if os.readlink(f"/proc/1/fd/{fd}").startswith("pipe:"):
+            os.write(os.open(f"/proc/1/fd/{fd}", os.O_WRONLY), b'{"tests": {"t": "passed"}')
+            written += 1
+    assert written
 ''')
-    assert outcomes == {"test_cannot_see_other_reports": "passed"}
+    assert report.crashed == "error" and outcomes == {}
+
+
+@pytest.mark.parametrize("why, out", [
+    ("the session printed nothing", b""),
+    ("the output passed the size cap", None),
+    ("the report is truncated", b'{"tests": {}'),
+    ("a forged report sits next to the real one", b'{"tests": {}, "collect_errors": [], "exitstatus": 0}' * 2),
+    ("a field the plugin never writes", b'{"tests": {}, "collect_errors": [], "exitstatus": 0, "verdict": "clean"}'),
+    ("an outcome that is not a string", b'{"tests": {"t": 1}, "collect_errors": [], "exitstatus": 0}'),
+    ("not UTF-8", b"\xff\xfe"),
+])
+def test_only_the_plugins_report_counts(why, out):
+    assert sb.parse_report(out) is None, why
+
+
+def test_the_plugins_report_parses():
+    out = b'{"tests": {"t.py::test_x": "passed"}, "collect_errors": [], "exitstatus": 0}'
+    assert sb.parse_report(out) == {"tests": {"t.py::test_x": "passed"}, "collect_errors": [], "exitstatus": 0}
 
 
 @dataclasses.dataclass(frozen=True)
