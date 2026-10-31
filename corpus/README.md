@@ -154,8 +154,7 @@ pair:
   whether a new corpus version relabels it.
 - Before the first run on mined pairs, the corpus author reads a random
   sample of them and judges whether either change alters behavior that the
-  other relies on. The
-  sample and the judgments are recorded in
+  other relies on. The sample and the judgments are recorded in
   [Hand check of mined labels](#hand-check-of-mined-labels). A wrong label in
   the sample means the rule is wrong; the rule changes, not the label.
 
@@ -192,6 +191,10 @@ The sample showed three things:
 - Both sides of 8 of the 24 mined pairs credit Claude Opus 4.6 in a
   `Co-Authored-By` trailer. Mined pairs reduce the shared-author problem but
   don't remove it.
+
+Across all 24 pairs, the `runtime` tags find 12 where both sides change
+runtime code, and 9 of those 12 credit no AI assistant. Those 9 are the
+hardest clean pairs in v4.
 
 ## Cases
 
