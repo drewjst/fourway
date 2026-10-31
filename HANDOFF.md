@@ -1,6 +1,6 @@
 # HANDOFF — fourway
 State:    review — the Docker sandbox for #2 is built (decision 0003): model scenarios on mined pairs run only with `--sandbox`; corpus v5 holds 82 clean pairs; no generator has run on a mined pair
-Next:     owner approves paid run 4 on corpus v5: `uv run fourway bench --generator claude --sandbox --repeat 3 --out runs/claude` (88 pairs; estimate before running)
+Next:     owner approves paid run 4 on corpus v5: `uv run fourway bench --generator claude --sandbox --repeat 3 --out runs/claude` — 88 pairs, about 7.5M input tokens, an estimated $37–45 (largest pair tomlkit-668-x-658, about 276k tokens because its change A adds a uv.lock)
 Blockers: owner approval and budget for run 4; #6 (how `missing` and import-`error` outcomes are classified); #3 review
 Decisions this session:
 - Phase 0 is a benchmark only — no recall number exists to put behind an integration — rejected: GitHub App first (docs/decisions/0001)
