@@ -9,6 +9,12 @@ real repositories to the 12 seeded cases of v3. Every tree's tests ran in the
 sandbox that decision 0003 describes. Each flagged clean pair was adjudicated
 under the rules that `corpus/README.md` set before this run.
 
+This run used the first version of the sandbox, which mounted a writable
+directory for each run's report. drewjst/fourway#11, merged after the run,
+returns the report on stdout instead and leaves nothing on the host writable.
+The image and its tag are the same; only the way the report leaves the
+container changed.
+
 | Measure | As recorded | After adjudication |
 |---|---|---|
 | Recall | 6/6 (95% CI 61% to 100%) | 6/6 (95% CI 61% to 100%) |
