@@ -4,10 +4,11 @@ A scenario is code a model wrote after reading diffs and descriptions. When
 those come from someone else, the scenario is untrusted code, so it runs here
 instead of as a local subprocess. See docs/decisions/0003.
 
-The container gets the tree read-only, a scratch /tmp, the directory the
-report goes to, and fourway's pytest plugin, also read-only. It gets no
-network, no Linux capabilities, the host user's ids instead of root, limits on
-memory, CPU, and processes, and only the environment variables pytest needs.
+The container gets the tree and fourway's pytest plugin read-only, and a
+scratch /tmp. Nothing from the host is writable inside it: the report comes
+back on stdout. It gets no network, no Linux capabilities, the host user's ids
+instead of root, limits on memory, CPU, and processes, and only the
+environment variables pytest needs.
 """
 
 from __future__ import annotations
@@ -17,7 +18,7 @@ import json
 import os
 import shutil
 import subprocess
-import tempfile
+import threading
 import uuid
 from dataclasses import dataclass
 from functools import cached_property
@@ -31,6 +32,16 @@ PLUGIN_DIR = Path(__file__).parent  # the fourway package, for -p fourway.pytest
 # Docker's own failures: the daemon refused, or the command couldn't start.
 # pytest exits 0 to 5, so these never mean a test outcome.
 _DOCKER_ERRORS = frozenset({125, 126, 127})
+
+# The plugin writes the report to the container's /tmp and the shell prints
+# it, so the container needs no writable host mount: none it could fill, and
+# no report file it could swap for a symlink that the host would then follow.
+# pytest's own output goes nowhere. The shell exits 0, so a non-zero status
+# comes from Docker or from the container being killed.
+_REPORT = "/tmp/fourway-report.json"
+_SCRIPT = f'python -m pytest "$@" >/dev/null 2>&1; cat {_REPORT} 2>/dev/null; exit 0'
+MAX_REPORT = 16 << 20  # far larger than a real report; a session that prints more is misbehaving
+_MAX_STDERR = 64 << 10
 
 
 class SandboxError(RuntimeError):
@@ -102,11 +113,8 @@ class Sandbox:
         body = json.dumps({"image": self.tag, "fourway": __version__}, sort_keys=True).encode()
         return "sha256:" + hashlib.sha256(body).hexdigest()
 
-    def command(self, tree: Path, pythonpath: tuple[str, ...], report: Path, pytest_args: list[str]) -> tuple[str, list[str]]:
-        """Return a container name and the `docker run` argv for one pytest run in ``tree``.
-
-        ``report.parent`` is mounted writable, so it must hold nothing but this run's report.
-        """
+    def command(self, tree: Path, pythonpath: tuple[str, ...], pytest_args: list[str]) -> tuple[str, list[str]]:
+        """Return a container name and the `docker run` argv for one pytest run in ``tree``."""
         name = f"fourway-{uuid.uuid4().hex[:12]}"
         work = "/work/tree"
         env = {
@@ -115,7 +123,7 @@ class Sandbox:
             "PYTHONHASHSEED": "0",
             "PYTHONDONTWRITEBYTECODE": "1",
             "HOME": "/tmp",
-            "FOURWAY_REPORT": f"/report/{report.name}",
+            "FOURWAY_REPORT": _REPORT,
         }
         argv = [
             "docker", "run", "--rm", "--name", name,
@@ -125,32 +133,92 @@ class Sandbox:
             "--user", f"{os.getuid()}:{os.getgid()}",
             "--memory", self.memory, "--cpus", self.cpus, "--pids-limit", str(self.pids),
             "--volume", f"{tree.resolve()}:{work}:ro",
-            "--volume", f"{report.parent.resolve()}:/report",
             "--volume", f"{PLUGIN_DIR.resolve()}:/opt/fourway/fourway:ro",
             "--workdir", work,
             *(arg for key, value in env.items() for arg in ("--env", f"{key}={value}")),
-            self.tag, "python", "-m", "pytest", *pytest_args,
+            self.tag, "sh", "-c", _SCRIPT, "fourway-run", *pytest_args,
         ]
         return name, argv
 
     def run(self, tree: Path, pythonpath: tuple[str, ...], report: Path, pytest_args: list[str], timeout: float) -> bool:
-        """Run pytest in a container and leave its report at ``report``.
+        """Run pytest in a container and write its report to ``report``.
 
-        Return False if it timed out; raise SandboxError if Docker failed. Each
-        run writes into a directory of its own, so a scenario in one tree can't
-        overwrite another tree's report.
+        Return False if it timed out; raise SandboxError if Docker failed. When
+        the session printed no valid report, ``report`` is not written, and the
+        runner reads the run as crashed. The container can't reach ``report``
+        or any other host file, so a scenario in one tree can't touch another
+        tree's report.
         """
-        with tempfile.TemporaryDirectory(dir=report.parent, prefix=".sandbox-") as own:
-            own_report = Path(own) / "report.json"
-            name, argv = self.command(tree, pythonpath, own_report, pytest_args)
-            try:
-                proc = subprocess.run(argv, capture_output=True, text=True, timeout=timeout + self.startup_slack)
-            except subprocess.TimeoutExpired:
-                # Killing the docker client leaves the container running.
-                subprocess.run(["docker", "rm", "--force", name], capture_output=True)
-                return False
-            if proc.returncode in _DOCKER_ERRORS and not own_report.exists():
-                raise SandboxError(f"docker run failed ({proc.returncode}): {proc.stderr.strip()[-500:]}")
-            if own_report.is_file():
-                own_report.replace(report)
+        name, argv = self.command(tree, pythonpath, pytest_args)
+        try:
+            code, out, err = _run_capped(argv, timeout + self.startup_slack)
+        except subprocess.TimeoutExpired:
+            # Killing the docker client leaves the container running.
+            subprocess.run(["docker", "rm", "--force", name], capture_output=True)
+            return False
+        if code in _DOCKER_ERRORS:
+            raise SandboxError(f"docker run failed ({code}): {err.decode(errors='replace').strip()[-500:]}")
+        data = parse_report(out)
+        if data is not None:
+            report.write_text(json.dumps(data))
         return True
+
+
+def parse_report(out: bytes | None) -> dict | None:
+    """The plugin's report from a session's stdout, or None.
+
+    The session controls these bytes. Anything but exactly one report with
+    the plugin's fields and types counts as no report: None from an overflow,
+    nothing, a truncated report, or a forged one printed next to the real one.
+    """
+    if not out:
+        return None
+    try:
+        data = json.loads(out)
+    except ValueError:
+        return None
+    ok = (
+        isinstance(data, dict)
+        and set(data) == {"tests", "collect_errors", "exitstatus"}
+        and isinstance(data["tests"], dict)
+        and all(isinstance(t, str) and isinstance(o, str) for t, o in data["tests"].items())
+        and isinstance(data["collect_errors"], list)
+        and all(isinstance(e, str) for e in data["collect_errors"])
+        and type(data["exitstatus"]) is int
+    )
+    return data if ok else None
+
+
+def _run_capped(argv: list[str], timeout: float) -> tuple[int, bytes | None, bytes]:
+    """Run ``argv``; return its status, stdout (None past MAX_REPORT bytes), and the start of stderr.
+
+    The session can print without limit, so neither stream is held in full.
+    Raises TimeoutExpired after killing the process.
+    """
+    kept: dict[str, tuple[bytes, bool]] = {}
+
+    def drain(key: str, stream, limit: int) -> None:
+        chunks, size = [], 0
+        while chunk := stream.read(65536):
+            size += len(chunk)
+            if size <= limit:
+                chunks.append(chunk)
+        kept[key] = (b"".join(chunks), size > limit)
+
+    with subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE) as proc:
+        threads = [
+            threading.Thread(target=drain, args=("out", proc.stdout, MAX_REPORT)),
+            threading.Thread(target=drain, args=("err", proc.stderr, _MAX_STDERR)),
+        ]
+        for t in threads:
+            t.start()
+        try:
+            proc.wait(timeout)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+            raise
+        finally:
+            for t in threads:
+                t.join()
+    out, overflow = kept["out"]
+    return proc.returncode, None if overflow else out, kept["err"][0]
