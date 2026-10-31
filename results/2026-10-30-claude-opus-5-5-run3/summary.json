@@ -1,0 +1,217 @@
+{
+  "summary": {
+    "generator": "claude",
+    "detected": 6,
+    "conflicts": 6,
+    "false_positives": 1,
+    "cleans": 6,
+    "unverified": 0,
+    "errors": 0,
+    "fallbacks": 0,
+    "total": 12,
+    "cost_usd": 2.820744,
+    "models": [
+      "claude-opus-5-5"
+    ]
+  },
+  "cases": [
+    {
+      "id": "cache-x-quote",
+      "label": "clean",
+      "class": "cache x invalidation",
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_catalog_isolation.py::test_prices_are_per_sku_and_per_catalog": "ok",
+        "fourway_scenarios/test_catalog_isolation.py::test_unknown_sku_keeps_raising": "ok",
+        "fourway_scenarios/test_quote_uses_price_cache.py::test_basket_with_repeated_sku_reads_backend_once_per_distinct_sku": "ok",
+        "fourway_scenarios/test_quote_uses_price_cache.py::test_repeated_baskets_do_not_reread_backend": "ok",
+        "fourway_scenarios/test_quote_with_cached_prices.py::test_quote_counts_repeats_when_price_already_cached": "ok",
+        "fourway_scenarios/test_quote_with_cached_prices.py::test_quote_is_stable_across_calls": "ok"
+      },
+      "cost_usd": 0.06516,
+      "seconds": 24.67,
+      "evidence": "sha256:61002e97a81bd17cc9c799b04dc3a4f8b7f6e8a96b224d68a15a2d4b16041af6"
+    },
+    {
+      "id": "cache-x-set-price",
+      "label": "conflict",
+      "class": "cache x invalidation",
+      "verdict": "conflict",
+      "findings": {
+        "fourway_scenarios/test_catalog_write_visibility.py::test_price_written_through_catalog_is_what_catalog_reports": "emergent",
+        "fourway_scenarios/test_catalog_write_visibility.py::test_rejected_write_leaves_price_unchanged": "ok",
+        "fourway_scenarios/test_price_cache_with_updates.py::test_cache_still_saves_reads_after_price_update": "ok",
+        "fourway_scenarios/test_price_cache_with_updates.py::test_repeated_lookups_read_backend_once_per_sku": "ok",
+        "fourway_scenarios/test_set_price_after_read.py::test_only_the_updated_sku_changes_after_reads": "differential_b",
+        "fourway_scenarios/test_set_price_after_read.py::test_price_read_before_set_price_reflects_new_price": "differential_b"
+      },
+      "cost_usd": 0.07748,
+      "seconds": 28.69,
+      "evidence": "sha256:5c211337526029ce03dbc5bde67c655a58f5220d58835d42a3696583f977f7e4"
+    },
+    {
+      "id": "cachetools-mru-x-fast-get",
+      "label": "conflict",
+      "class": "new subclass x read path",
+      "verdict": "conflict",
+      "findings": {
+        "fourway_scenarios/test_get_read_tracking_invariant.py::test_lfu_get_counts_as_use_and_default_on_miss": "ok",
+        "fourway_scenarios/test_get_read_tracking_invariant.py::test_lru_get_counts_as_use": "ok",
+        "fourway_scenarios/test_mru_get_counts_as_use.py::test_mru_get_affects_popitem_order": "differential_a",
+        "fourway_scenarios/test_mru_get_counts_as_use.py::test_mru_get_marks_key_most_recently_used_for_eviction": "differential_a",
+        "fourway_scenarios/test_mru_get_counts_as_use.py::test_mru_get_matches_getitem_semantics": "differential_a"
+      },
+      "cost_usd": 0.371912,
+      "seconds": 19.02,
+      "evidence": "sha256:bb402eff26a4a20dec9f111a6a193e2141720bd072e9858b507a0edabc79947c"
+    },
+    {
+      "id": "cachetools-mru-x-peek",
+      "label": "clean",
+      "class": "new subclass x read path",
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_mru_peek.py::test_peek_does_not_count_as_use_in_mru": "ok",
+        "fourway_scenarios/test_mru_peek.py::test_peek_missing_on_mru_does_not_call_missing": "ok",
+        "fourway_scenarios/test_mru_peek.py::test_peek_preserves_mru_popitem_order": "ok",
+        "fourway_scenarios/test_mru_with_peek_semantics.py::test_get_still_counts_as_use_with_peeks_interleaved": "ok",
+        "fourway_scenarios/test_mru_with_peek_semantics.py::test_update_counts_as_use_after_peek": "ok"
+      },
+      "cost_usd": 0.38916,
+      "seconds": 26.45,
+      "evidence": "sha256:2a2bb72e0eb7faf437194fae49e73ec9370645897fe942206b7ffdaf78d1a421"
+    },
+    {
+      "id": "free-order-skip-x-money-format",
+      "label": "clean",
+      "class": "single-side regression",
+      "verdict": "conflict",
+      "findings": {
+        "fourway_scenarios/test_formatted_yen_revenue.py::test_formatted_yen_revenue_from_events": "differential_b",
+        "fourway_scenarios/test_formatted_yen_revenue.py::test_receipt_amount_formats_from_event_payload": "differential_b",
+        "fourway_scenarios/test_free_orders_any_currency.py::test_free_usd_order_not_counted_as_revenue": "ok",
+        "fourway_scenarios/test_free_orders_any_currency.py::test_free_yen_order_publishes_no_event": "ok",
+        "fourway_scenarios/test_paid_yen_events.py::test_paid_yen_order_publishes_success_event": "regression_a",
+        "fourway_scenarios/test_paid_yen_events.py::test_revenue_counts_paid_yen_charge": "regression_a"
+      },
+      "cost_usd": 0.075404,
+      "seconds": 27.86,
+      "evidence": "sha256:7732e9ce0b5a6ee143cc52da736d2ac324e1d9c2fea50b4d7fcd6518b4015795"
+    },
+    {
+      "id": "receipt-x-event-rename",
+      "label": "conflict",
+      "class": "rename x new consumer",
+      "verdict": "conflict",
+      "findings": {
+        "fourway_scenarios/test_charge_event_consumers.py::test_every_installed_charge_consumer_receives_each_charge_once": "emergent",
+        "fourway_scenarios/test_payment_captured_event.py::test_analytics_listens_to_payment_captured": "ok",
+        "fourway_scenarios/test_payment_captured_event.py::test_charge_publishes_payment_captured_not_the_old_name": "ok",
+        "fourway_scenarios/test_receipts_on_charge.py::test_charging_an_order_sends_exactly_one_receipt": "differential_a",
+        "fourway_scenarios/test_receipts_on_charge.py::test_receipts_and_revenue_both_follow_real_charges": "differential_a"
+      },
+      "cost_usd": 0.077768,
+      "seconds": 26.94,
+      "evidence": "sha256:66fe17e64b2bddfd4b77bc7726f7b93c2401dee0e635b203d05d09522061481c"
+    },
+    {
+      "id": "retry-x-currency-key",
+      "label": "clean",
+      "class": "retry x idempotency",
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_charge_at_most_once.py::test_lost_response_never_double_captures": "ok",
+        "fourway_scenarios/test_charge_at_most_once.py::test_repeated_lost_responses_capture_once": "ok",
+        "fourway_scenarios/test_requote_currency_with_timeouts.py::test_requoted_order_gets_own_capture_despite_timeout": "ok",
+        "fourway_scenarios/test_retry_with_currency_keys.py::test_retry_after_lost_response_captures_once_for_eur_order": "ok",
+        "fourway_scenarios/test_retry_with_currency_keys.py::test_retry_after_timeout_before_for_eur_order": "ok"
+      },
+      "cost_usd": 0.090448,
+      "seconds": 32.73,
+      "evidence": "sha256:ff6ab71db0a37d510165665e71e1777a7c2927204f27cfa2556d595c30b093c4"
+    },
+    {
+      "id": "retry-x-nonce-key",
+      "label": "conflict",
+      "class": "retry x idempotency",
+      "verdict": "conflict",
+      "findings": {
+        "fourway_scenarios/test_fresh_key_after_decline.py::test_charge_after_decline_is_a_new_request": "ok",
+        "fourway_scenarios/test_retry_recovers_lost_response.py::test_retry_after_lost_response_returns_the_single_capture": "differential_a",
+        "fourway_scenarios/test_timeout_retry_single_capture.py::test_all_requests_in_one_charge_share_one_key": "emergent",
+        "fourway_scenarios/test_timeout_retry_single_capture.py::test_lost_response_timeout_never_captures_twice": "emergent"
+      },
+      "cost_usd": 0.10002,
+      "seconds": 35.94,
+      "evidence": "sha256:925bd2542add098d589061257dc3cf3f0e3864ae7ecf93c0d571f54e42be6d67"
+    },
+    {
+      "id": "tenacity-idle-budget-x-sleep-override",
+      "label": "clean",
+      "class": "new stop strategy x pipeline order",
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_idle_accounting_changed_sleep.py::test_final_idle_for_matches_actual_sleeps": "ok",
+        "fourway_scenarios/test_idle_accounting_changed_sleep.py::test_stop_strategy_sees_actual_idle_time": "ok",
+        "fourway_scenarios/test_idle_accounting_invariant.py::test_before_sleep_runs_once_per_sleep_with_matching_next_action": "ok",
+        "fourway_scenarios/test_idle_accounting_invariant.py::test_unchanged_sleep_counted_once_everywhere": "ok",
+        "fourway_scenarios/test_stop_before_idle_with_before_sleep.py::test_stop_before_idle_respects_budget_when_before_sleep_shortens_sleep": "ok",
+        "fourway_scenarios/test_stop_before_idle_with_before_sleep.py::test_stop_before_idle_with_noop_before_sleep_stops_at_budget": "ok"
+      },
+      "cost_usd": 0.498384,
+      "seconds": 68.31,
+      "evidence": "sha256:2ca06a892d7acb8f750d1e7861ee26840afba9f4646c22acdd3d8bbe38f895f3"
+    },
+    {
+      "id": "tenacity-idle-budget-x-stop-first",
+      "label": "conflict",
+      "class": "new stop strategy x pipeline order",
+      "verdict": "conflict",
+      "findings": {
+        "fourway_scenarios/test_stop_before_idle_ordering.py::test_async_first_sleep_over_budget_is_never_taken": "differential_a",
+        "fourway_scenarios/test_stop_before_idle_ordering.py::test_combined_with_attempt_limit_respects_idle_budget": "differential_a",
+        "fourway_scenarios/test_stop_before_idle_ordering.py::test_first_sleep_over_budget_is_never_taken": "differential_a",
+        "fourway_scenarios/test_stop_before_idle_ordering.py::test_growing_wait_checked_against_its_own_upcoming_sleep": "differential_a"
+      },
+      "cost_usd": 0.417048,
+      "seconds": 27.53,
+      "evidence": "sha256:4698cf118f5cce2b7fb288f3fdc85fcc7cda17d0cb511da7238c46bb5818372a"
+    },
+    {
+      "id": "tinydb-warm-cache-x-cached-count",
+      "label": "clean",
+      "class": "cache maintenance x result order",
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_count_after_insert.py::test_count_after_insert_served_from_maintained_cache": "ok",
+        "fourway_scenarios/test_count_cache_hit_no_search.py::test_count_does_not_call_search_on_cache_hit_after_insert": "ok",
+        "fourway_scenarios/test_count_search_consistency.py::test_count_matches_search_after_inserts[json]": "ok",
+        "fourway_scenarios/test_count_search_consistency.py::test_count_matches_search_after_inserts[memory]": "ok",
+        "fourway_scenarios/test_count_search_consistency.py::test_count_reflects_update_and_remove_after_insert[json]": "ok",
+        "fourway_scenarios/test_count_search_consistency.py::test_count_reflects_update_and_remove_after_insert[memory]": "ok",
+        "fourway_scenarios/test_count_search_consistency.py::test_failed_insert_leaves_count_unchanged[json]": "ok",
+        "fourway_scenarios/test_count_search_consistency.py::test_failed_insert_leaves_count_unchanged[memory]": "ok"
+      },
+      "cost_usd": 0.360756,
+      "seconds": 66.32,
+      "evidence": "sha256:5eaaf3f810ac416c676ca8b3a0b46bdf4a5feffe252855c242084bcaac699f48"
+    },
+    {
+      "id": "tinydb-warm-cache-x-ordered-search",
+      "label": "conflict",
+      "class": "cache maintenance x result order",
+      "verdict": "conflict",
+      "findings": {
+        "fourway_scenarios/test_cached_search_id_order_after_insert.py::test_mixed_auto_and_explicit_inserts_after_cached_search": "differential_b",
+        "fourway_scenarios/test_cached_search_id_order_after_insert.py::test_search_after_explicit_lower_id_insert_is_id_ordered": "differential_b",
+        "fourway_scenarios/test_cached_search_matches_fresh_search.py::test_cached_equals_fresh_after_explicit_id_insert_json": "emergent",
+        "fourway_scenarios/test_cached_search_matches_fresh_search.py::test_cached_equals_fresh_after_explicit_id_insert_memory": "emergent",
+        "fourway_scenarios/test_insert_keeps_cache_with_explicit_ids.py::test_explicit_id_insert_keeps_and_extends_cache": "ok",
+        "fourway_scenarios/test_insert_keeps_cache_with_explicit_ids.py::test_explicit_id_insert_served_without_rescan": "ok"
+      },
+      "cost_usd": 0.297204,
+      "seconds": 35.73,
+      "evidence": "sha256:4edd660696d2b31299025082355bcc71e2cf511e67e3afab903ab72450e0eed6"
+    }
+  ]
+}

@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": "ok",
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 90676,
+    "output_tokens": 6784,
+    "scenarios": {
+      "test_stop_before_idle_with_before_sleep.py": {
+        "kind": "intent_a",
+        "rationale": "Change A adds stop_before_idle. Change B appends a sleep-counting step after any before_sleep callback and adjusts idle_for. These tests run stop_before_idle in real retry loops that have a before_sleep callback. In the first, the callback leaves the sleep alone, so B's extra step must not double-count it. The stop must still fire exactly when the next planned sleep would exceed the budget. In the second, the callback shortens the sleep, and the stop must keep the total actual sleep within max_idle. Both tests fail on trees without stop_before_idle."
+      },
+      "test_idle_accounting_changed_sleep.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes idle_for count the sleep a before_sleep callback sets. A stop strategy reads retry_state.idle_for, and change A's stop_before_idle depends on exactly that field. These tests check that a stop callable sees the actually-slept totals. They also check that the final retry_state.idle_for and the statistics match the real sleeps. Both tests fail on trees without B."
+      },
+      "test_idle_accounting_invariant.py": {
+        "kind": "invariant",
+        "rationale": "Several things must hold on every tree when a before_sleep callback does not change the sleep. idle_for, the statistics, and next_action must equal the wait strategy's sleeps, each counted exactly once. The callback must run once per sleep. Change B adds an adjustment step after before_sleep, and change A's stop logic relies on idle_for, so double counting or skipped counting would break these properties."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:2ca06a892d7acb8f750d1e7861ee26840afba9f4646c22acdd3d8bbe38f895f3",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "4cda64c598475f5157231227243ad60ffa9b7294",
+      "a": "3684fb909ac0c3453f2f3f3c1369a3a8cfcd50f0",
+      "b": "6c3e829e09c84fdb83b12e6eb7b8a03db599f845",
+      "ab": "214dba3e73545d2a7663e9470d6a6aa2053195d6",
+      "env": "sha256:08438a02fa79787cb15897d80abd9a1c07ca3957887ed6baaca4cb7a291b08e3",
+      "scenarios": "sha256:85af9663697fa6dcaf4f24bf0799d134052dfc109741e762f71c97bc6870ca71"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_idle_accounting_changed_sleep.py::test_final_idle_for_matches_actual_sleeps": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_idle_accounting_changed_sleep.py::test_stop_strategy_sees_actual_idle_time": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_idle_accounting_invariant.py::test_before_sleep_runs_once_per_sleep_with_matching_next_action": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_idle_accounting_invariant.py::test_unchanged_sleep_counted_once_everywhere": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_stop_before_idle_with_before_sleep.py::test_stop_before_idle_respects_budget_when_before_sleep_shortens_sleep": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_stop_before_idle_with_before_sleep.py::test_stop_before_idle_with_noop_before_sleep_stops_at_budget": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T04:15:22.049778+00:00"
+  }
+}

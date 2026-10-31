@@ -1,0 +1,109 @@
+{
+  "label": "clean",
+  "expect": "ok",
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 58739,
+    "output_tokens": 6290,
+    "scenarios": {
+      "test_count_after_insert.py": {
+        "kind": "intent_a",
+        "rationale": "Change A keeps cached search results across insert() and appends the new document to every cached query it matches. Change B makes count() answer from the cache. This checks that, after an insert, count() comes from the maintained cache and that a cached non-matching query stays at its old value, without re-reading storage. On base and on B alone, insert clears the cache, so the stubbed empty table read returns 0."
+      },
+      "test_count_cache_hit_no_search.py": {
+        "kind": "intent_b",
+        "rationale": "Change B says count() should read the cached result's length and call search() only on a cache miss. This checks that behavior in the flow change A alters: an insert followed by repeated counts. Once a result is cached, count() must not go through search(). Base and A alone still route count() through search(), so the test fails there."
+      },
+      "test_count_search_consistency.py": {
+        "kind": "invariant",
+        "rationale": "Every tree should keep count(q) equal to len(search(q)), make inserted documents visible to count(), make updates and removes visible, and leave count unchanged when an insert fails. The merge combines insert-time cache maintenance (A) with count() reading the cache directly (B). These tests cover that combination with memory and JSON storage, a size-1 LRU cache, and an insert that fails on a duplicate ID."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:5eaaf3f810ac416c676ca8b3a0b46bdf4a5feffe252855c242084bcaac699f48",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "d1e355743a97820d5237b3af65b4acd3ac4f91e3",
+      "a": "8de3eba7ab2c5b2df552fdf4f5862b9a1eea1af1",
+      "b": "997899b00655016f4f24a969445a3a7fad6aab88",
+      "ab": "c51e07a793dab808c4556da4825a4aacaff5e035",
+      "env": "sha256:08438a02fa79787cb15897d80abd9a1c07ca3957887ed6baaca4cb7a291b08e3",
+      "scenarios": "sha256:0846e008030e71dd3d2fb20f3f22f63a03561485cf5cf581375173ee956f3dc2"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_count_after_insert.py::test_count_after_insert_served_from_maintained_cache": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_count_cache_hit_no_search.py::test_count_does_not_call_search_on_cache_hit_after_insert": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_count_search_consistency.py::test_count_matches_search_after_inserts[json]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_count_search_consistency.py::test_count_matches_search_after_inserts[memory]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_count_search_consistency.py::test_count_reflects_update_and_remove_after_insert[json]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_count_search_consistency.py::test_count_reflects_update_and_remove_after_insert[memory]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_count_search_consistency.py::test_failed_insert_leaves_count_unchanged[json]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_count_search_consistency.py::test_failed_insert_leaves_count_unchanged[memory]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T04:16:55.900614+00:00"
+  }
+}

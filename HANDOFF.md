@@ -1,7 +1,7 @@
 # HANDOFF — fourway
-State:    review — corpus v3 ready (#3): 12 cases, 6 seeded into pinned commits of cachetools, tenacity, and tinydb; controls hold (oracle 6/6 and 0/6 false positives, deranged 0/6, null all unverified). Runs 1–2 stay on v1/v2
-Next:     on owner approval, paid run 3 on corpus v3 (`uv run fourway bench --generator claude --repeat 3 --out runs/claude-3`, about $3–6; real-repo prompts are 44k–66k tokens), adjudicated by corpus/README.md rules and committed as results/<date>-claude-opus-5-5-run3/
-Blockers: owner approval to spend on run 3; owner review of the six seeded real-repo cases (Claude wrote them); #6 (`missing` classification)
+State:    review — run 3 done on corpus v3 (results/2026-10-30-claude-opus-5-5-run3/): recall 6/6, false positives 1/6 (counted; an A-alone bug read through B's new module scores differential_b), $0.24 per pair, $0.39 per real-repo pair
+Next:     owner picks how to grow clean pairs toward the 73 the 5% bar needs, and who writes them (cases not by Claude, or real concurrent PRs from history); owner reviews the v3 cases (#3)
+Blockers: owner decisions: corpus growth; #6 (how `missing` and import-`error` outcomes on base, A, or B are classified); #3 review
 Decisions this session:
 - Phase 0 is a benchmark only — no recall number exists to put behind an integration — rejected: GitHub App first (docs/decisions/0001)
 - Scenarios run as local subprocesses only on the seeded corpus — generated code from attacker-controlled diffs is a prompt-injection path to code execution — rejected: declarative scenarios, filtered-env local runner (docs/decisions/0002)
@@ -26,5 +26,6 @@ Decisions this session:
 - Upstream code runs locally under allow rules in fourway/.claude/settings.local.json (check-corpus, bench, pytest) — owner ruling 2026-10-30 after auto mode denied running upstream suites — rejected: sandbox first (#2)
 - Real-repo conflicts follow one shape: A adds a new user of an unwritten contract, B changes the contract and updates every user it knew about (MRUCache × fast get, stop_before_idle × stop-first, warm cache × ordered search) — the commonest real semantic conflict, and A's or B's own tests stay green on the merge — rejected: emergent seeds whose scenario needs both features before any tree can pass
 - The deranged control takes its donor from the next case of a different class — twins share oracles, so id-order derangement gave the conflict its own answer and scored 1/6 — rejected: id-order derangement
+- Run 3's false positive counts against the generator — the label is right (A's bug alone); a scenario that needs B's new module can't run on base or A, so the table reads A's bug as differential_b — rejected: scoring that pattern inconclusive (it also carries true receipt-x-event-rename detections in runs 2 and 3; data on #6)
 - The `--corpus` default resolves to the checkout, so `uv run --project ~/Projects/fourway fourway ...` works from any directory — the first paid run failed from ~/Projects — rejected: documenting "cd first"
 Pointers: main · github.com/drewjst/fourway (public) · issues #1–#4 hold deferred work · `uv run pytest -q` (65 tests, about 100 s; the first run fetches three upstream repos) · src/fourway/claude.py · `fourway bench --generator claude|oracle|null|deranged` · corpus/README.md · docs/decisions/

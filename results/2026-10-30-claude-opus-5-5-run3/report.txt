@@ -1,0 +1,20 @@
+case                                   label     expect          verdict   findings                                      secs
+cache-x-quote                          clean     ok              clean     ok (6)                                        24.7
+cache-x-set-price                      conflict  differential_b  conflict  differential_b (2), emergent (1), ok (3)      28.7
+cachetools-mru-x-fast-get              conflict  differential_a  conflict  differential_a (3), ok (2)                    19.0
+cachetools-mru-x-peek                  clean     ok              clean     ok (5)                                        26.4
+free-order-skip-x-money-format         clean     regression_a    conflict  differential_b (2), ok (2), regression_a (2)  27.9
+receipt-x-event-rename                 conflict  differential_a  conflict  differential_a (2), emergent (1), ok (2)      26.9
+retry-x-currency-key                   clean     ok              clean     ok (5)                                        32.7
+retry-x-nonce-key                      conflict  emergent        conflict  differential_a (1), emergent (2), ok (1)      35.9
+tenacity-idle-budget-x-sleep-override  clean     ok              clean     ok (6)                                        68.3
+tenacity-idle-budget-x-stop-first      conflict  differential_a  conflict  differential_a (4)                            27.5
+tinydb-warm-cache-x-cached-count       clean     ok              clean     ok (8)                                        66.3
+tinydb-warm-cache-x-ordered-search     conflict  differential_b  conflict  differential_b (2), emergent (2), ok (2)      35.7
+
+generator        claude claude-opus-5-5
+recall           6/6  (95% CI 61% to 100%)
+false positives  1/6  (95% CI 3% to 56%)
+unverified       0/12
+generator errors 0/12
+cost             $2.82 total, $0.24 per pair
