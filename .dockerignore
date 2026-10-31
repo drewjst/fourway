@@ -1,0 +1,6 @@
+# sandbox/Dockerfile copies only these; keep everything else, .venv and the
+# corpus included, out of the build context.
+*
+!sandbox/requirements.txt
+!src/fourway/__init__.py
+!src/fourway/pytest_plugin.py

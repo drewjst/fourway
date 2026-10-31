@@ -35,6 +35,7 @@ def verify(
     repeat: int = 1,
     timeout: float = 120.0,
     suite: runner.Suite = runner.Suite(),
+    sandbox: runner.Sandbox | None = None,
 ) -> FourWay:
     shas, trees = build_trees(repo, base, a, b, workdir)
     outcomes: dict[str, dict[str, str]] = {}
@@ -42,7 +43,8 @@ def verify(
         for tree in trees.values():
             runner.install_scenarios(tree, scenarios)
         outcomes = runner.run_four_way(
-            trees, runner.SCENARIO_DIR, workdir / "reports", repeat=repeat, timeout=timeout, suite=suite
+            trees, runner.SCENARIO_DIR, workdir / "reports", repeat=repeat, timeout=timeout, suite=suite,
+            sandbox=sandbox,
         )
     findings = {test: classify.classify(o) for test, o in outcomes.items()}
     return FourWay(shas, outcomes, findings, classify.verdict(findings.values()))

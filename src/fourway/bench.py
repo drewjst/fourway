@@ -50,7 +50,7 @@ class Summary:
 TRUSTED = frozenset({"null", *CONTROLS})
 
 
-def check_case(case: Case) -> list[str]:
+def check_case(case: Case, sandbox: runner.Sandbox | None = None) -> list[str]:
     """Return what is wrong with a case. An empty list means the case is usable.
 
     A usable case merges cleanly, its existing test suite passes on all four
@@ -72,7 +72,9 @@ def check_case(case: Case) -> list[str]:
             _, trees = pipeline.build_trees(pair.repo, pair.base, pair.a, pair.b, work / "suite")
         except gitops.MergeConflict as e:
             return [str(e)]
-        suite = runner.run_four_way(trees, case.suite.tests, work / "suite-reports", suite=case.suite)
+        suite = runner.run_four_way(
+            trees, case.suite.tests, work / "suite-reports", suite=case.suite, sandbox=sandbox
+        )
         if not suite:
             problems.append(f"existing suite: no tests ran from {case.suite.tests!r}")
         elif not any(set(by_variant.values()) == {"passed"} for by_variant in suite.values()):
@@ -94,7 +96,7 @@ def check_case(case: Case) -> list[str]:
         if case.expect is None:
             return problems
         result = pipeline.verify(
-            pair.repo, pair.base, pair.a, pair.b, oracle, work / "oracle", suite=case.suite
+            pair.repo, pair.base, pair.a, pair.b, oracle, work / "oracle", suite=case.suite, sandbox=sandbox
         )
     if case.expect not in result.findings.values():
         problems.append(f"oracle findings {sorted(set(result.findings.values()))} lack {case.expect!r}")
@@ -111,20 +113,21 @@ def run(
     timeout: float = 120.0,
     ledger_path: Path | None = None,
     options: dict | None = None,
+    sandbox: runner.Sandbox | None = None,
 ) -> list[CaseResult]:
     """Run ``generator`` on every case.
 
     ``options`` go to a blind generator's constructor. For ``replay``, they hold
     ``root``, the ``--out`` directory of the run to replay.
 
-    Model-written scenarios never run on a mined pair: its diffs and
-    descriptions are third-party input, and decision 0002 keeps scenarios
-    from such input out of the local runner until it is sandboxed.
+    Model-written scenarios run on a mined pair only in ``sandbox``: its diffs
+    and descriptions are third-party input, and decision 0002 keeps scenarios
+    from such input out of the local runner.
     """
-    if generator not in TRUSTED and (mined := [c.id for c in cases if c.mined]):
+    if generator not in TRUSTED and sandbox is None and (mined := [c.id for c in cases if c.mined]):
         raise ValueError(
-            f"decision 0002: {generator!r} scenarios can't run on mined pairs until the runner is "
-            f"sandboxed (issue #2); leave out {len(mined)} mined pair(s), for example with --seeded-only"
+            f"decision 0002: {generator!r} scenarios run on mined pairs only in the sandbox; pass --sandbox, "
+            f"or leave out {len(mined)} mined pair(s), for example with --seeded-only"
         )
     if generator in CONTROLS:
         control = CONTROLS[generator](cases)
@@ -161,11 +164,11 @@ def run(
             scenarios = source(case, ctx)
             result = pipeline.verify(
                 pair.repo, pair.base, pair.a, pair.b, scenarios.files, work / "run",
-                repeat=repeat, timeout=timeout, suite=case.suite,
+                repeat=repeat, timeout=timeout, suite=case.suite, sandbox=sandbox,
             )
         rec = ledger.record(
             result, scenarios.files, generator=generator, models=scenarios.models,
-            config=scenarios.config, repeat=repeat,
+            config=scenarios.config, repeat=repeat, image=sandbox and sandbox.image,
         )
         if ledger_path:
             ledger.append(ledger_path, rec)

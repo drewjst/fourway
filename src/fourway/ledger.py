@@ -30,7 +30,10 @@ def _digest(data: bytes) -> str:
     return "sha256:" + hashlib.sha256(data).hexdigest()
 
 
-def env_digest() -> str:
+def env_digest(image: str | None = None) -> str:
+    """The test environment. A sandboxed run's environment is its image, not the host's Python."""
+    if image is not None:
+        return _digest(_canonical({"image": image, "fourway": __version__}))
     return _digest(_canonical({
         "python": platform.python_version(),
         "implementation": platform.python_implementation(),
@@ -52,12 +55,13 @@ def record(
     models: Sequence[str] = (),
     config: Mapping | None = None,
     repeat: int = 1,
+    image: str | None = None,
 ) -> dict:
     body = {
         "schema": SCHEMA,
         "guards": {
             **result.shas,
-            "env": env_digest(),
+            "env": env_digest(image),
             "scenarios": scenarios_digest(scenarios),
         },
         "generator": {"name": generator, "models": sorted(models), "config": dict(config or {})},

@@ -14,6 +14,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: sandbox/go.mod
+          cache-dependency-path: sandbox/go.mod
       - run: uv sync
+      - run: docker build -f sandbox/Dockerfile -t fourway-sandbox .
+      - name: go test (the container tests run, never skip)
+        working-directory: sandbox
+        env:
+          FOURWAY_SANDBOX_IMAGE: fourway-sandbox
+        run: |
+          test -z "$(gofmt -l .)"
+          go vet ./...
+          go test -count=1 ./...
+      - run: go build -o bin/fourway-sandbox .
+        working-directory: sandbox
       - run: uv run fourway check-corpus
       - run: uv run pytest -q
+        env:
+          FOURWAY_REQUIRE_SANDBOX: "1"

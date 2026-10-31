@@ -66,10 +66,14 @@ The repository contains the following:
 - A Claude-backed generator, `claude`, that writes intent and invariant
   scenarios from the base tree, both diffs, and both change descriptions. Each
   scored run is recorded in [`results/`](results/).
+- A sandboxed runner, `fourway-sandbox`, written in Go. It runs each pytest
+  session in a container with no network, no credentials, and a read-only
+  tree. For details, see
+  [decision 0003](docs/decisions/0003-sandboxed-runner-in-go.md).
 
 The corpus also has six cases seeded into pinned commits of three real
-repositories: `cachetools`, `tenacity`, and `tinydb`. The runner isn't
-sandboxed, so building those cases runs upstream code.
+repositories: `cachetools`, `tenacity`, and `tinydb`. `check-corpus` runs their
+upstream suites as local subprocesses unless you pass `--sandbox`.
 
 ## Usage
 
@@ -91,9 +95,23 @@ Score a generator:
 uv run fourway bench --generator oracle
 ```
 
-Model-written scenarios don't run on mined pairs until the runner is
-sandboxed, so `bench` refuses them unless you pass `--seeded-only`. The
-controls run on the whole corpus.
+Model-written scenarios run on mined pairs only in the sandbox, so `bench`
+refuses them unless you pass `--sandbox` or `--seeded-only`. The controls run
+on the whole corpus.
+
+To use the sandbox, start Docker, then build the image and the binary from the
+repository root:
+
+```bash
+docker build -f sandbox/Dockerfile -t fourway-sandbox .
+```
+
+```bash
+go build -C sandbox -o bin/fourway-sandbox .
+```
+
+Rebuild the image after you change `uv.lock` or the pytest plugin, because the
+image carries a copy of each.
 
 Mine clean pairs from a pinned repository's history, then check them. The
 corpus README lists the commands that fetch the inputs:
@@ -111,7 +129,7 @@ Score the Claude generator. This calls the Claude API once per case and needs
 generated scenario and its four outcomes:
 
 ```bash
-uv run fourway bench --generator claude --seeded-only --repeat 3 --out runs/claude
+uv run fourway bench --generator claude --sandbox --repeat 3 --out runs/claude
 ```
 
 Rescore the scenarios that an earlier run saved, without calling the API. A
@@ -122,7 +140,8 @@ generated files:
 uv run fourway bench --generator replay --from results/2026-10-30-claude-opus-5-5-run2 --repeat 3
 ```
 
-Run your own scenario tests four ways on two branches of a repository:
+Run your own scenario tests four ways on two branches of a repository. The
+scenarios run in the sandbox unless you pass `--trusted`:
 
 ```bash
 uv run fourway pair --repo PATH --base main --a branch-a --b branch-b --scenarios DIR
@@ -145,10 +164,12 @@ The test suite enforces all three.
 
 A generated scenario is code that a model wrote from diff text. If the diff
 comes from someone you don't trust, a prompt injection in the diff can steer
-the model into writing a test that runs anything. Until the runner executes
-scenarios in a container with no network and no credentials, run fourway only
-on changes you wrote. For details, see
-[decision 0002](docs/decisions/0002-generated-scenarios-run-only-on-trusted-diffs.md).
+the model into writing a test that runs anything. For a diff you didn't write,
+run scenarios in the sandbox. It blocks the network, passes no credentials,
+and mounts the tree read-only. It's an ordinary container, though, so it
+shares the host's kernel on Linux. For details, see
+[decision 0002](docs/decisions/0002-generated-scenarios-run-only-on-trusted-diffs.md)
+and [decision 0003](docs/decisions/0003-sandboxed-runner-in-go.md).
 
 ## Research
 

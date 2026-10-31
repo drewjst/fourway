@@ -9,7 +9,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from . import bench, gitops, ledger, mine, pipeline
+from . import bench, gitops, ledger, mine, pipeline, runner
 from .case import load_corpus
 from .classify import CONFLICTS, REGRESSIONS
 from .generators import BLIND, CONTROLS, Replay
@@ -19,10 +19,16 @@ _REPO_CORPUS = Path(__file__).resolve().parents[2] / "corpus"
 DEFAULT_CORPUS = _REPO_CORPUS if _REPO_CORPUS.is_dir() else Path("corpus")
 
 
+def _sandbox(args: argparse.Namespace) -> runner.Sandbox | None:
+    """The sandbox the command asked for, or None. Raises SandboxError if it can't be used."""
+    return runner.Sandbox.resolve(args.sandbox_image) if args.sandbox else None
+
+
 def _check_corpus(args: argparse.Namespace) -> int:
     failed = dropped = 0
+    sandbox = _sandbox(args)
     for case in load_corpus(args.corpus):
-        problems = bench.check_case(case)
+        problems = bench.check_case(case, sandbox)
         prune = bool(problems) and args.prune_mined and case.mined
         print(f"{'ok  ' if not problems else 'drop' if prune else 'FAIL'}  {case.id}")
         for problem in problems:
@@ -64,7 +70,7 @@ def _bench(args: argparse.Namespace) -> int:
         options = {"root": args.replay_from}
     results = bench.run(
         cases, args.generator, repeat=args.repeat, timeout=args.timeout,
-        ledger_path=args.ledger, options=options,
+        ledger_path=args.ledger, options=options, sandbox=_sandbox(args),
     )
     summary = bench.summarize(args.generator, results)
     print(bench.format_report(summary, results))
@@ -79,18 +85,24 @@ def _pair(args: argparse.Namespace) -> int:
     if not scenarios:
         print(f"no test_*.py files in {args.scenarios}", file=sys.stderr)
         return 2
+    try:
+        sandbox = None if args.trusted else runner.Sandbox.resolve(args.sandbox_image)
+    except runner.SandboxError as e:
+        print(f"pair runs scenarios in the sandbox unless --trusted is passed: {e}", file=sys.stderr)
+        return 2
     shas = [gitops.resolve(args.repo, ref) for ref in (args.base, args.a, args.b)]
     with tempfile.TemporaryDirectory(prefix="fourway-pair-") as tmp:
         work = Path(tmp)
         clone = gitops.clone(args.repo, work / "repo")
         try:
             result = pipeline.verify(
-                clone, *shas, scenarios, work / "run", repeat=args.repeat, timeout=args.timeout
+                clone, *shas, scenarios, work / "run", repeat=args.repeat, timeout=args.timeout,
+                sandbox=sandbox,
             )
         except gitops.MergeConflict as e:
             print(e, file=sys.stderr)
             return 2
-    rec = ledger.record(result, scenarios, generator="manual", repeat=args.repeat)
+    rec = ledger.record(result, scenarios, generator="manual", repeat=args.repeat, image=sandbox and sandbox.image)
     if args.ledger:
         ledger.append(args.ledger, rec)
     for test, finding in sorted(result.findings.items()):
@@ -112,11 +124,18 @@ def main(argv: list[str] | None = None) -> int:
         p.add_argument("--repeat", type=int, default=1, help="runs per tree; differing outcomes are flaky")
         p.add_argument("--timeout", type=float, default=120.0, help="seconds per pytest run")
         p.add_argument("--ledger", type=Path, help="append evidence records to this JSONL file")
+        p.add_argument("--sandbox-image", default=runner.SANDBOX_IMAGE, help="image the sandbox runs pytest in")
+
+    def sandboxed(p: argparse.ArgumentParser) -> None:
+        p.add_argument("--sandbox", action="store_true",
+                       help="run each pytest session in a container with no network (docs/decisions/0003)")
 
     check = sub.add_parser("check-corpus", help="validate every benchmark case against its own answer key")
     check.add_argument("--corpus", type=Path, default=DEFAULT_CORPUS)
     check.add_argument("--prune-mined", action="store_true",
                        help="delete mined pairs that fail instead of failing; seeded cases still fail")
+    check.add_argument("--sandbox-image", default=runner.SANDBOX_IMAGE, help="image the sandbox runs pytest in")
+    sandboxed(check)
     check.set_defaults(func=_check_corpus)
 
     dig = sub.add_parser("mine", help="add clean pairs from a pinned repository's merged pull requests")
@@ -137,8 +156,9 @@ def main(argv: list[str] | None = None) -> int:
     run.add_argument("--from", dest="replay_from", type=Path,
                      help="--out directory of an earlier run (generator replay only)")
     run.add_argument("--seeded-only", action="store_true",
-                     help="leave out pairs mined from history (required for model scenarios until #2)")
+                     help="leave out pairs mined from history (required for model scenarios without --sandbox)")
     common(run)
+    sandboxed(run)
     run.set_defaults(func=_bench)
 
     pair = sub.add_parser("pair", help="run a directory of scenario tests four ways on a git repo")
@@ -147,11 +167,17 @@ def main(argv: list[str] | None = None) -> int:
     pair.add_argument("--a", required=True)
     pair.add_argument("--b", required=True)
     pair.add_argument("--scenarios", type=Path, required=True, help="directory of test_*.py files")
+    pair.add_argument("--trusted", action="store_true",
+                      help="run scenarios as local subprocesses; only for scenarios you wrote or reviewed")
     common(pair)
     pair.set_defaults(func=_pair)
 
     args = parser.parse_args(argv)
-    return args.func(args)
+    try:
+        return args.func(args)
+    except runner.SandboxError as e:
+        print(f"sandbox: {e}", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":
