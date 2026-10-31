@@ -51,16 +51,17 @@ The repository contains the following:
 
 - The four-way runner, the classifier, and an evidence ledger keyed on the
   commits, environment, and scenario set that were verified.
-- A seeded corpus: one small payments app and six pairs of changes with known
-  answers. For details, see [`corpus/README.md`](corpus/README.md).
+- A seeded corpus of twelve pairs of changes with known answers: six in a
+  small payments app and six in real repositories. For details, see
+  [`corpus/README.md`](corpus/README.md).
 - Three control generators: `null`, `oracle`, and `deranged`.
 - A Claude-backed generator, `claude`, that writes intent and invariant
   scenarios from the base tree, both diffs, and both change descriptions. Each
   scored run is recorded in [`results/`](results/).
 
-A case can pin a commit of a real repository and change it with patches.
-The corpus has no cases in real repositories yet, and the runner isn't
-sandboxed.
+The corpus also has six cases seeded into pinned commits of three real
+repositories: `cachetools`, `tenacity`, and `tinydb`. The runner isn't
+sandboxed, so building those cases runs upstream code.
 
 ## Usage
 

@@ -1,0 +1,103 @@
+diff --git a/tests/test_insert_cache.py b/tests/test_insert_cache.py
+new file mode 100644
+index 0000000..c27dbf1
+--- /dev/null
++++ b/tests/test_insert_cache.py
+@@ -0,0 +1,51 @@
++from tinydb import TinyDB, where
++from tinydb.storages import MemoryStorage
++
++
++def test_insert_adds_to_matching_cached_searches():
++    db = TinyDB(storage=MemoryStorage)
++    db.insert({'int': 1})
++    query = where('int') == 1
++    assert len(db.search(query)) == 1
++
++    db.insert({'int': 1, 'char': 'b'})
++
++    assert query in db._query_cache
++    assert db.search(query) == [{'int': 1}, {'int': 1, 'char': 'b'}]
++
++
++def test_insert_leaves_other_cached_searches_alone():
++    db = TinyDB(storage=MemoryStorage)
++    db.insert({'int': 1})
++    query = where('int') == 2
++    assert db.search(query) == []
++
++    db.insert({'int': 1})
++
++    assert query in db._query_cache
++    assert db.search(query) == []
++
++
++def test_insert_does_not_rescan_the_table():
++    db = TinyDB(storage=MemoryStorage)
++    table = db.table('t')
++    table.insert({'int': 1})
++    query = where('int') == 1
++    table.search(query)
++
++    table.insert({'int': 1})
++    table._read_table = lambda: {}
++
++    assert len(table.search(query)) == 2
++
++
++def test_other_writes_still_clear_the_cache():
++    db = TinyDB(storage=MemoryStorage)
++    db.insert({'int': 1})
++    query = where('int') == 1
++    db.search(query)
++
++    db.update({'int': 2})
++
++    assert query not in db._query_cache
++    assert db.search(query) == []
+diff --git a/tinydb/table.py b/tinydb/table.py
+index 76470aa..112407d 100644
+--- a/tinydb/table.py
++++ b/tinydb/table.py
+@@ -171,8 +171,16 @@ class Table:
+             # implemented the ``Mapping`` interface
+             table[doc_id] = dict(document)
+ 
+-        # See below for details on ``Table._update``
+-        self._update_table(updater)
++        # See below for details on ``Table._update``. The query cache is kept:
++        # the new document can only add to the results of cached searches.
++        self._update_table(updater, clear_cache=False)
++
++        new_doc = self.document_class(
++            dict(document), self.document_id_class(doc_id)
++        )
++        for cond in list(self._query_cache):
++            if cond(new_doc):
++                self._query_cache[cond].append(new_doc)
+ 
+         return doc_id
+ 
+@@ -801,7 +809,11 @@ class Table:
+ 
+         return table
+ 
+-    def _update_table(self, updater: Callable[[dict[int, Mapping]], None]):
++    def _update_table(
++        self,
++        updater: Callable[[dict[int, Mapping]], None],
++        clear_cache: bool = True,
++    ):
+         """
+         Perform a table update operation.
+ 
+@@ -850,5 +862,7 @@ class Table:
+         # Write the newly updated data back to the storage
+         self._storage.write(tables)
+ 
+-        # Clear the query cache, as the table contents have changed
+-        self.clear_cache()
++        # Clear the query cache, as the table contents have changed, unless
++        # the caller keeps the cached results up to date itself
++        if clear_cache:
++            self.clear_cache()

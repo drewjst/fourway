@@ -1,0 +1,26 @@
+base = { repo = "tenacity" }
+label = "conflict"
+expect = "differential_a"
+class = "new stop strategy x pipeline order"
+
+[a]
+title = "Add stop_before_idle"
+body = """
+A worker may spend only so long sleeping between retries, however long each
+attempt takes. stop_after_delay and stop_before_delay count the time spent
+inside attempts too, so slow attempts used up the budget for waiting.
+stop_before_idle stops before the total sleep would exceed max_idle.
+"""
+
+[b]
+title = "Skip the wait strategy for the attempt that stops"
+body = """
+After a failed attempt, the wait strategy ran before the stop strategy, so the
+final attempt computed a sleep that was thrown away. wait_random and
+wait_random_exponential drew from the random generator, and a custom wait that
+asks a rate-limit service made one extra call per retried call. The stop
+strategy now runs first, and the wait runs only for a retry that goes ahead.
+stop_before_delay reads the upcoming sleep, so it sets needs_upcoming_sleep,
+and the wait still runs first for it and for any stop_any or stop_all that
+contains it.
+"""

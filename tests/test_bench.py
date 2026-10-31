@@ -79,6 +79,14 @@ def test_the_right_scenario_on_the_wrong_pair_detects_less(scores):
     assert scores["deranged"].false_positives == 0
 
 
+def test_a_deranged_case_never_gets_its_twins_oracle(cases):
+    """Twins share change A and often the oracle; a twin as donor hands a case its own answer."""
+    deranged = generators.Deranged(cases)
+    for case in cases:
+        donor = deranged._donor[case.id]
+        assert donor.id != case.id and donor.conflict_class != case.conflict_class
+
+
 def test_replay_reproduces_the_run_it_reads(cases, tmp_path):
     """A rescore after a runner fix credits the fix only if replaying unchanged files gives the original score."""
     original = bench.run(cases, "oracle")

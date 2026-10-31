@@ -1,0 +1,57 @@
+diff --git a/tests/test_search_order.py b/tests/test_search_order.py
+new file mode 100644
+index 0000000..7ad6f13
+--- /dev/null
++++ b/tests/test_search_order.py
+@@ -0,0 +1,25 @@
++from tinydb import TinyDB, where
++from tinydb.storages import MemoryStorage
++from tinydb.table import Document
++
++
++def test_search_returns_matches_in_id_order():
++    db = TinyDB(storage=MemoryStorage)
++    db.insert(Document({'int': 1}, doc_id=5))
++    db.insert(Document({'int': 1}, doc_id=2))
++    db.insert({'int': 1})
++
++    assert [doc.doc_id for doc in db.search(where('int') == 1)] == [2, 5, 6]
++
++
++def test_cached_search_keeps_id_order():
++    db = TinyDB(storage=MemoryStorage)
++    db.insert(Document({'int': 1}, doc_id=5))
++    db.insert(Document({'int': 1}, doc_id=2))
++    query = where('int') == 1
++
++    first = db.search(query)
++    second = db.search(query)
++
++    assert query in db._query_cache
++    assert [doc.doc_id for doc in first] == [doc.doc_id for doc in second] == [2, 5]
+diff --git a/tinydb/table.py b/tinydb/table.py
+index 76470aa..4e59d37 100644
+--- a/tinydb/table.py
++++ b/tinydb/table.py
+@@ -250,6 +250,8 @@ class Table:
+         """
+         Search for all documents matching a 'where' cond.
+ 
++        Matches are returned in document ID order.
++
+         Note: a repeated search with the same ``cond`` is served from an
+         internal cache. The returned list is a fresh copy, but its
+         documents are the same objects held by the cache -- treat them as
+@@ -275,6 +277,12 @@ class Table:
+             if cond(doc)
+         ]
+ 
++        # Storages keep insertion order, so a document inserted with an
++        # explicit, lower ID came after documents with higher IDs. Return
++        # matches in ID order however they were inserted; the cached copy
++        # below keeps that order too.
++        docs.sort(key=lambda doc: doc.doc_id)
++
+         # Only cache cacheable queries.
+         #
+         # This weird `getattr` dance is needed to make MyPy happy as

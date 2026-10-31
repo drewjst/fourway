@@ -1,0 +1,20 @@
+base = { repo = "cachetools" }
+label = "clean"
+expect = "ok"
+class = "new subclass x read path"
+
+[a]
+title = "Add MRUCache"
+body = """
+Some workloads scan keys in order, and the item read most recently is the one
+least likely to be read again. MRUCache evicts the most recently used item. It
+tracks use the same way LRUCache does.
+"""
+
+[b]
+title = "Add Cache.peek()"
+body = """
+Monitoring code read cached values with get(), which counts as a use in
+LRUCache and LFUCache and changes what they evict next. peek() returns a value
+without counting as a use. Timed caches still hide expired items from peek().
+"""

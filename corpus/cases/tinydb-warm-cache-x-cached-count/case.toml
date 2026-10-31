@@ -1,0 +1,21 @@
+base = { repo = "tinydb" }
+label = "clean"
+expect = "ok"
+class = "cache maintenance x result order"
+
+[a]
+title = "Keep cached searches across inserts"
+body = """
+Every insert cleared the whole query cache, so a read-heavy table that takes
+occasional inserts ran every search again from storage. An insert can only add
+to a search result, so insert() now appends the new document to each cached
+result whose query matches it and keeps the cache. Other writes still clear it.
+"""
+
+[b]
+title = "Answer count() from the query cache"
+body = """
+count() called search(), which copies the cached result list only to take its
+length. count() now reads the length of a cached result directly and searches
+only on a cache miss.
+"""

@@ -1,0 +1,131 @@
+diff --git a/src/cachetools/__init__.py b/src/cachetools/__init__.py
+index 3821755..e0eaf21 100644
+--- a/src/cachetools/__init__.py
++++ b/src/cachetools/__init__.py
+@@ -5,6 +5,7 @@ __all__ = (
+     "FIFOCache",
+     "LFUCache",
+     "LRUCache",
++    "MRUCache",
+     "RRCache",
+     "TLRUCache",
+     "TTLCache",
+@@ -336,6 +337,48 @@ class LRUCache(Cache):
+             self.__order[key] = None
+ 
+ 
++class MRUCache(Cache):
++    """Most Recently Used (MRU) cache implementation."""
++
++    def __init__(self, maxsize, getsizeof=None):
++        Cache.__init__(self, maxsize, getsizeof)
++        self.__order = collections.OrderedDict()
++
++    def __getitem__(self, key, cache_getitem=Cache.__getitem__):
++        value = cache_getitem(self, key)
++        try:
++            self.__order.move_to_end(key)
++        except KeyError:  # __missing__ may not store item
++            pass
++        return value
++
++    def __setitem__(self, key, value, cache_setitem=Cache.__setitem__):
++        cache_setitem(self, key, value)
++        try:
++            self.__order.move_to_end(key)
++        except KeyError:
++            self.__order[key] = None
++
++    def __delitem__(self, key, cache_delitem=Cache.__delitem__):
++        cache_delitem(self, key)
++        del self.__order[key]
++
++    def popitem(self):
++        """Remove and return the `(key, value)` pair most recently used."""
++        try:
++            key = next(reversed(self.__order))
++        except StopIteration:
++            raise KeyError("%s is empty" % type(self).__name__) from None
++        else:
++            value = Cache.__getitem__(self, key)
++            del self[key]
++            return (key, value)
++
++    def clear(self):
++        Cache.clear(self)
++        self.__order.clear()
++
++
+ class RRCache(Cache):
+     """Random Replacement (RR) cache implementation."""
+ 
+diff --git a/tests/test_mru.py b/tests/test_mru.py
+new file mode 100644
+index 0000000..843a9c3
+--- /dev/null
++++ b/tests/test_mru.py
+@@ -0,0 +1,64 @@
++import unittest
++
++from cachetools import MRUCache
++
++from . import CacheTestMixin
++
++
++class MRUCacheTest(unittest.TestCase, CacheTestMixin):
++    Cache = MRUCache
++
++    def test_mru(self):
++        cache = MRUCache[int, int](maxsize=2)
++
++        cache[1] = 1
++        cache[2] = 2
++        cache[3] = 3  # evicts 2, the most recently used
++
++        self.assertEqual(len(cache), 2)
++        self.assertIn(1, cache)
++        self.assertIn(3, cache)
++        self.assertNotIn(2, cache)
++
++        cache[1]  # 1 is now the most recently used
++        cache[4] = 4
++        self.assertEqual(len(cache), 2)
++        self.assertNotIn(1, cache)
++        self.assertIn(3, cache)
++        self.assertIn(4, cache)
++
++    def test_mru_update_existing(self):
++        cache = MRUCache[int, int | str](maxsize=2)
++
++        cache[1] = 1
++        cache[2] = 2
++        cache[1] = "updated"  # updating counts as a use
++        cache[3] = 3
++
++        self.assertNotIn(1, cache)
++        self.assertEqual(cache[2], 2)
++        self.assertEqual(cache[3], 3)
++
++    def test_mru_popitem(self):
++        cache = MRUCache[int, int](maxsize=3)
++
++        cache[1] = 1
++        cache[2] = 2
++        cache[3] = 3
++        cache[1]
++
++        self.assertEqual(cache.popitem(), (1, 1))
++        self.assertEqual(cache.popitem(), (3, 3))
++        self.assertEqual(cache.popitem(), (2, 2))
++
++    def test_mru_clear(self):
++        cache = MRUCache[int, int](maxsize=2)
++
++        cache[1] = 1
++        cache[2] = 2
++        cache.clear()
++        cache[3] = 3
++        cache[4] = 4
++
++        self.assertEqual(cache.popitem(), (4, 4))
++        self.assertEqual(cache.popitem(), (3, 3))

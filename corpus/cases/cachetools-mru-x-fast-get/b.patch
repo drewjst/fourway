@@ -1,0 +1,104 @@
+diff --git a/src/cachetools/__init__.py b/src/cachetools/__init__.py
+index 3821755..6a054a6 100644
+--- a/src/cachetools/__init__.py
++++ b/src/cachetools/__init__.py
+@@ -119,10 +119,11 @@ class Cache(collections.abc.MutableMapping):
+     # somewhat less elegant versions.
+ 
+     def get(self, key, default=None):
+-        if key in self:
+-            return self[key]
+-        else:
+-            return default
++        # One lookup in the data dict, not a membership test followed by
++        # __getitem__.  Subclasses that do more on a read, such as
++        # recording a use or checking expiry, override get() to read
++        # through __getitem__.
++        return self.__data.get(key, default)
+ 
+     def pop(self, key, default=__marker):
+         if key in self:
+@@ -232,6 +233,10 @@ class LFUCache(Cache):
+             self.__touch(key)
+         return value
+ 
++    def get(self, key, default=None):
++        # a read through get() counts as a use
++        return self[key] if key in self else default
++
+     def __setitem__(self, key, value, cache_setitem=Cache.__setitem__):
+         cache_setitem(self, key, value)
+         if key in self.__links:
+@@ -305,6 +310,10 @@ class LRUCache(Cache):
+             pass
+         return value
+ 
++    def get(self, key, default=None):
++        # a read through get() counts as a use
++        return self[key] if key in self else default
++
+     def __setitem__(self, key, value, cache_setitem=Cache.__setitem__):
+         cache_setitem(self, key, value)
+         self.__touch(key)
+@@ -437,9 +446,10 @@ class _TimedCache(Cache):
+         """The timer function used by the cache."""
+         return self.__timer
+ 
+-    def get(self, *args, **kwargs):
++    def get(self, key, default=None):
++        # __contains__ and __getitem__ check expiry
+         with self.__timer:
+-            return Cache.get(self, *args, **kwargs)
++            return self[key] if key in self else default
+ 
+     def pop(self, *args, **kwargs):
+         with self.__timer:
+diff --git a/tests/test_get.py b/tests/test_get.py
+new file mode 100644
+index 0000000..399269b
+--- /dev/null
++++ b/tests/test_get.py
+@@ -0,0 +1,43 @@
++import unittest
++
++from cachetools import Cache, FIFOCache, LFUCache, LRUCache, TTLCache
++
++
++class GetTest(unittest.TestCase):
++    def test_get_reads_the_value_or_the_default(self):
++        for cache in (Cache[int, int](maxsize=2), FIFOCache[int, int](maxsize=2)):
++            cache[1] = 1
++            self.assertEqual(cache.get(1), 1)
++            self.assertIsNone(cache.get(2))
++            self.assertEqual(cache.get(2, 0), 0)
++
++    def test_get_counts_as_a_use_in_lru(self):
++        cache = LRUCache[int, int](maxsize=2)
++
++        cache[1] = 1
++        cache[2] = 2
++        self.assertEqual(cache.get(1), 1)
++        cache[3] = 3
++
++        self.assertIn(1, cache)
++        self.assertNotIn(2, cache)
++
++    def test_get_counts_as_a_use_in_lfu(self):
++        cache = LFUCache[int, int](maxsize=2)
++
++        cache[1] = 1
++        cache[2] = 2
++        self.assertEqual(cache.get(1), 1)
++        cache[3] = 3
++
++        self.assertIn(1, cache)
++        self.assertNotIn(2, cache)
++
++    def test_get_hides_expired_items(self):
++        now = [0]
++        cache = TTLCache[int, int](maxsize=2, ttl=10, timer=lambda: now[0])
++
++        cache[1] = 1
++        self.assertEqual(cache.get(1), 1)
++        now[0] = 10
++        self.assertIsNone(cache.get(1))

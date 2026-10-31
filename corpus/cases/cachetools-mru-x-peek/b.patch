@@ -1,0 +1,79 @@
+diff --git a/src/cachetools/__init__.py b/src/cachetools/__init__.py
+index 3821755..ef462fd 100644
+--- a/src/cachetools/__init__.py
++++ b/src/cachetools/__init__.py
+@@ -124,6 +124,11 @@ class Cache(collections.abc.MutableMapping):
+         else:
+             return default
+ 
++    def peek(self, key, default=None):
++        """Return the value for `key` if `key` is in the cache, else
++        `default`, without counting as a use of `key`."""
++        return self.__data.get(key, default)
++
+     def pop(self, key, default=__marker):
+         if key in self:
+             value = self[key]
+@@ -441,6 +446,11 @@ class _TimedCache(Cache):
+         with self.__timer:
+             return Cache.get(self, *args, **kwargs)
+ 
++    def peek(self, key, default=None):
++        # __contains__ checks expiry without counting as a use
++        with self.__timer:
++            return Cache.peek(self, key, default) if key in self else default
++
+     def pop(self, *args, **kwargs):
+         with self.__timer:
+             return Cache.pop(self, *args, **kwargs)
+diff --git a/tests/test_peek.py b/tests/test_peek.py
+new file mode 100644
+index 0000000..1392067
+--- /dev/null
++++ b/tests/test_peek.py
+@@ -0,0 +1,45 @@
++import unittest
++
++from cachetools import LFUCache, LRUCache, TTLCache
++
++
++class PeekTest(unittest.TestCase):
++    def test_peek_does_not_count_as_a_use_in_lru(self):
++        cache = LRUCache[int, int](maxsize=2)
++
++        cache[1] = 1
++        cache[2] = 2
++        self.assertEqual(cache.peek(1), 1)
++        cache[3] = 3
++
++        self.assertNotIn(1, cache)
++        self.assertIn(2, cache)
++
++    def test_peek_does_not_count_as_a_use_in_lfu(self):
++        cache = LFUCache[int, int](maxsize=2)
++
++        cache[1] = 1
++        cache[2] = 2
++        cache[2]
++        self.assertEqual(cache.peek(1), 1)
++        self.assertEqual(cache.peek(1), 1)
++        cache[3] = 3
++
++        self.assertNotIn(1, cache)
++        self.assertIn(2, cache)
++
++    def test_peek_missing(self):
++        cache = LRUCache[int, int](maxsize=2)
++
++        self.assertIsNone(cache.peek(1))
++        self.assertEqual(cache.peek(1, 0), 0)
++
++    def test_peek_hides_expired_items(self):
++        now = [0]
++        cache = TTLCache[int, int](maxsize=2, ttl=10, timer=lambda: now[0])
++
++        cache[1] = 1
++        self.assertEqual(cache.peek(1), 1)
++        now[0] = 10
++        self.assertIsNone(cache.peek(1))
++        self.assertEqual(cache.peek(1, 0), 0)

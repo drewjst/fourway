@@ -1,0 +1,127 @@
+diff --git a/tenacity/__init__.py b/tenacity/__init__.py
+index 89eeca6..33f7fec 100644
+--- a/tenacity/__init__.py
++++ b/tenacity/__init__.py
+@@ -465,10 +465,18 @@ class BaseRetrying(ABC):
+         if self.after is not None:
+             self._add_action_func(self.after)
+ 
+-        self._add_action_func(self._run_wait)
++        # Compute the wait only for a retry that goes ahead, unless the stop
++        # strategy decides with the upcoming sleep. A wait strategy can draw
++        # random numbers or call a rate-limit service; the final attempt
++        # threw that work away.
++        if self._stop_needs_upcoming_sleep():
++            self._add_action_func(self._run_wait)
+         self._add_action_func(self._run_stop)
+         self._add_action_func(self._post_stop_check_actions)
+ 
++    def _stop_needs_upcoming_sleep(self) -> bool:
++        return getattr(self.stop, "needs_upcoming_sleep", False)
++
+     def _post_stop_check_actions(self, retry_state: "RetryCallState") -> None:
+         if self.iter_state.stop_run_result:
+             if self.retry_error_callback:
+@@ -485,6 +493,9 @@ class BaseRetrying(ABC):
+             self._add_action_func(exc_check)
+             return
+ 
++        if not self._stop_needs_upcoming_sleep():
++            self._add_action_func(self._run_wait)
++
+         def next_action(rs: "RetryCallState") -> None:
+             sleep = rs.upcoming_sleep
+             rs.next_action = RetryAction(sleep)
+diff --git a/tenacity/stop.py b/tenacity/stop.py
+index c1f51ea..0c47632 100644
+--- a/tenacity/stop.py
++++ b/tenacity/stop.py
+@@ -28,6 +28,11 @@ if typing.TYPE_CHECKING:
+ class stop_base(abc.ABC):
+     """Abstract base class for stop strategies."""
+ 
++    #: True if the strategy reads ``retry_state.upcoming_sleep``. The wait
++    #: strategy then runs before the stop strategy; otherwise it runs only
++    #: when the retry goes ahead.
++    needs_upcoming_sleep: bool = False
++
+     @abc.abstractmethod
+     def __call__(self, retry_state: "RetryCallState") -> bool:
+         pass
+@@ -47,6 +52,9 @@ class stop_any(stop_base):
+ 
+     def __init__(self, *stops: stop_base) -> None:
+         self.stops = stops
++        self.needs_upcoming_sleep = any(
++            getattr(x, "needs_upcoming_sleep", False) for x in stops
++        )
+ 
+     @override
+     def __call__(self, retry_state: "RetryCallState") -> bool:
+@@ -58,6 +66,9 @@ class stop_all(stop_base):
+ 
+     def __init__(self, *stops: stop_base) -> None:
+         self.stops = stops
++        self.needs_upcoming_sleep = any(
++            getattr(x, "needs_upcoming_sleep", False) for x in stops
++        )
+ 
+     @override
+     def __call__(self, retry_state: "RetryCallState") -> bool:
+@@ -125,6 +136,8 @@ class stop_before_delay(stop_base):
+     sure that the max_delay is not exceeded.
+     """
+ 
++    needs_upcoming_sleep = True
++
+     def __init__(self, max_delay: _utils.time_unit_type) -> None:
+         self.max_delay = _utils.to_seconds(max_delay)
+ 
+diff --git a/tests/test_stop_first.py b/tests/test_stop_first.py
+new file mode 100644
+index 0000000..69110d8
+--- /dev/null
++++ b/tests/test_stop_first.py
+@@ -0,0 +1,42 @@
++import unittest
++
++import tenacity
++from tenacity import Retrying, RetryError, stop_after_attempt, stop_before_delay
++
++
++class CountingWait:
++    def __init__(self) -> None:
++        self.calls = 0
++
++    def __call__(self, retry_state: tenacity.RetryCallState) -> float:
++        self.calls += 1
++        return 0
++
++
++def always_fails() -> None:
++    raise ValueError("boom")
++
++
++class TestStopFirst(unittest.TestCase):
++    def test_no_wait_for_the_final_attempt(self) -> None:
++        wait = CountingWait()
++        r = Retrying(stop=stop_after_attempt(3), wait=wait, sleep=lambda s: None)
++        with self.assertRaises(RetryError):
++            r(always_fails)
++        self.assertEqual(wait.calls, 2)
++
++    def test_stop_before_delay_still_sees_the_upcoming_sleep(self) -> None:
++        sleeps: list[float] = []
++        r = Retrying(
++            stop=stop_before_delay(1000),
++            wait=tenacity.wait_fixed(2000),
++            sleep=sleeps.append,
++        )
++        with self.assertRaises(RetryError):
++            r(always_fails)
++        self.assertEqual(sleeps, [])
++
++    def test_combined_stops_pass_the_need_on(self) -> None:
++        stop = stop_after_attempt(5) | stop_before_delay(1000)
++        self.assertTrue(stop.needs_upcoming_sleep)
++        self.assertFalse((stop_after_attempt(5) | stop_after_attempt(6)).needs_upcoming_sleep)

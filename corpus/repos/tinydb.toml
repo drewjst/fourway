@@ -1,0 +1,6 @@
+url = "https://github.com/msiemens/tinydb"
+commit = "edff96aeb2616402e9489d46e90a592c05565621"
+license = "MIT"
+tests = "tests"
+# pytest.ini adds coverage flags that need pytest-cov, which fourway does not install.
+pytest_args = ["-o", "addopts="]

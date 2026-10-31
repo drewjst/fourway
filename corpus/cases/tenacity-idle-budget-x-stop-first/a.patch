@@ -1,0 +1,86 @@
+diff --git a/tenacity/__init__.py b/tenacity/__init__.py
+index 89eeca6..74999e5 100644
+--- a/tenacity/__init__.py
++++ b/tenacity/__init__.py
+@@ -65,6 +65,7 @@ from .stop import (
+     stop_all,
+     stop_any,
+     stop_before_delay,
++    stop_before_idle,
+     stop_never,
+     stop_when_event_set,
+ )
+@@ -856,6 +857,7 @@ __all__ = [
+     "stop_all",
+     "stop_any",
+     "stop_before_delay",
++    "stop_before_idle",
+     "stop_never",
+     "stop_when_event_set",
+     "wait_chain",
+diff --git a/tenacity/stop.py b/tenacity/stop.py
+index c1f51ea..bac2db6 100644
+--- a/tenacity/stop.py
++++ b/tenacity/stop.py
+@@ -97,6 +97,22 @@ class stop_after_attempt(stop_base):
+         return retry_state.attempt_number >= self.max_attempt_number
+ 
+ 
++class stop_before_idle(stop_base):
++    """
++    Stop right before the total time spent sleeping between attempts would exceed `max_idle`.
++
++    Unlike `stop_after_delay` and `stop_before_delay`, time spent inside attempts does not
++    count, so slow attempts do not use up the budget for waiting.
++    """
++
++    def __init__(self, max_idle: _utils.time_unit_type) -> None:
++        self.max_idle = _utils.to_seconds(max_idle)
++
++    @override
++    def __call__(self, retry_state: "RetryCallState") -> bool:
++        return retry_state.idle_for + retry_state.upcoming_sleep > self.max_idle
++
++
+ class stop_after_delay(stop_base):
+     """
+     Stop when the time from the first attempt >= limit.
+diff --git a/tests/test_stop_before_idle.py b/tests/test_stop_before_idle.py
+new file mode 100644
+index 0000000..b9e9fb4
+--- /dev/null
++++ b/tests/test_stop_before_idle.py
+@@ -0,0 +1,33 @@
++import unittest
++
++import tenacity
++from tenacity import Retrying
++
++from .test_tenacity import make_retry_state
++
++
++def idle_state(idle_for: float, upcoming_sleep: float) -> tenacity.RetryCallState:
++    retry_state = make_retry_state(2, 100, upcoming_sleep=upcoming_sleep)
++    retry_state.idle_for = idle_for
++    return retry_state
++
++
++class TestStopBeforeIdle(unittest.TestCase):
++    def test_stop_before_idle(self) -> None:
++        r = Retrying(stop=tenacity.stop_before_idle(2))
++        self.assertFalse(r.stop(idle_state(0, 1)))
++        self.assertFalse(r.stop(idle_state(1, 1)))
++        self.assertTrue(r.stop(idle_state(1, 1.5)))
++        self.assertTrue(r.stop(idle_state(2, 0.001)))
++
++    def test_attempt_time_does_not_count(self) -> None:
++        r = Retrying(stop=tenacity.stop_before_idle(2))
++        retry_state = idle_state(0.5, 1)
++        self.assertGreater(retry_state.seconds_since_start, 2)
++        self.assertFalse(r.stop(retry_state))
++
++    def test_time_units(self) -> None:
++        from datetime import timedelta
++
++        r = Retrying(stop=tenacity.stop_before_idle(timedelta(seconds=2)))
++        self.assertTrue(r.stop(idle_state(1, 1.5)))

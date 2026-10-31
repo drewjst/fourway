@@ -1,0 +1,22 @@
+base = { repo = "cachetools" }
+label = "conflict"
+expect = "differential_a"
+class = "new subclass x read path"
+
+[a]
+title = "Add MRUCache"
+body = """
+Some workloads scan keys in order, and the item read most recently is the one
+least likely to be read again. MRUCache evicts the most recently used item. It
+tracks use the same way LRUCache does.
+"""
+
+[b]
+title = "Read the data dict once in Cache.get()"
+body = """
+Cache.get() did a membership test and then a __getitem__ call, which is two
+dict lookups and a method call for every read from FIFOCache, RRCache, and a
+plain Cache. get() now reads the data dict once. LRUCache and LFUCache count a
+read as a use, and TTLCache and TLRUCache check expiry on a read, so they
+override get() to keep reading through __getitem__.
+"""

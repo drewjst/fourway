@@ -76,15 +76,24 @@ class Oracle:
 
 
 class Deranged:
-    """Gives each case the oracle of the next case in id order."""
+    """Gives each case the oracle of the next case in id order with a different class.
+
+    A twin shares its conflict case's change A and often its oracle, so a twin
+    as donor would hand a case its own answer.
+    """
 
     name = "deranged"
 
     def __init__(self, cases: list[Case]):
-        if len(cases) < 2:
-            raise ValueError("a derangement needs at least two cases")
+        if len({c.conflict_class for c in cases}) < 2:
+            raise ValueError("a derangement needs cases of at least two classes")
         ordered = sorted(cases, key=lambda c: c.id)
-        self._donor = {c.id: ordered[(i + 1) % len(ordered)] for i, c in enumerate(ordered)}
+
+        def donor(i: int) -> Case:
+            rotated = ordered[i + 1:] + ordered[:i + 1]
+            return next(d for d in rotated if d.conflict_class != ordered[i].conflict_class)
+
+        self._donor = {c.id: donor(i) for i, c in enumerate(ordered)}
 
     def for_case(self, case: Case) -> Scenarios:
         return Scenarios(read_oracle(self._donor[case.id]))

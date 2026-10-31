@@ -1,0 +1,22 @@
+base = { repo = "tenacity" }
+label = "clean"
+expect = "ok"
+class = "new stop strategy x pipeline order"
+
+[a]
+title = "Add stop_before_idle"
+body = """
+A worker may spend only so long sleeping between retries, however long each
+attempt takes. stop_after_delay and stop_before_delay count the time spent
+inside attempts too, so slow attempts used up the budget for waiting.
+stop_before_idle stops before the total sleep would exceed max_idle.
+"""
+
+[b]
+title = "Count the sleep a before_sleep callback sets"
+body = """
+A before_sleep callback can set retry_state.upcoming_sleep, for example to
+honor a server's Retry-After header. The sleep changed, but idle_for, the
+statistics, and next_action still held the sleep the wait strategy chose. They
+now count the sleep that actually happens.
+"""

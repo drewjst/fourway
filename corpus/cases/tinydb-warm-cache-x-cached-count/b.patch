@@ -1,0 +1,47 @@
+diff --git a/tests/test_cached_count.py b/tests/test_cached_count.py
+new file mode 100644
+index 0000000..a8e6e34
+--- /dev/null
++++ b/tests/test_cached_count.py
+@@ -0,0 +1,25 @@
++from tinydb import TinyDB, where
++from tinydb.storages import MemoryStorage
++
++
++def test_count_uses_the_cached_result():
++    db = TinyDB(storage=MemoryStorage)
++    table = db.table('t')
++    table.insert_multiple([{'int': 1}, {'int': 1}, {'int': 2}])
++    query = where('int') == 1
++    assert table.count(query) == 2
++
++    table._read_table = lambda: {}
++
++    assert table.count(query) == 2
++
++
++def test_count_after_a_write_rereads():
++    db = TinyDB(storage=MemoryStorage)
++    db.insert({'int': 1})
++    query = where('int') == 1
++    assert db.count(query) == 1
++
++    db.remove(query)
++
++    assert db.count(query) == 0
+diff --git a/tinydb/table.py b/tinydb/table.py
+index 76470aa..9e5d5a3 100644
+--- a/tinydb/table.py
++++ b/tinydb/table.py
+@@ -713,6 +713,11 @@ class Table:
+         :param cond: the condition use
+         """
+ 
++        # A cached result answers without copying the list search() returns
++        cached_results = self._query_cache.get(cond)
++        if cached_results is not None:
++            return len(cached_results)
++
+         return len(self.search(cond))
+ 
+     def clear_cache(self) -> None:

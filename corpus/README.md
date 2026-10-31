@@ -51,9 +51,13 @@ projects you would install.
 
 The following table lists the cases. A clean twin makes the same change A as a
 conflict case and a different change B, so a generator can't score by matching
-on the files a pair touches. Two of the three conflict cases have a twin, and
+on the files a pair touches. Five of the six conflict cases have a twin, and
 `tests/test_bench.py` checks that twins share change A. The twin for
 `receipt-x-event-rename` is tracked in issue #5.
+
+The first six cases share the toy payments app in `apps/payments/`. The other
+six seed changes into pinned commits of three real repositories, listed in
+`repos/`.
 
 | Case | Label | Oracle finding | What happens on the merge |
 |---|---|---|---|
@@ -63,6 +67,12 @@ on the files a pair touches. Two of the three conflict cases have a twin, and
 | `cache-x-quote` | clean | `ok` | Quotes read through the cache and stay correct. |
 | `receipt-x-event-rename` | conflict | `differential_a` | The receipt handler listens for an event name that no longer fires. |
 | `free-order-skip-x-money-format` | clean | `regression_a` | A breaks small paid orders by itself. B is unrelated. |
+| `cachetools-mru-x-fast-get` | conflict | `differential_a` | A's new `MRUCache` stops counting `get()` as a use, because B's fast `get()` skips `__getitem__` for every class it didn't update. |
+| `cachetools-mru-x-peek` | clean | `ok` | `peek()` doesn't count as a use by design, and `get()` still does. |
+| `tenacity-idle-budget-x-stop-first` | conflict | `differential_a` | A's `stop_before_idle` reads a stale `upcoming_sleep`, because B runs the stop strategy before the wait. The sleep budget is overspent. |
+| `tenacity-idle-budget-x-sleep-override` | clean | `ok` | B changes only the accounting after `before_sleep`, so the budget check is unchanged. |
+| `tinydb-warm-cache-x-ordered-search` | conflict | `differential_b` | A appends an inserted document to cached results, so a cached search loses B's document ID order. |
+| `tinydb-warm-cache-x-cached-count` | clean | `ok` | `count()` reads the cached result that A keeps up to date. |
 
 ## Rules for a case
 
@@ -97,6 +107,9 @@ before run 2:
 
 Runs on different corpus versions are reported separately and never pooled.
 
+- **v3, 2026-10-30**: Six cases in three real repositories: `cachetools`,
+  `tenacity`, and `tinydb`. Each is a conflict and its clean twin. The toy
+  cases are unchanged from v2.
 - **v2, 2026-10-30**: The base `InMemoryPrices` has no `write()`, so the base
   app can't change a price while it runs. In `cache-x-set-price`, change B adds
   `write()` along with `set_price`, and its description no longer says that the
@@ -108,7 +121,14 @@ Runs on different corpus versions are reported separately and never pooled.
 
 ## Known limits
 
-The cases were written by the same person who builds the generators, in a
+The same author wrote every case and the generators. The toy cases live in a
 purpose-built app with a fake gateway that already supports fault schedules.
-Recall here is an upper bound on recall in a real repository. Cases seeded
-into real open-source repositories are tracked as a GitHub issue.
+The real-repository cases fix the toy app's size and idioms, but not the
+shared author.
+
+The three real-repository conflicts follow one pattern: one change adds a new
+user of an unwritten contract, and the other change alters the contract and
+updates every user that existed when it was written. All three are
+differential findings. None is emergent, and each twin's change B touches the
+same file as the conflict's change B. Recall on these cases is still an upper
+bound on recall against conflicts nobody seeded.
