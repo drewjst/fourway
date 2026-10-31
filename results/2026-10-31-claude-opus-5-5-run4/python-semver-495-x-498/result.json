@@ -1,0 +1,179 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 57460,
+    "output_tokens": 3191,
+    "scenarios": {
+      "test_is_valid_bytes_annotation.py": {
+        "kind": "intent_a",
+        "rationale": "Change A widens the is_valid annotation to accept bytes. B makes next_version advance the patch when switching to an earlier prerelease token. This checks the widened annotation and that is_valid accepts the UTF-8 bytes of the versions B now produces."
+      },
+      "test_next_version_token_switch.py": {
+        "kind": "intent_b",
+        "rationale": "Change B's patch-advance on a backward prerelease token switch must keep working when the result is round-tripped through parse and is_valid with bytes input, which A newly documents. Results must be strictly greater than the original, with build metadata dropped and the original left unchanged."
+      },
+      "test_next_version_validity_invariant.py": {
+        "kind": "invariant",
+        "rationale": "Every tree must keep next_version results valid SemVer, accepted by is_valid as both str and UTF-8 bytes, with build metadata cleared and the original untouched. Forward token switches and same-token increments must keep the current patch version."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:88583c10c2d095cefbae995b8c9da6b43361d845f2fe3a84b1c10507390e184e",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "adc2bf73a8b91990812270ec6bbdebe162a8191e",
+      "a": "37d6e7d21d5ad0c98edbb1e90b3968a2263fdca2",
+      "b": "3dc66de129ed1ac19eb9bae366d4e96861945217",
+      "ab": "bbf21cbfb5acbb8c1578e16d8f64ddbc9070d713",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:537ef9b79318ef94862c76c186d5c6564b4a299fd15c7a84b83e9d7ce5b0501a"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_is_valid_bytes_annotation.py::test_is_valid_annotation_includes_bytes": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_is_valid_bytes_annotation.py::test_is_valid_bytes_on_token_switch_results": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_next_version_token_switch.py::test_backward_token_switch_advances_patch[1.2.3-beta.3-alpha-1.2.4-alpha.1]": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_next_version_token_switch.py::test_backward_token_switch_advances_patch[1.2.3-rc.1+build.7-dev-1.2.4-dev.1]": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_next_version_token_switch.py::test_backward_token_switch_advances_patch[1.2.3-rc.1-alpha-1.2.4-alpha.1]": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_next_version_token_switch.py::test_backward_token_switch_advances_patch[1.2.3-rc3-alpha-1.2.4-alpha.1]": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_next_version_token_switch.py::test_backward_token_switch_preserves_subclass": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_next_version_validity_invariant.py::test_forward_and_same_token_keep_patch[0.1.2-rc3-rc-0.1.2-rc4]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_next_version_validity_invariant.py::test_forward_and_same_token_keep_patch[1.2.3-alpha.1-beta-1.2.3-beta.1]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_next_version_validity_invariant.py::test_forward_and_same_token_keep_patch[1.2.3-alpha.4-rc-1.2.3-rc.1]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_next_version_validity_invariant.py::test_forward_and_same_token_keep_patch[1.2.3-rc.3-rc-1.2.3-rc.4]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_next_version_validity_invariant.py::test_next_prerelease_is_valid_semver[1.2.3-alpha.4-rc]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_next_version_validity_invariant.py::test_next_prerelease_is_valid_semver[1.2.3-alphaXbeta9-alpha.beta]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_next_version_validity_invariant.py::test_next_prerelease_is_valid_semver[1.2.3-rc.1+build.7-dev]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_next_version_validity_invariant.py::test_next_prerelease_is_valid_semver[1.2.3-rc.1-2]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_next_version_validity_invariant.py::test_next_prerelease_is_valid_semver[1.2.3-rc.1-alpha]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_next_version_validity_invariant.py::test_next_prerelease_is_valid_semver[1.2.3-rc3-rc]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_next_version_validity_invariant.py::test_next_prerelease_is_valid_semver[1.2.3-rc]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:25:35.894209+00:00"
+  }
+}

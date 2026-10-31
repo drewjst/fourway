@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 53601,
+    "output_tokens": 3087,
+    "scenarios": {
+      "test_bump_build_comparisons.py": {
+        "kind": "intent_a",
+        "rationale": "Change A makes bump_build() append '.0' to digitless build metadata. Change B reroutes tuple, list and dict operands through the comparator decorator. This file checks that a digitless build is really raised, including with a prerelease and a subclass, and that the raised version still compares equal to well-formed collections now converted inside the comparator."
+      },
+      "test_malformed_operands_bumped.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes comparisons with malformed collections return NotImplemented. Equality then gives False and ordering raises Python's standard TypeError. This file checks that on versions produced by A's changed bump_build(), including digitless builds."
+      },
+      "test_build_precedence_invariant.py": {
+        "kind": "invariant",
+        "rationale": "Build metadata never affects precedence. Whatever bump_build() produces (A changes it) must still compare equal to the original version and to that version's own tuple, list and dict forms. Those forms now go through B's new conversion path in the comparator. Equal versions must also keep equal hashes."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:980d1a33cac9768105219133564dcb04c3edf64d559b653e20b0d0916c16c0c0",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "9a37ecfe8a21e9e59458649d4e99c8fa2b496eca",
+      "a": "c8720237e1e92bfa755f6842ca3c7b03f56b61dc",
+      "b": "1b7906b972ce9446c17b8f2e9eefb4a7a32be365",
+      "ab": "3b19045bd0cc74b923086c2cdea8db3727408e7b",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:1cb0a68fdbdeceaf908769bf06717e9e55a8cb987cf0ed1b4a8d0d8d5cbd1de4"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_build_precedence_invariant.py::test_bump_build_does_not_mutate_original_and_orders_consistently": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_build_precedence_invariant.py::test_bump_build_preserves_precedence_against_collection_forms": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_bump_build_comparisons.py::test_digitless_build_raised_and_still_comparable_to_collections": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_bump_build_comparisons.py::test_subclass_digitless_build_bump_and_tuple_compare": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_malformed_operands_bumped.py::test_bumped_digitless_build_equality_with_malformed_collections_is_false": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_malformed_operands_bumped.py::test_bumped_digitless_build_ordering_with_malformed_collection_raises_std_typeerror": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:25:05.343933+00:00"
+  }
+}

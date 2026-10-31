@@ -1,0 +1,102 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 127813,
+    "output_tokens": 2989,
+    "scenarios": {
+      "test_datetime_fold_subtraction.py": {
+        "kind": "intent_a",
+        "rationale": "Change A makes DateTime.__sub__ keep the input's fold when rebuilding the plain datetime. A repeated-hour value with fold=1 must subtract its equivalent UTC instant to zero, including when that DateTime sits in a document next to an integer built by change B's integer() constructor."
+      },
+      "test_integer_grouping.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes integer(str) keep the author's underscore grouping in the raw text. That raw text must survive dumps() in a document that also holds DateTime values produced by change A's subtraction path, and it must re-parse to the same value."
+      },
+      "test_merge_invariants.py": {
+        "kind": "invariant",
+        "rationale": "Properties every tree must keep. Subtracting a timedelta from a DateTime returns a DateTime whose rendering matches the stdlib result and resets fold to 0. Subtracting two datetimes with fold=0 gives the stdlib timedelta. integer() from an int or a plain decimal string renders the same text, and garbage strings still raise ValueError."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:bddd796d13ed66fd65c97327e0d7fe6be4ed303a5f6139ab7f480831b0b17471",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "9db9b3652e38e2b7cdcf0f0e54544b48e41b69ff",
+      "a": "97cf6c5be8f42f3d44688af02215f3c5f3fb0f46",
+      "b": "8dbde43762cd2787292bd3466806fad6b9459e43",
+      "ab": "a6c65207806e78572bd5debab699ebbb4514f60d",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:8a48a427969d6aa07f63c664649f09336f1bb321350a5990850952765059cab8"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_datetime_fold_subtraction.py::test_fold_one_subtracts_to_zero": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_datetime_fold_subtraction.py::test_fold_preserved_for_datetime_stored_in_document": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_integer_grouping.py::test_grouped_integer_dumps_alongside_datetime_arithmetic": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_integer_grouping.py::test_integer_string_preserves_underscores": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_merge_invariants.py::test_datetime_difference_with_fold_zero": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_merge_invariants.py::test_integer_plain_forms_unchanged_and_garbage_rejected": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_merge_invariants.py::test_timedelta_subtraction_matches_stdlib": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:11:51.803669+00:00"
+  }
+}

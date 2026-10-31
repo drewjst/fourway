@@ -1,0 +1,109 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 137704,
+    "output_tokens": 2635,
+    "scenarios": {
+      "test_factory_date_trivia_isolation.py": {
+        "kind": "intent_a",
+        "rationale": "Change A stops arithmetic and replace() results from sharing the original item's Trivia. This test builds items with the date() and datetime() factories, which change B tightens, puts them in a document and edits the result's comment. The document must stay unchanged. The test fails on trees without A because the trivia is still aliased."
+      },
+      "test_date_factory_rejects_datetimes.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes date() reject datetime strings while date() still accepts plain dates and datetime() still accepts timestamps. This test also confirms that a valid date() result still supports arithmetic after A changes _new. It fails on trees without B because date() returns a DateTime there."
+      },
+      "test_inplace_date_update_keeps_comment.py": {
+        "kind": "invariant",
+        "rationale": "Replacing a value in place with += must keep the line's comment and indentation and render the new value, and the result must parse back. This holds on every tree. A changes how trivia passes to the result, and B changes the factory that builds the date."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:bb84f5019075f2ae68b9bb514233c891d2da56627e2e946746236a7cf47af96a",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "001aefce3e1839a2f37603f37bd286d22d550def",
+      "a": "a604a9bcbd154367d0d59e341700d8a264916d08",
+      "b": "1a7921de636c2061be6151ea2ba3074dce408c53",
+      "ab": "d4f642a23d3abdb536c963e3215f68cd358552d7",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:9ad5766592c07d1ca5e818e8ff05d6ff0bc7d46235f94e68865a2b3cf92e29c7"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_date_factory_rejects_datetimes.py::test_date_factory_accepts_dates_and_arithmetic_still_works": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_date_factory_rejects_datetimes.py::test_date_factory_rejects_timestamps[1979-05-13 12:34:56-07:00]": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_date_factory_rejects_datetimes.py::test_date_factory_rejects_timestamps[1979-05-13T12:34:56Z]": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_date_factory_rejects_datetimes.py::test_date_factory_rejects_timestamps[1979-05-13T12:34:56]": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_factory_date_trivia_isolation.py::test_factory_date_arithmetic_result_does_not_alias_document_trivia": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_factory_date_trivia_isolation.py::test_factory_datetime_replace_result_does_not_alias_document_trivia": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_inplace_date_update_keeps_comment.py::test_factory_date_inplace_add_keeps_comment": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_inplace_date_update_keeps_comment.py::test_parsed_date_inplace_add_keeps_comment_and_round_trips": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:15:08.491228+00:00"
+  }
+}

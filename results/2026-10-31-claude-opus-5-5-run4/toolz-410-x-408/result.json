@@ -1,0 +1,91 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 89359,
+    "output_tokens": 2415,
+    "scenarios": {
+      "test_accumulate_empty_with_second.py": {
+        "kind": "intent_a",
+        "rationale": "Change A makes accumulate on an empty sequence with no initial value a clean, empty generator instead of leaking StopIteration, which becomes RuntimeError under PEP 479. Change B rewrites second so that it calls next() on the iterator directly. These tests check A's behavior both on its own and when the empty accumulate is consumed by the new second: callers should see a plain StopIteration, never a RuntimeError. They also cover the curried/pipe path."
+      },
+      "test_second_over_accumulate.py": {
+        "kind": "invariant",
+        "rationale": "These are properties that must hold on every tree. second applied to accumulate's lazy generator returns the second running total. It consumes exactly two items, so the rest of the iterator stays usable. It works on infinite inputs. It raises StopIteration when only one item exists. Change A rewrites how accumulate yields its first item, and change B rewrites how second advances the iterator, so the merge must keep all of these."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:cbc41a6aa7621c3afa52909fd117881dcd35cf52e0fb5a2264f302044eb3f03f",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "f933d2023d01275f2276ac8ff49e8b6668e29e57",
+      "a": "9fd837976d79ea5a1a943d576ce7172082f5fbc7",
+      "b": "3322372dc52ffc2cb0c443b39d865c78e385f2f8",
+      "ab": "11101a31be97b9e34d8c3cd9d34e2dff8f892279",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:c3e3507fa44f4d8fd9222bb40c7a67b1efb27ab8a2a8ec1ce61a195a229981dd"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_accumulate_empty_with_second.py::test_accumulate_empty_without_initial_yields_nothing": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_accumulate_empty_with_second.py::test_second_and_first_of_empty_accumulate_raise_stopiteration": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_second_over_accumulate.py::test_second_consumes_exactly_two_items": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_second_over_accumulate.py::test_second_of_accumulate_values": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_second_over_accumulate.py::test_second_of_single_item_accumulate_raises_stopiteration": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_second_over_accumulate.py::test_second_on_infinite_accumulate": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:15:35.066410+00:00"
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 92450,
+    "output_tokens": 2697,
+    "scenarios": {
+      "test_curried_compose_left.py": {
+        "kind": "intent_a",
+        "rationale": "Change A adds compose_left and re-exports it from toolz.curried. Change B edits the same curried __init__ to add peekn. On the merge, compose_left must still be exported from toolz.curried, left uncurried, and still compose correctly with other curried functions."
+      },
+      "test_curried_peekn.py": {
+        "kind": "intent_b",
+        "rationale": "Change B adds peekn and a curried peekn in toolz.curried. Change A edits the same curried __init__ to add compose_left. On the merge, curried peekn must still exist, support partial application, and leave the iterator unconsumed."
+      },
+      "test_curried_namespace_consistency.py": {
+        "kind": "invariant",
+        "rationale": "Both changes edit toolz/curried/__init__.py. The curried namespace must stay in sync with the toolz namespace: every multi-arg function curried, every other function re-exported as is. A merge that drops or duplicates an entry breaks this. It holds on base, A, B, and must hold on the merge."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:cf00ee96a4f6c583dd490f16742ca92682fde4ec13585f5a947c4be0ff936974",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "5c56372438ffa27bbb11b2a2c9e75b8b48aa8aa1",
+      "a": "d4e7fa84b64dab4730c9159f2f153a4d3cba2312",
+      "b": "1983ebbe35907b0c48597ebf96a42f4c32ee22d0",
+      "ab": "bff2a12f0f9f584e6502b9c24a3de00fd2d96089",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:d4e418cc94a5e043aa28b7a49af6128719d23b9ca0a19b2168cc3f1279baf7df"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_curried_compose_left.py::test_compose_left_exported_uncurried_from_curried": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_curried_compose_left.py::test_compose_left_with_curried_functions": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_curried_namespace_consistency.py::test_all_public_toolz_callables_introspectable": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_curried_namespace_consistency.py::test_curried_namespace_matches_toolz": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_curried_peekn.py::test_curried_peekn_partial_application": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_curried_peekn.py::test_peekn_toplevel_short_sequence_and_generator": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:19:40.669702+00:00"
+  }
+}

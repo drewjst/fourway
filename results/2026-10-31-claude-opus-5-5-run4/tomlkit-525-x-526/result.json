@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 121253,
+    "output_tokens": 9385,
+    "scenarios": {
+      "test_inline_render_linear_scan.py": {
+        "kind": "intent_a",
+        "rationale": "Change A makes InlineTable.as_string() stop re-slicing the remaining body on every separator comma. The tests swap the inline table's body for a list that counts slice reads, so the check is deterministic. Each one renders a large parsed inline table with deleted keys. The first does so in a document where change B's code path runs: a dotted key is replaced by a table. Rendering must take zero tail slices and must still round-trip with the correct data."
+      },
+      "test_replace_dotted_key_with_inline_siblings.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes a table assigned over a dotted key render as a plain [header] placed after the inline siblings. These tests check that in the merged tree when the sibling or the new table holds an inline table that was edited by deleting keys. Those edits run change A's rewritten comma logic. The dotted prefix must not be duplicated, the sibling must not be captured, and the inline output must stay byte-exact."
+      },
+      "test_inline_edit_rendering_invariants.py": {
+        "kind": "invariant",
+        "rationale": "Neither change should alter how edited inline tables render when they sit under dotted keys or next to tables replaced through the non-dotted path. A only claims a speedup, and B only touches dotted-key replacement. The rendered bytes and round-trip must match on every tree."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:dfa230a33a937c92b0e7723294651c8dea94cbc1e67d10e36908cad9d595e29a",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "4a7f566daa8480084cfa60b5577e0de64b8e1ac6",
+      "a": "c6a4323b83d5ae3a47d8cddc7a6225fe989e0f55",
+      "b": "6c7e8b0eda5b6a4900cfa694e2d2009c06789d08",
+      "ab": "781b97f2e78db09e331a3625eedb4b98e417c7c4",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:ad9ebfe0a03e6fd8e0f1267311903f108afc8ae4bd7fa9d6c9db0cb9579fa320"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_inline_edit_rendering_invariants.py::test_inline_deletions_under_dotted_key_render_identically": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_inline_edit_rendering_invariants.py::test_plain_table_replacement_preserves_inline_sibling": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_inline_render_linear_scan.py::test_inline_render_without_tail_rescans_after_dotted_replacement": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_inline_render_linear_scan.py::test_large_inline_table_render_is_single_pass": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_replace_dotted_key_with_inline_siblings.py::test_dotted_replacement_keeps_edited_inline_sibling": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_replace_dotted_key_with_inline_siblings.py::test_dotted_replacement_with_table_holding_inline_table": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:00:43.957345+00:00"
+  }
+}

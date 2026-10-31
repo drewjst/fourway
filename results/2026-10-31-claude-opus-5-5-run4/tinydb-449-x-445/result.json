@@ -1,0 +1,109 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 51725,
+    "output_tokens": 2880,
+    "scenarios": {
+      "test_docstrings.py": {
+        "kind": "intent_a",
+        "rationale": "Change A fixes typos in the docstrings of operations.subtract and QueryInstance.__call__. Change B adds is_cacheable right next to __call__ in queries.py. These tests check that A's corrected wording survives the merge in both files and that the misspellings are gone."
+      },
+      "test_query_map.py": {
+        "kind": "intent_b",
+        "rationale": "Change B adds Query.map and marks queries containing a callable as non-cacheable. That property must carry through &, | and ~, and Table.search must not cache such queries. Change A edits the same queries.py and operations.py, so these tests exercise map together with combinators, table caching and the subtract operation."
+      },
+      "test_query_invariants.py": {
+        "kind": "invariant",
+        "rationale": "Neither change should alter ordinary query evaluation, caching of plain queries, or the subtract operation. Change B rewrites path resolution and caching in queries.py and table.py, and change A edits those same modules. These checks must pass on every tree."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:2785846117cf9a2fa797a1c243660e4278060ac115ec282812adf4f9af967be2",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "7fc8b3e444be1b18b5207df208e33d4ba9463d81",
+      "a": "b8306acc4c4836e805b9010da6f2099b87feb0dd",
+      "b": "cd141c092d15ad92358a7791a756e7e7541ef42e",
+      "ab": "773866d80a835a5407e26768d3c45a9d7e846591",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:c0ab3ebc5847e8454e41fbc0c59ac171f68a1d41f2009befb096733c52cc37fb"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_docstrings.py::test_query_call_docstring_spelling": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_docstrings.py::test_subtract_docstring_spelling": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_query_invariants.py::test_plain_query_evaluation_and_caching": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_query_invariants.py::test_subtract_operation_and_cache_invalidation": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_query_map.py::test_map_cacheability_propagates_through_combinators": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_query_map.py::test_map_eq_and_chain": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_query_map.py::test_map_query_not_cached_in_table": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_query_map.py::test_subtract_with_map_condition": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:43:33.807826+00:00"
+  }
+}

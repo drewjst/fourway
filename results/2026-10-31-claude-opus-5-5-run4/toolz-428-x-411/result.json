@@ -1,0 +1,98 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 90723,
+    "output_tokens": 3579,
+    "scenarios": {
+      "test_join_modes.py": {
+        "kind": "invariant",
+        "rationale": "Change A splits join into four separate inner, right, left and full code paths. These tests pin down the output order, duplicate handling, laziness and the equal-but-not-identical no_default sentinel for each mode. The base and every tree, the merge included, must keep producing identical results."
+      },
+      "test_apply_with_join.py": {
+        "kind": "intent_b",
+        "rationale": "Change B adds apply and exposes it uncurried in toolz.curried. These tests use apply to dispatch to join with keyword defaults, which reach the code paths A rewrote, and to map over join results. They also check how apply is exposed. They require B and must keep working once A's join is merged in."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:014d9aab35a34e0041fb0dea66c64e0f8e272c68e9a7cc07e31353d711496856",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "5eed4ef7c8d86b0d9f1b160d54d1eba49f09cc3e",
+      "a": "e4acd3505f0105ddaba57049d6e8b29801be566c",
+      "b": "2bc7b10b4e7dac5aae651fdce08b0a9ee4341c02",
+      "ab": "c102aa1734b87f60c4bfa47ab0e0e94cf86be5fb",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:6b157caae5473fdc20492b2436f6ff12d2df0f76549e5261f630ece0e611292c"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_apply_with_join.py::test_apply_exposed_and_uncurried": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_apply_with_join.py::test_apply_forwards_kwargs_to_join_modes": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_apply_with_join.py::test_map_apply_over_join_results": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_join_modes.py::test_full_outer_join": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_join_modes.py::test_inner_join_many_to_many_and_sentinel_copy": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_join_modes.py::test_right_and_left_outer_joins_order_and_duplicates": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_join_modes.py::test_right_sequence_consumed_lazily": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:18:10.612618+00:00"
+  }
+}

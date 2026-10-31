@@ -1,0 +1,88 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 92575,
+    "output_tokens": 1915,
+    "scenarios": {
+      "test_tlz_missing_file.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes TlzLoader.exec_module tolerate source modules without __file__. The test drives exec_module with fake modules lacking __file__ and checks that the module still loads and gets its attributes merged in. On trees without B this raises AttributeError."
+      },
+      "test_tlz_real_modules.py": {
+        "kind": "invariant",
+        "rationale": "When the real modules do have __file__, tlz must still mirror toolz's __file__, keep pipe coming from toolz, and expose count. This must hold on every tree, including the merge."
+      },
+      "test_count_doc.py": {
+        "kind": "intent_a",
+        "rationale": "Change A fixes the typo in count's docstring. The test checks the corrected text on toolz.count and, when cytoolz is absent, on the tlz-mirrored count. tlz is the loader that change B modifies."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:c4ae74c4d0c640f1bc9afad21dda1bf5bb224255e07edb9a8f9b34545cfe85bf",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "4db840d37e8d809d7e9212cf7cc6a9e8c558cdd7",
+      "a": "6e5405a7257c33b2af4c99cad28e519a46a32045",
+      "b": "2cd8a22461426ad38d2259488ec024c0e2ea1715",
+      "ab": "33cc25090c8da3f1327e68721a7974b9b47cc309",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:4ab7a8fa00bde7bccd7c8119a4fe1955564dc1a3e997a9a5c75c5ff675bb0bd5"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_count_doc.py::test_count_docstring_fixed": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_count_doc.py::test_tlz_count_docstring_when_pure_python": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_tlz_missing_file.py::test_exec_module_missing_file_with_both_backends": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_tlz_missing_file.py::test_exec_module_tolerates_missing_file": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_tlz_real_modules.py::test_real_tlz_mirrors_toolz": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:20:03.176600+00:00"
+  }
+}

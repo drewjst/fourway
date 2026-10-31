@@ -1,0 +1,109 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 132531,
+    "output_tokens": 3005,
+    "scenarios": {
+      "test_inline_special_float_order.py": {
+        "kind": "intent_b",
+        "rationale": "Change B keeps the key order of inline tables built by item(). This checks that order when the values are special floats, which Change A's parser now validates. The rendered text must keep the insertion order on the merge and must still parse back, because item() emits lowercase inf/nan."
+      },
+      "test_reject_uppercase_special_float_in_inline.py": {
+        "kind": "intent_a",
+        "rationale": "Change A rejects non-lowercase signed special floats. This checks that the rejection also applies inside arrays and nested inline tables, which is the structure Change B's item() ordering produces. Lowercase forms in the same structure must still be accepted."
+      },
+      "test_dumps_special_float_round_trip.py": {
+        "kind": "invariant",
+        "rationale": "The output of dumps() for nested arrays of inline tables holding special floats must parse back to the same data on every tree. This guards against B's reordering emitting text that A's stricter number validation rejects."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:6a98c19428a6a5aa5d2a0cfa29c0d8a4536c8df712815d5a856fbe30370bc29e",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "4b8a463328dacc6ff82ecc25ba8d61398073d0cb",
+      "a": "cb666ed6e8ef9392c36027886855d28ac7f071d4",
+      "b": "ed2389d4dfadcb513b2f9db85a95ebf7df23b439",
+      "ab": "36b19e53ebca739320bbc015f092fbd8b0b51ae9",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:0d410c2fd8a584990eb40265d695bf3f651d40d14261d8444feca3ffd02563e3"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_dumps_special_float_round_trip.py::test_dumps_inline_tables_with_special_floats_reparse": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_dumps_special_float_round_trip.py::test_parsed_lowercase_signed_specials_in_inline_tables_round_trip": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_inline_special_float_order.py::test_item_inline_table_order_with_special_floats_round_trips": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_inline_special_float_order.py::test_item_mixed_array_inline_table_order_with_nan": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_reject_uppercase_special_float_in_inline.py::test_uppercase_signed_special_floats_rejected_in_inline_tables[v = [[{a = {x = 1}, b = -Inf}]]]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_reject_uppercase_special_float_in_inline.py::test_uppercase_signed_special_floats_rejected_in_inline_tables[v = [{a = {x = +NaN}, b = 1}]]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_reject_uppercase_special_float_in_inline.py::test_uppercase_signed_special_floats_rejected_in_inline_tables[v = [{a = {x = -INF}, b = 2}, 's']]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_reject_uppercase_special_float_in_inline.py::test_value_api_rejects_uppercase_signed_special_float_in_array": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:12:21.254076+00:00"
+  }
+}

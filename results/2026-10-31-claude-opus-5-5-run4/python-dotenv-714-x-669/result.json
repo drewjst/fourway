@@ -1,0 +1,116 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 50769,
+    "output_tokens": 5767,
+    "scenarios": {
+      "test_home_path_crlf.py": {
+        "kind": "intent_a",
+        "rationale": "Change A makes find_dotenv expand a leading ~. These tests check that a ~/.env file is found and loaded through find_dotenv, using an on-disk file with CRLF endings and an invalid line, which is the input change B's parser fix targets. Universal-newline reading means that file still parses correctly, and the invalid line is reported at line 1. On trees without A, find_dotenv returns '' and nothing is loaded."
+      },
+      "test_crlf_recovery_stream.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes the parser treat CRLF after an invalid line as a single newline. These tests feed CRLF content through a stream, which bypasses the newline translation applied when a file is read from a path, including the ~ paths change A adds. The first test checks warning line numbers through the public API: base reports line 4 for the second invalid line, B reports line 3. The second test checks that the invalid line's binding now includes its \\r\\n instead of leaking the \\n into the next binding."
+      },
+      "test_tilde_rewrite_roundtrip.py": {
+        "kind": "invariant",
+        "rationale": "Properties every tree should keep. A CRLF .env addressed by an explicit ~/.env path (expansion that already exists on base) yields the same values on every tree. set_key through that path replaces only the target key and keeps the invalid line. For CRLF streams, the bindings' original strings concatenate back to the exact input, which set_key and unset_key rely on to rewrite files without losing content. This holds for both the base and the new CRLF recovery."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:17a675494f48271477832d8671b6587a72b3fd1566d5b3b6fcdf1603c0dce65e",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "1dddacd2c7f17118af363e69c6352378e7b2dd10",
+      "a": "ad1482ad447b12d2a297dcaedd94d64225746e9d",
+      "b": "7c08156353fa47c45b42cfa436b6da0c571ffd7f",
+      "ab": "8af10b6f196e2822282bde30fc23689443eb2391",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:3d2995ce2dfac4cc4446fdf8320e2cf5166ce4751ee0ce5691f05da19d3616ab"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_crlf_recovery_stream.py::test_crlf_invalid_line_consumes_whole_newline": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_crlf_recovery_stream.py::test_crlf_invalid_line_warning_line_numbers": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_home_path_crlf.py::test_find_dotenv_tilde_finds_crlf_file": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_home_path_crlf.py::test_load_found_tilde_file_with_crlf_invalid_line": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_tilde_rewrite_roundtrip.py::test_crlf_stream_originals_roundtrip[a: b\\r\\n\\r\\nc=d\\r\\n]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_tilde_rewrite_roundtrip.py::test_crlf_stream_originals_roundtrip[a: b\\r\\nc=d\\r\\ne: f]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_tilde_rewrite_roundtrip.py::test_crlf_stream_originals_roundtrip[a: b\\r\\nc=d]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_tilde_rewrite_roundtrip.py::test_crlf_stream_originals_roundtrip[x=1\\r\\na: b\\r\\n]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_tilde_rewrite_roundtrip.py::test_tilde_path_crlf_values_and_set_key": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:22:47.743687+00:00"
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "conflict",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 138293,
+    "output_tokens": 12468,
+    "scenarios": {
+      "test_dotted_extended_super_table_aot.py": {
+        "kind": "intent_a",
+        "rationale": "Change A makes TOML like `[[a.b.c]]` ... `[a]` `b.z = 1` valid: the dotted key only extends the implicit super-table a.b. That document must stay usable, meaning it round-trips and stays valid after a normal edit. Change B adds a hoisting step to every render. It walks header-less super tables and writes any emptied array of tables as `a.b.c = []` at the top of the document. In A's newly accepted shape, a later concrete `[a]` header reopens that super table, so the hoisted dotted key makes `[a]` a redefinition. On A alone, emptying the array renders `[a]\\nb.z = 1\\n`, which reparses. On the merge, the output is rejected by tomlkit's own parser."
+      },
+      "test_emptied_aot_beside_dotted_key.py": {
+        "kind": "intent_b",
+        "rationale": "Change B writes an emptied array of tables as `key = []` at the top of its table's scope. Change A changes how dotted keys inside a concrete `[a]` table are validated. This test checks B's fallback in that area: `[a]` holds a dotted key `b.z` and a child `[[a.d]]`. After emptying d, the output must keep both d (as an empty array) and b.z."
+      },
+      "test_out_of_order_invariants.py": {
+        "kind": "invariant",
+        "rationale": "Two properties every tree should keep. First, the concrete-table redefinition `[a.b]` then `[a]` `b.z = 1` stays rejected; A must only relax the super-table case. Second, a non-empty array of tables under an implicit parent, followed by an out-of-order `[a]` header, round-trips byte for byte; B's hoisting must leave non-empty arrays of tables alone."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:ba34857394bc8c9f06090c6458147a629f24ae3bc4b79875af749166d1fd9617",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "96caebf07bcfd054817f169869d4f88036a9e80f",
+      "a": "dcab1273f0286d6ada68421f93c7f1e55d44ceb9",
+      "b": "138809423d836053fa3d090b32b4bc9b94f54d62",
+      "ab": "4b1d61f2a8d81aa6f5496f4210d5e018da7a3a49",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:b2c00e0ce21a91db77e5e3a0c2b6c537807766e8fb7a95e7370a02db6e8e1066"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_dotted_extended_super_table_aot.py::test_emptying_aot_in_dotted_extended_super_table_keeps_valid_toml": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "failed",
+        "finding": "differential_a"
+      },
+      "fourway_scenarios/test_dotted_extended_super_table_aot.py::test_super_table_with_aot_extended_by_dotted_key_round_trips": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_emptied_aot_beside_dotted_key.py::test_emptied_child_aot_coexists_with_dotted_key": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_out_of_order_invariants.py::test_concrete_table_redefined_by_dotted_key_is_rejected": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_out_of_order_invariants.py::test_non_empty_aot_under_reopened_super_table_round_trips": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "conflict",
+    "recorded_at": "2026-10-31T20:06:49.372747+00:00"
+  }
+}

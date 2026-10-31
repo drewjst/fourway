@@ -1,0 +1,88 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 330085,
+    "output_tokens": 1677,
+    "scenarios": {
+      "test_version_release.py": {
+        "kind": "intent_a",
+        "rationale": "Change A bumps the release to 0.15.2. Its version string must survive a merge with B, which touches tomlkit/items.py and tomlkit/api.py but not the version."
+      },
+      "test_string_escape_false_verbatim.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes string(..., escape=False) use the given text verbatim, including for multiline strings. The base prepended an extra leading newline even when escaping was disabled."
+      },
+      "test_multiline_escape_roundtrip.py": {
+        "kind": "invariant",
+        "rationale": "With the default escape=True, a multiline string with a leading newline, or with CR/CRLF characters, must still round-trip through parse on every tree, including after B's restructuring of from_raw."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:f2407b30d674f410f7cefd32bb93a7dee5ac6e095734f8ca9817d877beba14ff",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "44b653e7b2a74c45bbadbf7087be4faef41d7ef5",
+      "a": "b61c2042cda059fdf33f29d8f468226d259c174d",
+      "b": "aebd8a2a251b51861c821c39af00b547f24c43b2",
+      "ab": "e746bbe2fd688e74b4e854bc2a48fda0df5a66a4",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:dabdd8595e4bd7cf51b9a04008fa9431bb79158f3ca2eca88443c99431075cea"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_multiline_escape_roundtrip.py::test_default_escape_multiline_basic_bare_cr_escaped": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_multiline_escape_roundtrip.py::test_default_escape_multiline_leading_newline_round_trips": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_string_escape_false_verbatim.py::test_multiline_basic_escape_false_is_verbatim": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_string_escape_false_verbatim.py::test_multiline_literal_escape_false_is_verbatim": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_version_release.py::test_package_version_is_0_15_2": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:14:39.481204+00:00"
+  }
+}

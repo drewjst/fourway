@@ -1,0 +1,88 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 112344,
+    "output_tokens": 7187,
+    "scenarios": {
+      "test_proxy_inline_comment_append.py": {
+        "kind": "intent_b",
+        "rationale": "Change B moves the deferred inline-table separator so it lands after the value instead of inside a trailing comment. These tests reach the multiline commented inline table through an OutOfOrderTableProxy, which is the type whose membership Change A rewrites. They then append through the plain-assignment and setdefault paths, both of which do a membership check, and require the output to round-trip."
+      },
+      "test_proxy_contains_native.py": {
+        "kind": "intent_a",
+        "rationale": "Change A makes key-in-proxy a native check that does not go through __getitem__ and does not build NonExistentKey. These tests exercise that on an out-of-order proxy whose subtable holds an inline table edited along Change B's comment/separator path."
+      },
+      "test_proxy_membership_render_invariant.py": {
+        "kind": "invariant",
+        "rationale": "Every tree should give correct membership answers on an out-of-order proxy, reject non-string keys with TypeError, and leave the document unmutated by membership checks. Appending to an inline table reached through the proxy, in the case without a comment, should round-trip. The property holds on the base and must survive both changes."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:b50cfb1facbc4015a5172473d137d3a66ef26712d26ee332f5260038be8bd713",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "0cb12512098530d91aebca346a34a2451cbdb984",
+      "a": "d80bda9a4e43860f533d12bfdd42e7e8d59a3fe7",
+      "b": "e33ff90c9be86099b8720ffec444cce1e20b108f",
+      "ab": "95779c28804d15d7f9d33b0d7a3396465d126904",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:1f9b5d4a1358880e8bd88d33a548a273942b3113e02c8f6189854fd2e08cf3b0"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_proxy_contains_native.py::test_proxy_absent_membership_builds_no_exception": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_proxy_contains_native.py::test_proxy_membership_does_not_resolve_values": {
+        "base": "failed",
+        "a": "failed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_proxy_inline_comment_append.py::test_append_into_commented_inline_table_via_out_of_order_proxy": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_proxy_inline_comment_append.py::test_setdefault_into_commented_inline_table_via_out_of_order_proxy": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_proxy_membership_render_invariant.py::test_membership_and_append_through_proxy_round_trip": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:56:07.667382+00:00"
+  }
+}

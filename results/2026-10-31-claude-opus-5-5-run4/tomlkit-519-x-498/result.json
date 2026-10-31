@@ -1,0 +1,137 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 117132,
+    "output_tokens": 7838,
+    "scenarios": {
+      "test_aot_header_brackets_out_of_order.py": {
+        "kind": "intent_a",
+        "rationale": "Change A rejects `[[...]` headers that lack their second closing bracket. Change B makes a sub-AoT header that appears after an unrelated table get merged into the parent array's last element. On base such a document raises only a generic ParseError (KeyAlreadyPresent). With B alone, the malformed header is silently accepted as `[[fruit.seeds]]`. A's specific bracket errors must still fire on exactly this path once both changes are merged."
+      },
+      "test_out_of_order_aot_subtables.py": {
+        "kind": "intent_b",
+        "rationale": "Change B lets a sub-table or sub-AoT header that follows an unrelated table extend the last element of an existing array of tables. These tests use properly closed `[[...]]` headers, which go through the bracket validation change A adds. They check that valid documents still parse, merge into the last element and stay stable when dumped and parsed again."
+      },
+      "test_aot_invariants.py": {
+        "kind": "invariant",
+        "rationale": "Both changes touch how array-of-tables headers are parsed and appended: A adds header validation and B adds a merge path in Container.append. Well-formed contiguous AoT documents must keep round-tripping byte for byte. Genuine redefinitions after an AoT must still be rejected: a plain `[fruit]` table, or a duplicate concrete sub-table. All of these already hold on base."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:f3f9c07b677f1f335e86306e143f1e51793ef45432d5a6c6861be889712a56fd",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "07b385fdddc6cc7b91d504df37d28624fe6f6fd9",
+      "a": "b49300e9c2f78172095dbfafd871f3a82b102900",
+      "b": "59db159e3ca1fc0313d999c1528b3577235196e0",
+      "ab": "1ef048909106bb940c65c5b9bcc8290e2b28686f",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:0d2d9482a049da0170d9c4b9e69ec5e626b0788fc1a8fcef16bc124adec37891"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_aot_header_brackets_out_of_order.py::test_malformed_sub_aot_header_after_unrelated_table_is_rejected": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_aot_header_brackets_out_of_order.py::test_sub_aot_header_hitting_eof_after_unrelated_table_is_rejected": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_aot_invariants.py::test_duplicate_concrete_subtable_of_aot_element_still_raises": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_aot_invariants.py::test_plain_table_with_aot_name_after_unrelated_table_still_raises": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_aot_invariants.py::test_well_formed_aot_documents_round_trip[[[a.b]]\\nx = 1\\n\\n[[a.b]]\\nx = 2\\n]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_aot_invariants.py::test_well_formed_aot_documents_round_trip[[[a]]  # comment\\nx = 1\\n]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_aot_invariants.py::test_well_formed_aot_documents_round_trip[[[a]]\\nx = 1\\n\\n[[a]]\\nx = 2\\n]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_aot_invariants.py::test_well_formed_aot_documents_round_trip[[[a]]]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_aot_invariants.py::test_well_formed_aot_documents_round_trip[[[fruit]]\\napple.color = \"red\"\\n\\n[fruit.apple.texture]\\nsmooth = true\\n]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_out_of_order_aot_subtables.py::test_out_of_order_aot_subtable_redump_is_stable": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_out_of_order_aot_subtables.py::test_sub_aot_headers_after_unrelated_table_extend_last_element": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_out_of_order_aot_subtables.py::test_subtable_merges_into_last_of_several_aot_elements": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:58:07.047871+00:00"
+  }
+}

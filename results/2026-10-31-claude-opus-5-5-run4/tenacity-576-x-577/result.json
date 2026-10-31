@@ -1,0 +1,84 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 71172,
+    "output_tokens": 5457,
+    "scenarios": {
+      "test_self_typing_import.py": {
+        "kind": "intent_a",
+        "rationale": "Change A makes the TYPE_CHECKING-only `Self` import come from the standard `typing` module on Python 3.11+ instead of requiring typing_extensions. Change B rewrites the import section of the same module. The test extracts the statements that import `Self` from the TYPE_CHECKING block, which is exactly what a type checker evaluates. It runs them with typing_extensions made unimportable and checks that `Self` still resolves to `typing.Self`. On the base and B-only trees the import requires typing_extensions, so the test fails there. It must still pass after the merge."
+      },
+      "test_init_module_invariants.py": {
+        "kind": "invariant",
+        "rationale": "Both changes edit tenacity/__init__.py. Change B collapses the re-export import lists and rewrites the `iter` return annotation. Change A edits the TYPE_CHECKING import block. These tests check properties that every tree must keep. Every public name is still re-exported, and the re-exports are the same objects as in the submodules. `copy` and `retry_with` still preserve the subclass and its settings, which is the `Self` contract. The `iter` annotation still names DoAttempt and DoSleep. On Python 3.10 the fallback to typing_extensions still works."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:66a716932d0ea382af24b9ca1e92a55aa1dd43c0872d2c479186af66a5bf584c",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "1e22ae12b7699f9a2a8fbb2f2682ca087923f57b",
+      "a": "9c6ffb148a43822ad35c2f710b5673614d6a092f",
+      "b": "3b23c5356b8d6c995caa4e8c854b5cbcabe09853",
+      "ab": "04c17b5771ab7ed18a52ef2622c4c01d46cf02ce",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:4018acc382748d8d6d8b197e788e971a8217d87034a3e437dbc8affb9833e6ca"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_init_module_invariants.py::test_copy_preserves_subclass_and_runs": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_init_module_invariants.py::test_iter_annotation_mentions_actions": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_init_module_invariants.py::test_public_reexports_intact": {
+        "base": "failed",
+        "a": "failed",
+        "b": "failed",
+        "ab": "failed",
+        "finding": "inconclusive"
+      },
+      "fourway_scenarios/test_init_module_invariants.py::test_self_fallback_on_old_python": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_self_typing_import.py::test_self_resolves_from_stdlib_without_typing_extensions": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:34:29.406565+00:00"
+  }
+}

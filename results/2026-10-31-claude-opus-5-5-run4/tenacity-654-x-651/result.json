@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 85635,
+    "output_tokens": 4861,
+    "scenarios": {
+      "test_exponential_cap_retry_loop.py": {
+        "kind": "intent_a",
+        "rationale": "Change A makes wait_exponential (and wait_random_exponential, which inherits its __call__) return the cap without computing exp_base**exponent once the cap is reached. These tests run full Retrying loops whose retry predicate is retry_if_exception_message or retry_if_not_exception_message, the strategies Change B rewrites. They use an exp_base whose power operation raises, so they fail on any tree that still computes the power."
+      },
+      "test_empty_message_retry_loop.py": {
+        "kind": "intent_b",
+        "rationale": "Change B lets retry_if_exception_message and retry_if_not_exception_message accept message=\"\". These tests use that option in real retry loops whose waits come from wait_exponential, both below and above the cap that Change A short-circuits. They check that bare exceptions are matched end to end and that the sleep values stay correct."
+      },
+      "test_exponential_sequence_invariant.py": {
+        "kind": "invariant",
+        "rationale": "Neither change should alter the observable wait sequence of wait_exponential in a message-filtered retry loop. That covers values below the cap, the transition to the cap, values after the cap, and the min floor, along with idle_for statistics. Change A adds an early-return path at the cap and Change B rewrites the message predicate driving the loop, so the merged tree must still produce exactly the base behavior."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:3499b405a816699955cde4cb20a2ceb0da2eee2d40f5ae43d1856ade62c503a2",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "9dc93ef074bed4301df1d9c621e637ab12c1b884",
+      "a": "41e321cf9ab561f5027093276105285ea19ef3ec",
+      "b": "0f6277a0d3de72a0d680701ba6dac1195fe2499d",
+      "ab": "7a3d1c176be905777e3d1fccfbe5a5d8b39fd249",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:e6b4bac256d1d046dea8126743e014a61eb51f43f75e9d1314d60ea5ed9d8798"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_empty_message_retry_loop.py::test_empty_message_retries_bare_exceptions_with_exponential_wait": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_empty_message_retry_loop.py::test_not_empty_message_stops_on_bare_exception_with_capped_wait": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_exponential_cap_retry_loop.py::test_capped_wait_skips_power_in_message_filtered_loop": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_exponential_cap_retry_loop.py::test_random_exponential_cap_skips_power_with_not_message_retry": {
+        "base": "failed",
+        "a": "failed",
+        "b": "failed",
+        "ab": "failed",
+        "finding": "inconclusive"
+      },
+      "fourway_scenarios/test_exponential_sequence_invariant.py::test_exponential_sequence_reaches_and_holds_cap": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_exponential_sequence_invariant.py::test_exponential_sequence_with_min_floor_and_cap": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:38:33.484241+00:00"
+  }
+}

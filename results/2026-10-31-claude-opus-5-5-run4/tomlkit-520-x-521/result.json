@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 115326,
+    "output_tokens": 7094,
+    "scenarios": {
+      "test_single_element_key_unwrap.py": {
+        "kind": "intent_a",
+        "rationale": "Change A makes key([\"foo\"]) a SingleKey so it acts like key(\"foo\"). Change B rewrote Container.unwrap() and Table.unwrap() to walk _map instead of items(). These tests build documents with one-element key lists and check membership, item access and unwrap(), which is the path B rewrote. On base, and on B alone, the key stays a one-element DottedKey: membership is False and item access raises NonExistentKey (base unwrap() also raises). After the merge everything has to agree."
+      },
+      "test_unwrap_without_getitem.py": {
+        "kind": "intent_b",
+        "rationale": "Change B's goal is that unwrap() resolves values straight from the container's key map instead of re-resolving every key through __getitem__. The test builds a document that mixes a one-element key list (the input A changes), a dotted key, a table and an array. It then makes Container.__getitem__ raise and checks that unwrap() still returns the correct plain dict. Trees without B route unwrap() through __getitem__ and fail."
+      },
+      "test_unwrap_invariants.py": {
+        "kind": "invariant",
+        "rationale": "These are unwrap() properties that hold on every tree, including base. Out-of-order tables still unwrap to merged plain dicts at both the document level and the Table level. A conflicting out-of-order fragment still raises KeyAlreadyPresent. Documents built from multi-element key lists, whose handling A leaves unchanged, still unwrap to nested plain dicts."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:90b4ea9f5c68883ec7fdb82747c71d0d4438c3cc8993d3b1f9339a88ac15b7ab",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "a3a6d7d4e6c9a3e7f5b39e139af7d9bc1272b489",
+      "a": "1ecf9554551ebb8d1d0a42439fab77c41dc366ce",
+      "b": "c7b0b8d2dd026f8096bae085677d6a97e556b775",
+      "ab": "ea6c39fcc6e34449dc30c682a69f50787ffdc446",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:3ec2b518072aa8fbb02fc186363c6a15a6f8130628cda1f8b30167831eea89fd"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_single_element_key_unwrap.py::test_single_element_key_is_visible_and_unwraps": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_single_element_key_unwrap.py::test_single_element_key_table_unwraps": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unwrap_invariants.py::test_conflicting_out_of_order_fragment_still_raises": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unwrap_invariants.py::test_multi_element_key_documents_unwrap": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unwrap_invariants.py::test_out_of_order_tables_unwrap_merged": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unwrap_without_getitem.py::test_unwrap_does_not_go_through_getitem": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:59:13.167600+00:00"
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 60997,
+    "output_tokens": 4940,
+    "scenarios": {
+      "test_stop_before_delay_loop.py": {
+        "kind": "intent_b",
+        "rationale": "Change B adds stop_before_delay and exposes the upcoming sleep to stop strategies by computing wait before stop. These tests drive the full sync and async retry loops with a fake clock and fake sleep, checking that retries never cross the deadline. They import the new API inside each test, so trees without B fail per test. They also run on the merged tree, where change A rewrote the Future generic definition in the same module."
+      },
+      "test_retry_loop_invariants.py": {
+        "kind": "invariant",
+        "rationale": "Change B reorders wait and stop inside BaseRetrying.iter, and change A touches the Future generic base in the same module. These properties must hold on every tree. The sleeps actually taken must match next_action seen by before_sleep and the idle_for statistic. The wait strategy must run at most once per attempt. stop_after_delay must keep its overshooting semantics. Future must remain a usable concurrent Future subclass."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:62d6846ba2f7b5be45b5d10cd04073ecc8bf7fe7ffe6231d48a5fbdce52c522a",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "c70b58bfe39a23f379ae17e6ab103408dc048222",
+      "a": "d7004dafcc54607e343e18b7f5035cdcfb9fa0b3",
+      "b": "afddf4276e7e390a9e04d61a382dec0f531537c2",
+      "ab": "21608a573f49a791e5878bd60f803171aff42064",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:142e480037dcf0a090625b42716c95ef4d708738e02b5559c28f0834fe9cc4cd"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_retry_loop_invariants.py::test_future_type_usable": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_retry_loop_invariants.py::test_retry_error_callback_receives_last_state": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_retry_loop_invariants.py::test_sleep_bookkeeping_consistent": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_retry_loop_invariants.py::test_stop_after_delay_semantics_unchanged": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_stop_before_delay_loop.py::test_custom_stop_sees_upcoming_sleep": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_stop_before_delay_loop.py::test_stop_before_delay_async": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_stop_before_delay_loop.py::test_stop_before_delay_never_exceeds_deadline_sync": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:31:05.534026+00:00"
+  }
+}

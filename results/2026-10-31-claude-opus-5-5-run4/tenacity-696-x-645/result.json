@@ -1,0 +1,88 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 90643,
+    "output_tokens": 3134,
+    "scenarios": {
+      "test_tornado_none_decorator.py": {
+        "kind": "intent_a",
+        "rationale": "Change A makes the @retry decorator read the live `tenacity.tornado` global, so nulling it no longer crashes decoration. These tests decorate while the global is None. One covers enabled=False (B's area); the other covers normal retrying. On trees without A, decoration raises AttributeError when tornado is installed."
+      },
+      "test_enabled_direct_call.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes Retrying.__call__ and AsyncRetrying.__call__ honor enabled=False: the function runs once and its own exception or result propagates. The sync test runs while tenacity.tornado is nulled, which is the state A touches. The async tests cover coroutine callables and plain sync callables. Without B, a failing function runs 5 times and the error is wrapped in RetryError."
+      },
+      "test_retry_paths_invariant.py": {
+        "kind": "invariant",
+        "rationale": "Checks behavior every tree must keep. An enabled controller called directly still retries until the stop condition and raises RetryError. A decorator built with enabled=False, without touching the tornado global, still calls the function exactly once. Neither change should break these paths."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:8523f1d7f345bb2be6b3800ff53ce109ed952131db30d29b4d5294cc581d6e58",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "db27e9fe7abdcb9ad448d4c7e8a3b88bd7b831d7",
+      "a": "9fee348e11e76c37feef87b1c2b39f21e358064e",
+      "b": "8a048ece4f2ed72b7ad7a39954b02547661cd9b1",
+      "ab": "83ac38f9b2abd0fc133172b386c22311c5c798fe",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:adb3313a630750f647df2bfacb23eaebd858b66b6c0b031bd86048b016fcc3ab"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_enabled_direct_call.py::test_async_direct_call_disabled_raises_original_once": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_enabled_direct_call.py::test_async_direct_call_disabled_sync_fn_raises_original_once": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_enabled_direct_call.py::test_sync_direct_call_disabled_raises_original_once": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_retry_paths_invariant.py::test_disabled_decorator_calls_once": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_retry_paths_invariant.py::test_enabled_direct_call_still_retries": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:39:47.326209+00:00"
+  }
+}

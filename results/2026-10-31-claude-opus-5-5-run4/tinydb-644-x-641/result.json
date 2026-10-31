@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 59420,
+    "output_tokens": 3269,
+    "scenarios": {
+      "test_any_all_string_fields.py": {
+        "kind": "intent_b",
+        "rationale": "Change B stops Query.any/all from treating string fields as character sequences. Change A documents that operations.add concatenates strings and that get() returns the first match. These tests build string fields with add() and query them through search/get. On any tree with B, string fields must not match any/all, while real list fields still match. Without B they would wrongly match."
+      },
+      "test_first_match_and_sequences.py": {
+        "kind": "invariant",
+        "rationale": "These properties should hold on every tree. get() with a condition returns the first matching document in insertion order, which change A documents. any/all on genuine list fields, including nested queries and Query.test with list args, keep matching correctly across updates and cached searches. Change B's narrowed sequence check must not break real lists."
+      },
+      "test_runtime_type_hints.py": {
+        "kind": "intent_a",
+        "rationale": "Change A changes runtime-visible annotations and docstrings. operations.add accepts str, Query.test takes Callable[..., bool], and Table.get documents first-match semantics. These must survive the merge with B, which edits the same queries.py module."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:d762ff60ac8c1d8f658ad1231c8701b2514b6a227bfe9827589618ff7065fa36",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "5ad1554a084dbefb5d805daf8c0518ca74cb0780",
+      "a": "9b60348732122990fc2773cded9e559487667281",
+      "b": "d90fd0145ac14c8474459062ecf7f5fe0845320f",
+      "ab": "e86949c8ff6e3f75aa9147310bea5e589c0e84cc",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:a975525ba7411ac5a1e51473cf688ca2bc4d61a6bbfd79879f6593c0216be3ff"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_any_all_string_fields.py::test_all_and_get_ignore_string_fields": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_any_all_string_fields.py::test_any_ignores_string_built_by_add_concatenation": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_first_match_and_sequences.py::test_get_first_match_with_list_any_all": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_first_match_and_sequences.py::test_query_test_receives_field_value_with_list_args": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_runtime_type_hints.py::test_add_and_query_test_annotations": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_runtime_type_hints.py::test_docstrings_describe_runtime_behavior": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:47:18.583783+00:00"
+  }
+}

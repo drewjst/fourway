@@ -160,6 +160,11 @@ pair:
   fail on that commit too. A pair that meets both conditions is a conflict
   the history missed. It is reported as a finding, and the owner decides
   whether a new corpus version relabels it.
+- Added after run 4, which was adjudicated this way: the defect must come from
+  the interaction. If a probe finds the same defect on one side alone, with
+  input that side accepts, the flag is that side's own bug seen through the
+  other side, and it counts as a false positive. Run 4's
+  `tomlkit-565-x-567` met the first two conditions this way.
 - Before the first run on mined pairs, the corpus author reads a random
   sample of them and judges whether either change alters behavior that the
   other relies on. The sample and the judgments are recorded in

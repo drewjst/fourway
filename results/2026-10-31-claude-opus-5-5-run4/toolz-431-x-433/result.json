@@ -1,0 +1,106 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 89223,
+    "output_tokens": 3014,
+    "scenarios": {
+      "test_groupby_doc.py": {
+        "kind": "intent_a",
+        "rationale": "Change A adds a warning to groupby's docstring telling users not to confuse it with itertools.groupby. This checks the hint is still present after B's dicttoolz rewrite is merged in."
+      },
+      "test_groupby_doctest_invariant.py": {
+        "kind": "invariant",
+        "rationale": "Edits to docstrings must keep the doctests of groupby and update_in passing, and groupby's behavior must not change. A touches groupby's docstring and B touches update_in's implementation, which the update_in doctests exercise."
+      },
+      "test_update_in_iterkeys.py": {
+        "kind": "intent_b",
+        "rationale": "B's update_in iterates over keys instead of calling len() and slicing, so it now accepts one-shot iterators of keys. The base version raises TypeError on len(generator)."
+      },
+      "test_update_in_invariants.py": {
+        "kind": "invariant",
+        "rationale": "Every tree must keep update_in's semantics: the input is not mutated, intermediate dicts are copied rather than aliased, and missing paths are created with the factory and func(default). B's non-recursive rewrite must preserve all three."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:5e65cf5b4669aef8d12d2ef90fb7f7da12747140fe5b821a6c570f9f85fe0e4b",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "209cd81f9b0ed341096e6210334f7fafb6830f8b",
+      "a": "65109f99626055f05f9e14ea4129251108bf1238",
+      "b": "8d4be491f1beb59f7798a284fd813fd7f91c0ab0",
+      "ab": "0f3126f55922b66c03fa08529444f8db05c87ee8",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:4bacf30175390c62fcfc3a66673f3aa259538b272ef53dbc32fb8c9bde3fb80f"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_groupby_doc.py::test_groupby_doc_mentions_itertools_groupby": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_groupby_doctest_invariant.py::test_docstring_examples_still_pass": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_groupby_doctest_invariant.py::test_groupby_behavior_unchanged": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_update_in_invariants.py::test_update_in_missing_paths_and_factory": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_update_in_invariants.py::test_update_in_no_mutation_and_copies": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_update_in_iterkeys.py::test_update_in_accepts_generator_keys": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_update_in_iterkeys.py::test_update_in_iterator_keys_missing_path_with_factory": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:18:39.755429+00:00"
+  }
+}

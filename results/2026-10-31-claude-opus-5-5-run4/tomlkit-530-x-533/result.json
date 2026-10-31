@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 121424,
+    "output_tokens": 9131,
+    "scenarios": {
+      "test_out_of_order_dotted_redefinition.py": {
+        "kind": "intent_a",
+        "rationale": "Change A rejects out-of-order redefinitions at parse time. These tests cover the dotted-key and inline-table layouts that change B's code handles: a dotted key whose value is an inline table, or a plain inline-table value, later reopened by an out-of-order [a.b] header. The base and B trees accept these at parse time, so the tests fail there. Trees with A raise ParseError."
+      },
+      "test_dotted_inline_table_newline.py": {
+        "kind": "intent_b",
+        "rationale": "Change B keeps a newline between a dotted inline-table key with no trailing newline and a sibling key added afterwards. These tests run that edit in documents whose parsing goes through change A's new validation: a table that follows an unrelated table, and a sub-table of an out-of-order table. Without B the new key is glued onto the previous line."
+      },
+      "test_out_of_order_dotted_valid.py": {
+        "kind": "invariant",
+        "rationale": "A valid out-of-order table that contains an unrelated dotted inline-table key must keep parsing, unwrapping and round-tripping on every tree. A plain key added afterwards must survive a reparse. This covers both A's extra parse-time validation and B's newline adjustment on the same append path."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:db69efcf091520be777816282255388c685c53b0c1c1a235e194b83bbae5b1c5",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "1799eb7f24ec963401c9667446aabee43b6485d4",
+      "a": "46b10ee94e3fefd1bec78422be3d1626d1632351",
+      "b": "14d8c915fa6af60611bd6d445bf09f4db49bae0b",
+      "ab": "5d1d02c35bc4912f46cf2b3601401b74e5bbbddb",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:c3d3d2bc6f9860c1e0c73f02b2b5afee5b186cfcad81f7d7be9f847b099d67ba"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_dotted_inline_table_newline.py::test_add_key_after_dotted_inline_table_in_later_table": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_dotted_inline_table_newline.py::test_add_key_after_dotted_inline_table_in_out_of_order_subtable": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_out_of_order_dotted_redefinition.py::test_dotted_inline_table_then_out_of_order_table_header_rejected": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_out_of_order_dotted_redefinition.py::test_inline_table_value_then_out_of_order_table_header_rejected": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_out_of_order_dotted_valid.py::test_adding_key_to_valid_out_of_order_table_reparses": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_out_of_order_dotted_valid.py::test_valid_out_of_order_with_dotted_inline_table_round_trips": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:02:14.337258+00:00"
+  }
+}

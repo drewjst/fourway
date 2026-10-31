@@ -1,0 +1,130 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 49820,
+    "output_tokens": 3902,
+    "scenarios": {
+      "test_bump_build_single_increment.py": {
+        "kind": "intent_a",
+        "rationale": "Change A removes the duplicated block in bump_build, so the build string is computed and incremented once instead of twice. The test counts _increment_string calls during bump_build, including on versions produced by B's reworked bump_prerelease. The base calls it twice and fails; A and the merge call it once."
+      },
+      "test_prerelease_then_build.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes bump_prerelease always produce a higher prerelease: it appends .0 to a non-numeric last identifier and adds the bump_when_empty option. These tests chain that with bump_build, the method A refactored. They check that the new prerelease survives the build bump and that the result orders above the original. The base yields rc10, which sorts below rc9, and has no bump_when_empty parameter, so these tests fail there."
+      },
+      "test_build_bump_invariants.py": {
+        "kind": "invariant",
+        "rationale": "bump_build must keep the same observable results on every tree, whether before or after the de-duplication and alongside B's prerelease changes. The properties checked are: the correct increment for each token variant, unchanged precedence, preserved prerelease, an unmutated original, and preserved subclass type."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:720941befaaa3208fbd995d2614c2c0e21532249cea53d14a9c219dc9eacad9c",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "07c624b00f38e18ccdf5d7bdabc125f469190cd9",
+      "a": "69074b89848a917a1e0fe94ce5db72961a7b41e1",
+      "b": "30ad2a52accce40e0b36e7bd0563429757a399d3",
+      "ab": "3d765f0d39c65bc3ded69803cc5475151a73ec39",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:8ebb73ebbf06db6ae4ec918441c8dc9f59e0347ffc83e62c82c496d3aa891ee1"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_build_bump_invariants.py::test_bump_build_keeps_subclass_and_chains": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_build_bump_invariants.py::test_bump_build_results_and_precedence[3.4.5--3.4.5+1]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_build_bump_invariants.py::test_bump_build_results_and_precedence[3.4.5-None-3.4.5+build.1]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_build_bump_invariants.py::test_bump_build_results_and_precedence[3.4.5-b-3.4.5+b.1]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_build_bump_invariants.py::test_bump_build_results_and_precedence[3.4.5-rc.1+0009.dev-build-3.4.5-rc.1+0010.dev]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_build_bump_invariants.py::test_bump_build_results_and_precedence[3.4.5-rc.1+build.9-build-3.4.5-rc.1+build.10]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_build_bump_invariants.py::test_bump_build_results_and_precedence[3.4.5-rc.1-build-3.4.5-rc.1+build.1]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_bump_build_single_increment.py::test_bump_build_after_prerelease_bump_increments_once": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_bump_build_single_increment.py::test_bump_build_increments_existing_build_once": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_prerelease_then_build.py::test_bump_when_empty_then_build": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_prerelease_then_build.py::test_nonnumeric_prerelease_bump_then_build_is_newer": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:24:06.225402+00:00"
+  }
+}

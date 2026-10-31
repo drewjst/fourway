@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 75855,
+    "output_tokens": 3631,
+    "scenarios": {
+      "test_composed_plain_retry_async_loop.py": {
+        "kind": "intent_a",
+        "rationale": "Change A lets a retry_base be combined with a plain callable using | and &. This test runs those compositions in the AsyncRetrying async-for loop that change B extends. It uses plain `with` so it does not depend on B. On trees without A, `retry_base | fn` raises AttributeError because `other.__ror__` is missing."
+      },
+      "test_async_with_attempt_composed.py": {
+        "kind": "intent_b",
+        "rationale": "Change B adds `async with attempt`. These tests use it with retry strategies composed through the | operator that change A rewrote. Only retry_base operands are used, so the tests do not need A. They check that retries, successful completion, and propagation of a non-retryable exception all work."
+      },
+      "test_sync_async_retry_composition.py": {
+        "kind": "invariant",
+        "rationale": "Change A's isinstance guard has to keep delegating to __ror__ for retry_base subclasses. Otherwise `sync_retry | async_retry` would become a synchronous retry_any that treats an un-awaited coroutine as a truthy result. This test checks that the composition still produces the async retry_any and drives a correct async-for loop. It holds on every tree."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:4e5ff7c8df9284c67aab882c63a660381331fde99d2010ecb2c69a3c98958b1a",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "9cf3d1f4768a1cc698c7a3d33fe5f013456daf3f",
+      "a": "37469f8bb681fd3cde3531eb57bc4a089a447ef3",
+      "b": "75349e6acab2966e7c8ca1e039645306f6e632d3",
+      "ab": "f1c9bad95dcf026043ed2231aee32ed1447cec5b",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:8eda11a1b3353e3a896be7e7b2bda8394681ae393d7a2b5eb1a7a1328667dbe9"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_async_with_attempt_composed.py::test_async_with_non_retryable_propagates_after_one_attempt": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_async_with_attempt_composed.py::test_async_with_retries_on_composed_strategy": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_composed_plain_retry_async_loop.py::test_and_with_plain_function_stops_when_plain_says_no": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_composed_plain_retry_async_loop.py::test_or_with_plain_function_in_async_for": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_sync_async_retry_composition.py::test_sync_and_async_yields_async_retry_all": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_sync_async_retry_composition.py::test_sync_or_async_yields_async_retry_any_and_behaves": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:36:25.529018+00:00"
+  }
+}

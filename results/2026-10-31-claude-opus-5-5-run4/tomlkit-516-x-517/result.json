@@ -1,0 +1,120 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 112234,
+    "output_tokens": 4620,
+    "scenarios": {
+      "test_redefined_table_with_arrays.py": {
+        "kind": "intent_a",
+        "rationale": "Change A rejects a subtable header declared twice around its parent header. These documents put empty and trailing-comma arrays inside the tables, which are the array shapes whose closing-bracket handling change B rewrote. The redefinition must still be rejected on the merged tree."
+      },
+      "test_out_of_order_tables_with_arrays.py": {
+        "kind": "invariant",
+        "rationale": "Valid out-of-order tables that hold value-less array closes must keep parsing to the right merged values and round-trip on every tree. This guards against A's new validation, combined with B's array path, rejecting or corrupting legal documents."
+      },
+      "test_array_close_no_discarded_error.py": {
+        "kind": "intent_b",
+        "rationale": "Change B stops building and discarding a parse error when an array closes right after a value-less position. The second test checks that this holds while parsing a valid out-of-order table document that goes through A's new table validation."
+      },
+      "test_malformed_arrays_in_tables.py": {
+        "kind": "invariant",
+        "rationale": "Malformed arrays inside out-of-order tables must still raise UnexpectedCharError on every tree. This checks that neither B's closing-bracket shortcut nor A's validation masks or changes array syntax errors."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:8d3067ffccf44b5b9289310ab6ffaaa378b6e64c147a3a2d1bf5e032b9f62453",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "063b99fdc46209b6d447798abe636784eb3df077",
+      "a": "298f614cc4eb0ef84a40affb2e8608fb1b3c538e",
+      "b": "3fd0122694ddbbd7096e5f2990eaceb7d1b6f68a",
+      "ab": "86343ae409bf4fe40a86ddc3e6bc08d66c9b16e4",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:44fb2d6b7ef16e4a0078e15364d991523d121e8337ff6b6c2cdb49fd9c28ae6f"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_array_close_no_discarded_error.py::test_empty_and_trailing_comma_arrays_build_no_error": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_array_close_no_discarded_error.py::test_out_of_order_tables_with_arrays_build_no_error": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_malformed_arrays_in_tables.py::test_malformed_arrays_still_raise[[a.b]\\nx = [, 1]\\n[a]\\n[a.c]\\n]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_malformed_arrays_in_tables.py::test_malformed_arrays_still_raise[[a.b]\\nx = [1, , 2]\\n[a]\\n[a.c]\\n]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_malformed_arrays_in_tables.py::test_malformed_arrays_still_raise[[a.b]\\nx = []\\n[a]\\ny = [1 2]\\n]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_out_of_order_tables_with_arrays.py::test_extending_subtable_with_deeper_header_and_arrays_parses": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_out_of_order_tables_with_arrays.py::test_new_sibling_subtable_with_arrays_parses_and_round_trips": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_redefined_table_with_arrays.py::test_deep_redefined_subtable_with_arrays_is_rejected": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_redefined_table_with_arrays.py::test_redefined_subtable_with_value_less_array_closes_is_rejected": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:56:53.748393+00:00"
+  }
+}

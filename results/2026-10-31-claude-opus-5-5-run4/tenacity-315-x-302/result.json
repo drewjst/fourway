@@ -1,0 +1,77 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 53195,
+    "output_tokens": 2949,
+    "scenarios": {
+      "test_callstate_repr_runtime.py": {
+        "kind": "intent_b",
+        "rationale": "Change B adds RetryCallState.__repr__. Change A re-annotates Retrying.__call__ and AsyncRetrying.__call__/wraps. These tests check that the retry_state objects created by those call paths, sync and async, render the attempt number, sleep total and last outcome while a retry loop is running."
+      },
+      "test_retry_runtime_invariants.py": {
+        "kind": "invariant",
+        "rationale": "Change A only adds annotations to Retrying/AsyncRetrying __call__, wraps, and the wait_incrementing/wait_exponential constructors. Change B touches RetryCallState. In every tree, these tests check that return values pass through, sleeps happen once per retry, async iteration still works, and default wait values are unchanged."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:305ca4ecf2231f1ab2e0ea9be0e4c04a92226e4fb1d069632923704d9c62c28a",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "972fe91aff8c3ba9cd64549b8b1bc511038659ab",
+      "a": "95fc7d2496323881393ee325dc3c0e41f2784592",
+      "b": "9fed6750579b81c222fd91e9a9a78cb6ee811c20",
+      "ab": "451b4053b1396118c2925f8881b1298ff5cb581f",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:95cbac81a927e6ca519baaa9390dbd07ffb4e72874e85151dc9b0358dfaa3c82"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_callstate_repr_runtime.py::test_async_retrying_callstate_repr_via_decorator_and_call": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_callstate_repr_runtime.py::test_sync_retrying_callstate_repr_in_before_sleep": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_retry_runtime_invariants.py::test_sync_and_async_call_results_and_sleep_counts": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_retry_runtime_invariants.py::test_wait_defaults_unchanged": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:27:59.251103+00:00"
+  }
+}

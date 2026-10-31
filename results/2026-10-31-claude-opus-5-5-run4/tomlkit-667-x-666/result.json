@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 146653,
+    "output_tokens": 3707,
+    "scenarios": {
+      "test_register_encoder_docs.py": {
+        "kind": "intent_a",
+        "rationale": "Change A turns the register_encoder 'Example:' header into a reST literal block ('Example::') and sets autodoc_docstring_signature = False in docs/conf.py. This checks both outcomes so they are still present after merging with B, which does not touch them. Both checks fail on base and on B alone."
+      },
+      "test_array_tail_append_fastpath.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes plain tail appends extend the index map in place instead of calling _reindex. The appends here go to a fresh array and to a parsed multiline array whose last group is trailing whitespace, so the new value is inserted before that group. The test fails on trees without B, where _reindex is still called."
+      },
+      "test_array_append_consistency.py": {
+        "kind": "invariant",
+        "rationale": "On every tree, appending to arrays must keep the index map consistent with the formatting groups. Later index-based edits must update the right element, and the output must round-trip. One test also routes appended values through a custom encoder registered with register_encoder, which is the API whose docstring A changes, while B changes the append path those values take."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:0c18793f735cba345208bee2ab99a5a44d45488e04ee46253f2516828bf7c9ca",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "3de444b4d46f02e5b7002fdc3c851b3b532cfc98",
+      "a": "bff57a8ecaff88fc74971cfb0a47fdfa7fce154d",
+      "b": "432c66b014492bb5ebca2162ade16195373a6f0f",
+      "ab": "adb21cfc253477dd6239b42d69a5b02885f743d8",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:ea9f34d2b39eb3fffcef7a5f6ddaad347e72209e9f911806b2cbf67ebbbf4743"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_array_append_consistency.py::test_appends_to_commented_array_stay_consistent": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_array_append_consistency.py::test_custom_encoder_values_appended_to_array": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_array_tail_append_fastpath.py::test_fresh_array_tail_appends_skip_reindex": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_array_tail_append_fastpath.py::test_parsed_multiline_tail_appends_skip_reindex": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_register_encoder_docs.py::test_docs_conf_disables_docstring_signature_parsing": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_register_encoder_docs.py::test_register_encoder_docstring_uses_literal_block": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:14:07.487123+00:00"
+  }
+}

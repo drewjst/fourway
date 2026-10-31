@@ -1,0 +1,99 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 44906,
+    "output_tokens": 2926,
+    "scenarios": {
+      "test_operations_docstring.py": {
+        "kind": "intent_a",
+        "rationale": "Change A fixes the module docstring example in tinydb.operations so its parentheses balance. This checks the corrected example is present on trees with A, including the merge with B's utils change."
+      },
+      "test_documented_operation_runs.py": {
+        "kind": "invariant",
+        "rationale": "The documented delete operation must work on every tree. It runs through Table.update, the query cache and LRUCache, which change B modifies, so the cache must still invalidate after the write."
+      },
+      "test_lru_move_to_end.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes LRUCache reorder entries with OrderedDict.move_to_end instead of deleting and re-inserting them. A tracking OrderedDict detects whether any deletion happens on a get or a re-set, and the test also checks that recency ordering is kept."
+      },
+      "test_lru_eviction_order.py": {
+        "kind": "invariant",
+        "rationale": "On every tree, LRUCache eviction must drop the least recently used entry after gets and re-sets. Table's query cache relies on this ordering, so a recently hit query must survive eviction while a stale one is dropped."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:107ddcb1880d339809fa20c5098f79dc47ee394bb5b778a6e1ea70c0744ae7a4",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "b6209a7626f8b165861adb677123c3daab9a6162",
+      "a": "2e68526ccc3d7b452b602585a21917cb5d8211cb",
+      "b": "aabf2afcc5d9768d1f3d3df9b841304635e43fd2",
+      "ab": "3c489f2f97e12d22dbcb67d88b0272fe53135f70",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:414dc66ed672c908651e94dccf1d73296d588767e378d4fb0c283a478c28914a"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_documented_operation_runs.py::test_documented_delete_example_and_cache_invalidation": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_lru_eviction_order.py::test_lru_evicts_least_recent_after_access": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_lru_eviction_order.py::test_table_query_cache_keeps_recently_hit_query": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_lru_move_to_end.py::test_get_moves_without_reinsert": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_lru_move_to_end.py::test_set_existing_moves_without_reinsert": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_operations_docstring.py::test_operations_docstring_example_is_balanced": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:42:59.242289+00:00"
+  }
+}

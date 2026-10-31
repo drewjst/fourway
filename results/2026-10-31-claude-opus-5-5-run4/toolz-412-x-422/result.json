@@ -1,0 +1,106 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 97098,
+    "output_tokens": 3752,
+    "scenarios": {
+      "test_assoc_factory_calls.py": {
+        "kind": "intent_a",
+        "rationale": "Change A makes assoc build its result with a single factory() call instead of calling factory() again inside merge. This checks the call count directly, and also through assoc_in/update_in, which recurse through assoc. Both checks fail on trees without A (base calls the factory twice per assoc) and must keep passing on the merge, where B also edits dicttoolz."
+      },
+      "test_assoc_semantics.py": {
+        "kind": "invariant",
+        "rationale": "Every tree must keep assoc's contract. The input mapping is never mutated, an existing key is overwritten, a new key is added, and the result is built by the requested factory (here a defaultdict keeps its default_factory). This guards A's rewrite of assoc against regressions in the merged tree."
+      },
+      "test_compat_cleanup.py": {
+        "kind": "intent_b",
+        "rationale": "Change B drops Python 3.3 support. It removes PY33 from toolz.compatibility and stops exporting import_module from it. This checks that cleanup is present after merging alongside A, which edits a sibling module (dicttoolz) that imports from toolz.compatibility. It fails on trees without B."
+      },
+      "test_merge_errors_and_pickle.py": {
+        "kind": "invariant",
+        "rationale": "After B, merge's factory validation (_get_factory, which B reformats) and curry pickling (which B switches to importlib.import_module) must behave as before. A now bypasses merge inside assoc, so merge's own keyword validation must still reject bad keywords with the same message. These must pass on every tree."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:732eb8d038773c2627e7a233593588ca9c98db1f5781932b5b16a6546d93ca90",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "68a44dd9be694e556d531614eaf83b5fdeb03bfa",
+      "a": "a25a016132e8d2bf04c290cbc5e9983074721ac2",
+      "b": "bf013fac1a4b58c8eee0c3ae5a8bf4211ac1b69e",
+      "ab": "a7444514336c945770b51cd5e5ae85c4cfa999c6",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:1e46ef63897cc5a982ab9616e588617a776b30b832ff30ddc916d5e5ff9df469"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_assoc_factory_calls.py::test_assoc_calls_factory_once": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_assoc_factory_calls.py::test_nested_updates_call_factory_once_per_level": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_assoc_semantics.py::test_assoc_respects_factory_type": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_assoc_semantics.py::test_assoc_values_and_immutability": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_compat_cleanup.py::test_py26_py33_compat_shims_removed": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_merge_errors_and_pickle.py::test_curry_pickle_roundtrip": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_merge_errors_and_pickle.py::test_merge_rejects_unknown_keyword_with_message": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:16:19.405481+00:00"
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 57781,
+    "output_tokens": 3339,
+    "scenarios": {
+      "test_operations_doc_ids.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes update(doc_ids=...) skip missing IDs, apply the update atomically, and return only the IDs it actually updated. Change A rewrote the operation helpers (increment, delete, set) with new signatures. These tests check that B's behaviour holds when A's callable transforms are the updater, on both the memory and JSON storages. That includes the in-place mutation path that partially updated the table before B."
+      },
+      "test_upsert_semantics.py": {
+        "kind": "invariant",
+        "rationale": "Change A documents that upsert updates every matching document and inserts a new one when nothing matches. Change B rewrote upsert's body, removing the KeyError fallback in favour of update returning an empty list. Every tree must preserve these upsert semantics: query-based upsert updates all matches, and a Document upsert updates an existing ID or inserts under a missing one."
+      },
+      "test_operations_typing.py": {
+        "kind": "intent_a",
+        "rationale": "Change A adds type annotations to the operation helpers. Change B builds on those helpers through update. These tests check that the annotations are present and resolve to the intended types, and that annotated helpers still work at runtime when applied through update by query and by existing doc_ids."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:6399398af92491a04ab7ab0dd32fbb400b776a16472e64960acd46033ae5a057",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "8a7631b6f520c06fca1235315219e7eaa31a890c",
+      "a": "01b7812a6160c4e833f5825ac0f3338341f5848c",
+      "b": "2dc94fa60254ba7cbb055565be2e03ecd54c70d5",
+      "ab": "7c7720a3c997695d1071145792aba012281ea451",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:aa7f9cdfcdd1f0d42c424513d8e76080a861b578bcf953a921ecad2ec58a26a8"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_operations_doc_ids.py::test_delete_and_set_with_missing_doc_ids[json]": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_operations_doc_ids.py::test_delete_and_set_with_missing_doc_ids[memory]": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_operations_doc_ids.py::test_increment_mixed_doc_ids_is_atomic_and_filtered[json]": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_operations_doc_ids.py::test_increment_mixed_doc_ids_is_atomic_and_filtered[memory]": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_operations_typing.py::test_annotated_operations_apply_via_update": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_operations_typing.py::test_operation_type_hints_present": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_upsert_semantics.py::test_upsert_document_existing_and_missing_id[json]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_upsert_semantics.py::test_upsert_document_existing_and_missing_id[memory]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_upsert_semantics.py::test_upsert_query_updates_all_matches_or_inserts[json]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_upsert_semantics.py::test_upsert_query_updates_all_matches_or_inserts[memory]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:44:09.895846+00:00"
+  }
+}

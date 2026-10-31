@@ -1,0 +1,137 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 52403,
+    "output_tokens": 2696,
+    "scenarios": {
+      "test_no_encoding_cookie_on_abc_files.py": {
+        "kind": "intent_a",
+        "rationale": "Change A removes the coding/encoding declaration from module headers. Change B edits the same modules (__init__, retry, stop, wait) near their imports and class definitions. This checks that, on the merged tree, those shared files still lack an encoding cookie in their first two lines and still compile as UTF-8 even though they contain non-ASCII characters."
+      },
+      "test_abc_base_classes.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes the strategy base classes and BaseRetrying inherit from abc.ABC instead of declaring metaclass=ABCMeta. Change A rewrites the headers of the same files. This checks that abc.ABC is in the MRO of every affected class on the merged tree."
+      },
+      "test_abstract_bases_still_enforced.py": {
+        "kind": "invariant",
+        "rationale": "Every tree should keep the same behavior for the abstract bases. Their metaclass stays ABCMeta, they cannot be instantiated without __call__, concrete subclasses and the |, & and + combinators still work, and a full retry run still drives through these classes. Both changes touch these modules, so this checks that the merge loses neither the import nor the abstractness."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:fc5c253542faf2d645129328674379139a3ab07018ac3d8748912af9007a085f",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "5b2f5ea73f81c370aaf19a65f0b68c7ec2095c88",
+      "a": "2a9e5bb488ad2d906fc9c27c2ff05ad473271c74",
+      "b": "0592834773ec0c272a677d3a7e730f13e5ad972d",
+      "ab": "b7b0a173545942c131bf6cac8892aef9c78b40d6",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:fe3ee7f2302921a98eac3c6c1795a4025cc3ec911d9d9a44006c8b5e71e267ae"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_abc_base_classes.py::test_base_retrying_inherits_abc": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_abc_base_classes.py::test_strategy_bases_inherit_abc": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_abstract_bases_still_enforced.py::test_bases_remain_abstract_with_abcmeta": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_abstract_bases_still_enforced.py::test_custom_subclasses_and_combinators_drive_retrying": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_no_encoding_cookie_on_abc_files.py::test_shared_files_compile_as_utf8_without_cookie[tenacity/__init__.py]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_no_encoding_cookie_on_abc_files.py::test_shared_files_compile_as_utf8_without_cookie[tenacity/retry.py]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_no_encoding_cookie_on_abc_files.py::test_shared_files_compile_as_utf8_without_cookie[tenacity/stop.py]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_no_encoding_cookie_on_abc_files.py::test_shared_files_compile_as_utf8_without_cookie[tenacity/wait.py]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_no_encoding_cookie_on_abc_files.py::test_shared_files_have_no_encoding_cookie[tenacity/__init__.py]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_no_encoding_cookie_on_abc_files.py::test_shared_files_have_no_encoding_cookie[tenacity/retry.py]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_no_encoding_cookie_on_abc_files.py::test_shared_files_have_no_encoding_cookie[tenacity/stop.py]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_no_encoding_cookie_on_abc_files.py::test_shared_files_have_no_encoding_cookie[tenacity/wait.py]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:27:31.528425+00:00"
+  }
+}

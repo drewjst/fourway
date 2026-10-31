@@ -1,0 +1,113 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 133435,
+    "output_tokens": 2858,
+    "scenarios": {
+      "test_wrapper_operators.py": {
+        "kind": "invariant",
+        "rationale": "Change A pins the list/dict operator behaviour of the _types wrappers while also editing _types.py. Change B edits items.py, which builds Array and Table on those wrappers. On every tree, += on an Array must keep it as the same Array object, and | on a Table must return a new Table. Arrays holding multiline strings must also render consistently."
+      },
+      "test_wrap_method_removed.py": {
+        "kind": "intent_a",
+        "rationale": "Change A removes the unused wrap_method helper from tomlkit._types and drops it from __all__. The rest of the package, including items.py as modified by change B, must still import and work without it."
+      },
+      "test_multiline_lone_cr.py": {
+        "kind": "intent_b",
+        "rationale": "Change B escapes a lone CR as \\r in multiline basic strings and rejects it in multiline literal strings, so the output parses again. This must hold for values placed in a document and in an Array, which uses the wrapper machinery that change A touches."
+      },
+      "test_multiline_crlf.py": {
+        "kind": "invariant",
+        "rationale": "CRLF line endings inside multiline basic and literal strings have always been emitted unchanged and round-trip on the base. Change B's lone-CR handling must not escape or reject them on any tree."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:a3c39951a028a654c7dffc2a2f5dc85340a36b5e1e8b55f2edd90bd281bd2a45",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "d0c6ba941434aa8ec54a6571164c3a1ff21358fb",
+      "a": "4ae6b4496b7b6acb207ec9a0ee8507d4063220cc",
+      "b": "94607cd8f4a8801dbc0a91b9945fcb856e4ff169",
+      "ab": "9e2a1394ffa5d08fea358ffb21fa1aa6bcbf8878",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:486a0a761f4da6f95388a114a87f39c907670e296ab2b447d58b652dff1c4463"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_multiline_crlf.py::test_crlf_multiline_basic_and_literal_preserved": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_multiline_lone_cr.py::test_lone_cr_escaped_in_multiline_basic_and_round_trips": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_multiline_lone_cr.py::test_lone_cr_in_array_of_multiline_strings_round_trips": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_multiline_lone_cr.py::test_lone_cr_rejected_in_multiline_literal": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_wrap_method_removed.py::test_items_still_work_without_wrap_method": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_wrap_method_removed.py::test_wrap_method_no_longer_exported": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_wrapper_operators.py::test_array_iadd_keeps_wrapper_and_renders": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_wrapper_operators.py::test_table_or_returns_new_table_and_ior_in_place": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:07:18.746909+00:00"
+  }
+}

@@ -1,0 +1,102 @@
+{
+  "label": "clean",
+  "expect": "ok",
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 5057,
+    "output_tokens": 3559,
+    "scenarios": {
+      "test_retry_keys.py": {
+        "kind": "intent_a",
+        "rationale": "Change A retries gateway timeouts, and every retry must reuse the same idempotency key so the gateway deduplicates the capture. Change B changes how keys are built by adding the currency. These tests use a non-default currency (EUR) and confirm that a response lost after capture, and a mix of timeout kinds, still end with exactly one capture whose key matches idempotency_key(order). They also check that only one success event reaches revenue."
+      },
+      "test_currency_captures.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes an order re-quoted in a new currency get its own capture. These tests check that this still holds when change A's timeout retries are involved. The second test loses the gateway response for the re-quoted charge. With A, the retry happens inside charge(); without A, the caller retries. Either way the result should be exactly two captures, one per currency, with the right amounts."
+      },
+      "test_single_capture.py": {
+        "kind": "invariant",
+        "rationale": "No tree may capture the same order and currency twice: not when the caller retries after a lost response, and not when the same order is charged again. A declined charge must never capture or publish an event, and A must not retry it. All three hold on the base. They would break on the merge if the retry path and B's keys stopped producing the same key on every attempt."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:957d772f9846e5e35c70663a08ca06f8e1c6f4cc940bb608f8f5254f3b16a7b9",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "f990b471c314a758fffb0e84e40647fba241cf98",
+      "a": "687d63d4883b5aed7c756c4aef79f34b56f6d955",
+      "b": "4dd9e2c448bfeaa8b037f2c52dabe592d8615437",
+      "ab": "a4ed1cb6991899a57fe4acd5bd1d506b9766813a",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:63ee453189142ea6e8368ddd6ce8b80dff1cc238072d8d67b6bd7c6918b2b959"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_currency_captures.py::test_each_currency_gets_its_own_capture": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_currency_captures.py::test_requote_with_lost_response_captures_once_per_currency": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_retry_keys.py::test_mixed_timeouts_still_capture_once": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_retry_keys.py::test_retry_after_lost_response_captures_once_in_other_currency": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_single_capture.py::test_caller_retry_after_lost_response_captures_once": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_single_capture.py::test_charging_same_order_twice_captures_once": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_single_capture.py::test_decline_captures_nothing_and_publishes_nothing": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:26:33.426491+00:00"
+  }
+}

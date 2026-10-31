@@ -1,0 +1,126 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 118770,
+    "output_tokens": 7054,
+    "scenarios": {
+      "test_split_aot_multiline_strings.py": {
+        "kind": "intent_a",
+        "rationale": "Change A lets an array of tables split across out-of-order parts of one table parse, merge into a single AoT, and keep write-through. Change B rewrote how multiline string bodies are scanned. These tests put multiline basic and literal strings inside the split AoT fragments: LF, tab, CRLF, line-ending backslash folding, and embedded runs of 2 or 3 quotes. They then check the merged AoT values, byte-identical round-trip, unwrap(), and that element mutation through the proxy reaches the document. They should fail on trees without A, where parsing raises, and pass on A and on the merge."
+      },
+      "test_out_of_order_multiline_invariants.py": {
+        "kind": "invariant",
+        "rationale": "These are properties every tree should keep. Multiline strings inside out-of-order table fragments, which the proxy code touched by A builds, must parse to the same values and round-trip byte-for-byte under B's bulk scan. Edits through the proxy must stay visible. Invalid content in a multiline body must still raise ParseError: a lone CR, NUL, form feed, DEL, or an unterminated string. Applying both changes must not break any of this."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:b12907f93303ab710f5e8cdde84903fcbadd0451e1f866d8f76e0a09b7658abb",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "78399c593d8c393acbf1d099d2da921d6e47b213",
+      "a": "b0a2d5d6e7ecb6f45a5f600987a54a88142868d5",
+      "b": "c301c525a70128788584605984dd72f3ff576aa0",
+      "ab": "792f26b2a4a51266cd368e055ad7b74d46f5b9bf",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:7d8a53695391e9aeaa7263ab82d68e3d3c86a2c972db4cbc8ef14667e10fba45"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_out_of_order_multiline_invariants.py::test_invalid_multiline_in_out_of_order_fragment_rejected[[a.x]\\np = 1\\n[foo]\\nbar = 2\\n[a.y]\\nq = \"\"\"never\\nclosed\\n]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_out_of_order_multiline_invariants.py::test_invalid_multiline_in_out_of_order_fragment_rejected[[a.x]\\np = 1\\n[foo]\\nbar = 2\\n[a.y]\\nq = \"\"\"ok\\rbad\"\"\"\\n]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_out_of_order_multiline_invariants.py::test_invalid_multiline_in_out_of_order_fragment_rejected[[a.x]\\np = 1\\n[foo]\\nbar = 2\\n[a.y]\\nq = \"\"\"ok\\x00bad\"\"\"\\n]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_out_of_order_multiline_invariants.py::test_invalid_multiline_in_out_of_order_fragment_rejected[[a.x]\\np = 1\\n[foo]\\nbar = 2\\n[a.y]\\nq = \"\"\"ok\\x0cbad\"\"\"\\n]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_out_of_order_multiline_invariants.py::test_invalid_multiline_in_out_of_order_fragment_rejected[[a.x]\\np = 1\\n[foo]\\nbar = 2\\n[a.y]\\nq = '''never\\nclosed '']": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_out_of_order_multiline_invariants.py::test_invalid_multiline_in_out_of_order_fragment_rejected[[a.x]\\np = 1\\n[foo]\\nbar = 2\\n[a.y]\\nq = '''ok\\rbad'''\\n]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_out_of_order_multiline_invariants.py::test_invalid_multiline_in_out_of_order_fragment_rejected[[a.x]\\np = 1\\n[foo]\\nbar = 2\\n[a.y]\\nq = '''ok\\x7fbad'''\\n]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_out_of_order_multiline_invariants.py::test_out_of_order_multiline_update_is_visible": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_out_of_order_multiline_invariants.py::test_out_of_order_tables_with_multiline_values_round_trip": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_split_aot_multiline_strings.py::test_split_aot_multiline_crlf_escapes_and_write_through": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_split_aot_multiline_strings.py::test_split_aot_with_multiline_values_merges_and_round_trips": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:55:01.284180+00:00"
+  }
+}

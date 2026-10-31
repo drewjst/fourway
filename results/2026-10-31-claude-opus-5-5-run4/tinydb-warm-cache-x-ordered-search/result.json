@@ -1,0 +1,95 @@
+{
+  "label": "conflict",
+  "expect": "differential_b",
+  "verdict": "conflict",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 59026,
+    "output_tokens": 2546,
+    "scenarios": {
+      "test_search_order_after_insert.py": {
+        "kind": "intent_b",
+        "rationale": "Change B promises that search() returns matches in document ID order. Change A appends a newly inserted document to the end of each cached result. If a search is cached and a Document with a lower explicit ID is then inserted, the merged tree serves [5, 2] instead of [2, 5]. With B alone, the insert clears the cache and the fresh search is sorted."
+      },
+      "test_cached_search_consistency.py": {
+        "kind": "invariant",
+        "rationale": "A search served from the cache must match a search recomputed from storage. On the base the cache is cleared on insert, so the two always agree. In the merge, A's append-on-insert puts a lower-ID document last, while a fresh, sorted search from B puts it first. The two results then disagree."
+      },
+      "test_insert_keeps_cache_ordered.py": {
+        "kind": "intent_a",
+        "rationale": "Change A keeps cached searches across inserts and appends matching new documents. This scenario checks that behaviour with an auto-assigned ID, where ID order and append order agree, so it should still hold on the merge. Patching _read_table checks that the result came from the cache."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:48aa9091e465aff9e77acad95a76a9d480d6812be80a937edc86425d3d1fd960",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "d1e355743a97820d5237b3af65b4acd3ac4f91e3",
+      "a": "8de3eba7ab2c5b2df552fdf4f5862b9a1eea1af1",
+      "b": "541a005d57828c080d5e05af2c71444f3136a0fb",
+      "ab": "db31cce5641cbde0d12adcecc4f044ef84a484f0",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:f2e14497c66adb04b24693d66f5518144e85f55fded3c1a103faaecb29e88aab"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_cached_search_consistency.py::test_cached_result_equals_fresh_result_after_auto_id_insert": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_cached_search_consistency.py::test_cached_result_equals_fresh_result_after_explicit_id_insert": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "emergent"
+      },
+      "fourway_scenarios/test_insert_keeps_cache_ordered.py::test_insert_appends_to_cached_search_without_rescan": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_insert_keeps_cache_ordered.py::test_insert_keeps_non_matching_cached_search": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_search_order_after_insert.py::test_lower_explicit_id_inserted_after_cached_search_is_ordered": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "differential_b"
+      },
+      "fourway_scenarios/test_search_order_after_insert.py::test_mixed_ids_after_cached_search_are_ordered": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "differential_b"
+      }
+    },
+    "verdict": "conflict",
+    "recorded_at": "2026-10-31T19:48:59.966753+00:00"
+  }
+}

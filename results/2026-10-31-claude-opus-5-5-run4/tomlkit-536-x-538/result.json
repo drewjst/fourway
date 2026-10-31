@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 120844,
+    "output_tokens": 3209,
+    "scenarios": {
+      "test_proxy_repr_numeric_fragments.py": {
+        "kind": "intent_a",
+        "rationale": "Change A makes OutOfOrderTableProxy str/repr show the merged value of every fragment. Change B rewrites which numeric literals reach the float fallback. These tests check that the merged repr still holds float, exponent, inf/nan and hex values split across out-of-order dotted fragments, which are the literal forms B's new branch must still accept."
+      },
+      "test_overlong_int_in_out_of_order_fragment.py": {
+        "kind": "intent_b",
+        "rationale": "Change B rejects decimal integers longer than the int-from-string digit limit instead of turning them into inf. This test checks the rejection when the literal sits in a later out-of-order dotted fragment, the structure Change A's proxy repr covers. It also checks that a value just under the limit still parses as an Integer and stays reachable through the proxy."
+      },
+      "test_out_of_order_numeric_values_invariant.py": {
+        "kind": "invariant",
+        "rationale": "Out-of-order dotted fragments holding numeric literals must parse to the correct merged values and round-trip byte for byte on every tree. This property spans B's number parsing and A's proxy over merged fragments."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:a186e0eac0f23ac07cfd41f049bd0290aa8a6d0f44c1335d586a80f127234c3f",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "821152c21343b0bd5f7a52bc1b7bc5b141547658",
+      "a": "3314fd8fbc3d094677d45bb226378b312fa71d07",
+      "b": "df603387fbae57db59ba8dc21599f10de73baa7e",
+      "ab": "6512e6fb06d0668ca2aa31fb19ed2e6ecb5e3163",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:96f0dc58f818dddc82b28abe732775794fb2bfcef5c5451c0c5b53252cb1a54e"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_out_of_order_numeric_values_invariant.py::test_numeric_fragments_merge_and_round_trip": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_out_of_order_numeric_values_invariant.py::test_special_floats_in_fragments_survive": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_overlong_int_in_out_of_order_fragment.py::test_integer_under_limit_in_fragment_stays_integer": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_overlong_int_in_out_of_order_fragment.py::test_overlong_integer_in_second_dotted_fragment_is_rejected": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_proxy_repr_numeric_fragments.py::test_repr_merges_float_and_special_float_fragments": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_proxy_repr_numeric_fragments.py::test_repr_merges_hex_int_and_exponent_float_fragments": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:04:06.560335+00:00"
+  }
+}

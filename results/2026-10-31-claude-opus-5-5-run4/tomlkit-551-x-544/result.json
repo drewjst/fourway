@@ -1,0 +1,99 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 123719,
+    "output_tokens": 3203,
+    "scenarios": {
+      "test_multiline_string_with_comment.py": {
+        "kind": "intent_a",
+        "rationale": "Change A makes a multiline string that starts with a newline keep that newline after a round-trip. Change B edits Item.comment, the method used to attach a comment to such a String. This checks that a String built by string(), with a single-line comment attached through Item.comment, still keeps its leading newline and its comment once the document is re-parsed."
+      },
+      "test_multiline_comment_rejection_on_strings.py": {
+        "kind": "intent_b",
+        "rationale": "Change B rejects comments that contain line breaks, both in Item.comment and in Array.add_line, and leaves the item unmodified when it raises. This checks that rule on String items from string(multiline=True) whose value starts with a newline, which is the rendering path Change A modifies."
+      },
+      "test_add_line_multiline_string_round_trip.py": {
+        "kind": "intent_a",
+        "rationale": "This passes a multiline String with a leading newline, together with a single-line comment, through Array.add_line, the method Change B adds validation to. It checks that the array element still re-parses to its original value, which is Change A's fix."
+      },
+      "test_multiline_string_comment_invariant.py": {
+        "kind": "invariant",
+        "rationale": "On every tree, a multiline string that does not start with a newline must render the same way, and a single-line comment attached to it must still round-trip. Neither change should alter this case."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:05a873f2117055be69550a6644e2f9965d12bf32489ae1ba3090821865af6bbd",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "9141a9533e791a851a3c9b9289210da85f35c4d6",
+      "a": "dbc54415fbbadef6acdaac6e4356aa1d84dec475",
+      "b": "5563d235cad890829c9cb580e19bd46878ccc370",
+      "ab": "b46e9046e67ca19c363b9337d2c875f0a7c1e2d2",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:1cb28485ea01f56de6656a31a93e4f2dece324127642f5c3e7f2f0aa67e6940e"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_add_line_multiline_string_round_trip.py::test_add_line_leading_newline_multiline_string_with_comment_round_trips": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_multiline_comment_rejection_on_strings.py::test_add_line_with_multiline_string_and_line_break_comment_rejected": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_multiline_comment_rejection_on_strings.py::test_comment_with_line_break_rejected_on_leading_newline_multiline_string": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_multiline_string_comment_invariant.py::test_multiline_string_without_leading_newline_and_single_line_comment_round_trip": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_multiline_string_with_comment.py::test_leading_newline_multiline_basic_string_with_comment_round_trips": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_multiline_string_with_comment.py::test_leading_newline_multiline_literal_string_with_comment_round_trips": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:04:40.923926+00:00"
+  }
+}

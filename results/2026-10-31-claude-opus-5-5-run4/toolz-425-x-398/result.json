@@ -1,0 +1,102 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 94143,
+    "output_tokens": 7272,
+    "scenarios": {
+      "test_dissoc_factory_compose.py": {
+        "kind": "intent_a",
+        "rationale": "Change A adds a `factory` keyword to dissoc and a curried `toolz.curried.dissoc`. Change B reworks Compose, so these tests run the new dissoc behavior inside composed pipelines. They cover a curried dissoc with a factory used as the first stage of a composition, and the new large-key-ratio path that rebuilds the mapping. The factory type must be kept and order preserved on the small-key path."
+      },
+      "test_compose_dissoc_methods.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes Compose behave like a function descriptor. It also gives Compose a `__signature__` taken from its first function, plus `__eq__` and `__hash__`. These tests use dissoc as the composed head, which is the function Change A rewrites. They cover binding a composition as a method on a dict subclass, signature introspection that tracks dissoc's current parameters, and equality and hashing when the components are curried dissoc objects."
+      },
+      "test_dissoc_compose_invariant.py": {
+        "kind": "invariant",
+        "rationale": "These properties should hold on every tree. A composition built on dissoc must remove exactly the requested keys, whatever the ratio of keys to dict size. This exercises both of Change A's code paths. It must also never mutate its input. Accessing a Compose through the class must still behave like the plain composition, which checks Change B's `__get__` with obj=None. Wrapping a Compose in staticmethod must keep working."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:e5a83306ac62b28183f30ffc2af297b93fc87577b4f466f868eb83901027b609",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "5d61a56340bc8c92e2f0df21d3bd576f3d18d9dc",
+      "a": "c7217974aa63473291155c747e1f4054a1d242c6",
+      "b": "9bdd01b81c08631c8676ba03e3f08c4aee092c2b",
+      "ab": "69cd94e7df267abcd83d7fff6e1079ab45bd70af",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:fa378504301035790e89a275bf0214c993631520b79209137a0a95b7e3198216"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_compose_dissoc_methods.py::test_compose_binds_as_method_on_dict_subclass": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_compose_dissoc_methods.py::test_compose_equality_and_hash_with_curried_dissoc": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_compose_dissoc_methods.py::test_compose_signature_tracks_dissoc_signature": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_dissoc_compose_invariant.py::test_class_level_and_static_access_of_composed_dissoc": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_dissoc_compose_invariant.py::test_composed_dissoc_removes_exactly_requested_keys": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_dissoc_factory_compose.py::test_curried_dissoc_with_factory_as_compose_head": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_dissoc_factory_compose.py::test_dissoc_factory_many_keys_path_inside_compose": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:17:32.944709+00:00"
+  }
+}

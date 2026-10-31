@@ -1,0 +1,81 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 72672,
+    "output_tokens": 2411,
+    "scenarios": {
+      "test_after_log_none_seconds.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes after_log print '?' instead of raising TypeError when seconds_since_start is None, including when a custom sec_format is used. These tests confirm that behaviour holds on the merged tree, where change A edits __init__.py (the module defining RetryCallState) only in docstrings. They fail on base and on A-only, where the None value hits the % format operator."
+      },
+      "test_after_log_in_retry_loop.py": {
+        "kind": "invariant",
+        "rationale": "When after_log runs inside a real Retrying loop, outcome_timestamp is set, so every tree should log a numeric elapsed time and fire once per retried attempt. This guards against change B's fallback wrongly printing '?' for normal runs, and against a merge with A's __init__.py edits breaking the hook."
+      },
+      "test_docstring_typos.py": {
+        "kind": "intent_a",
+        "rationale": "Change A corrects typos in the BaseRetrying.statistics and wraps docstrings. This test checks that the corrected text survives on the merged tree, alongside change B's edits to after.py."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:d170002c7f2893e149d4ecadb55dbf11d25e0c7f70b7723a1fece191eb18808f",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "ed912845dfe5843b25fc7caa62a57e7e38ba3547",
+      "a": "17408c86b0ea93a70072a341a2aff2cc4cd833d3",
+      "b": "8ce5933ef4adb2fbdf9dce762992285bca6a83e9",
+      "ab": "3c97f3bccfb522234078b8eda68f867cf1da343c",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:c0c8c82eab1740aaddb762a4d604d208defb306ace3cc008b0a42147225aa6f8"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_after_log_in_retry_loop.py::test_after_log_numeric_seconds_in_real_loop": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_after_log_none_seconds.py::test_after_log_custom_format_none_seconds": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_after_log_none_seconds.py::test_after_log_default_format_none_seconds": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_docstring_typos.py::test_fixed_docstrings_present": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:35:47.161329+00:00"
+  }
+}

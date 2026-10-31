@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 57784,
+    "output_tokens": 3789,
+    "scenarios": {
+      "test_regex_flags_on_persisted_table.py": {
+        "kind": "intent_a",
+        "rationale": "Change A puts regex flags into the query hash, so the table query cache keeps results for different flags apart. These tests run that on a table created with persist_empty=True, the constructor path that change B rewrote. They fail on trees without A, where the second search reads the stale cache entry left by the first."
+      },
+      "test_persist_empty_reopen_regex.py": {
+        "kind": "intent_b",
+        "rationale": "Change B stops persist_empty=True from wiping a table that already holds documents. These tests reopen a table with persist_empty=True and then query it with flagged regex queries and the query cache, which change A touches. They fail on trees without B because reopening clears the documents."
+      },
+      "test_cache_and_persist_invariants.py": {
+        "kind": "invariant",
+        "rationale": "These properties should hold on every tree. Regex queries with the same flags stay equal and cacheable, so cache hits still happen after A extends the hash tuple. A brand-new persist_empty table is still persisted and starts IDs at 1, and B only guards the clear with a read. A write to such a table still invalidates its query cache."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:9458c940ea452bab1630e49dd722884be767c94aee5a4c3fc653c4dc5b458e2b",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "0c5cc8e59f24690b0d28398a2fa265e108935bf2",
+      "a": "d2bc3937dba4b26fc97f7f779c7dd7f2066ee277",
+      "b": "04ba3af3db4422cd90dac367be3186a0ed55e8cc",
+      "ab": "847528062ef1947b7f3ce48d045cab5643a20e96",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:b82081abc4f09f15435913832f2d849483e6619fb44d20e74bdd8964295d7a5d"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_cache_and_persist_invariants.py::test_identical_flagged_regex_queries_share_cache_entry": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_cache_and_persist_invariants.py::test_new_persist_empty_table_persisted_and_cache_invalidated": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_persist_empty_reopen_regex.py::test_reopen_with_persist_empty_keeps_docs_for_regex_search": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_persist_empty_reopen_regex.py::test_reopen_with_persist_empty_then_insert_updates_cached_search": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_regex_flags_on_persisted_table.py::test_matches_flags_isolated_on_persist_empty_table": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_regex_flags_on_persisted_table.py::test_search_flags_isolated_on_persist_empty_table_reverse_order": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:46:47.086615+00:00"
+  }
+}
