@@ -1,7 +1,7 @@
 # HANDOFF — fourway
-State:    review — corpus v5: 82 clean pairs (6 seeded twins, 76 mined from six repositories), above the 73 the 5% bar needs; no generator has run on a mined pair
-Next:     owner decides how run 4 reaches mined pairs: a Docker container runner for #2 (recommended; Docker and python:3.12-slim are on the dev machine) or an amendment to decision 0002
-Blockers: that decision; #6 (how `missing` and import-`error` outcomes are classified); #3 review
+State:    review — the Docker sandbox for #2 is built (decision 0003): model scenarios on mined pairs run only with `--sandbox`; corpus v5 holds 82 clean pairs; no generator has run on a mined pair
+Next:     owner approves paid run 4 on corpus v5: `uv run fourway bench --generator claude --sandbox --repeat 3 --out runs/claude` (88 pairs; estimate before running)
+Blockers: owner approval and budget for run 4; #6 (how `missing` and import-`error` outcomes are classified); #3 review
 Decisions this session:
 - Phase 0 is a benchmark only — no recall number exists to put behind an integration — rejected: GitHub App first (docs/decisions/0001)
 - Merge-layer direction written up as a proposal in docs/design/merge-layer.md: grow the detector into the layer that decides what lands together, on top of Git — Git already handles storage below Anthropic's scale; verification is the open problem — rejected: replacing Git storage. Recommendation only; the owner has not ruled. Positioning and Coldworks fit are in hq (IDEAS.md, 2026-10-30 entry, branch ideas/fourway-merge-layer), never here
@@ -42,6 +42,9 @@ Decisions this session:
 - Check rule 7 ignores a test that ran and failed alike on all four trees; a file that fails to import still drops the pair, and some test must pass on all four — such a test fails in fourway's environment (newer Python, no installed version metadata, no `dotenv` command) and says nothing about A or B; added after the first checks and before any generator run, and it admits 18 pairs named in corpus/README.md v5 — rejected: dropping them, and ignoring import errors too (would gut whole suites, as typeguard did)
 - toolz pairs whose commits mark `_version.py` export-subst are refused, not admitted — git archive would rewrite the file per tree — rejected: relaxing the export-attributes check
 - click joins the dev dependencies for python-dotenv's conftest — rejected: leaving python-dotenv out
+- Model scenarios on third-party changes run in a Docker container (decision 0003): no network, no capabilities, host uid, read-only root and tree, tmpfs /tmp, a per-run report directory, fixed env, 2 GB / 2 CPU / 512 pids; image pinned by digest with hash-locked pytest, typeguard, click at host versions; the ledger's env guard is the recipe tag — owner chose the sandbox over amending 0002, 2026-10-31 — rejected: a Go runner first (language doesn't change containment), a VM per run (four per pair, not on CI)
+- The sandbox's image id isn't the env guard; the recipe tag is — a rebuild changes only build timestamps, so the id would make the same environment look new — rejected: the image id
+- Each sandboxed run gets its own empty report directory — the four trees run at once, and a shared writable mount let one tree's scenario rewrite another's report — rejected: one shared reports mount
 - pluggy is out as a mining source — its tree would shadow the pluggy that pytest itself imports — rejected: pinning it anyway
 - The `--corpus` default resolves to the checkout, so `uv run --project ~/Projects/fourway fourway ...` works from any directory — the first paid run failed from ~/Projects — rejected: documenting "cd first"
 Pointers: main · github.com/drewjst/fourway (public) · issues #1–#6 and #9 hold deferred work · `uv run pytest -q` (87 tests, about 100 s; the first run fetches three upstream repos) · `fourway mine` + `check-corpus --prune-mined` (corpus/README.md, Mined pairs) · src/fourway/claude.py · `fourway bench --generator claude|oracle|null|deranged` · corpus/README.md · docs/decisions/

@@ -15,5 +15,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v6
       - run: uv sync
+      # The sandbox tests need Docker and the image. Without Docker they skip, and -rs lists the skips.
+      - run: uv run fourway sandbox build
       - run: uv run fourway check-corpus
-      - run: uv run pytest -q
+      - run: uv run pytest -q -rs

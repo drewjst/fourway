@@ -1,7 +1,8 @@
 """Run tests against the four trees of a pair and collect one outcome per test per tree.
 
-Phase 0 runs pytest as a local subprocess. That is safe only for scenarios
-generated from diffs we wrote ourselves; see docs/decisions/0002.
+A local subprocess is safe only for scenarios generated from changes this
+project wrote; see docs/decisions/0002. Given a Sandbox, each run happens in a
+container instead; see docs/decisions/0003.
 """
 
 from __future__ import annotations
@@ -15,6 +16,8 @@ from collections.abc import Mapping
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
+
+from .sandbox import Sandbox
 
 VARIANTS = ("base", "a", "b", "ab")
 SCENARIO_DIR = "fourway_scenarios"
@@ -65,17 +68,11 @@ def install_scenarios(tree: Path, scenarios: Mapping[str, str]) -> None:
         (target / name).write_text(source)
 
 
-def run_pytest(tree: Path, target: str, report: Path, timeout: float, suite: Suite = Suite()) -> RunReport:
-    env = {
-        "PATH": os.environ.get("PATH", ""),
-        "HOME": os.environ.get("HOME", ""),
-        "PYTHONPATH": os.pathsep.join(str(tree / p) for p in (".", *suite.pythonpath)),
-        "PYTHONHASHSEED": "0",
-        "PYTHONDONTWRITEBYTECODE": "1",
-        "FOURWAY_REPORT": str(report),
-    }
-    cmd = [
-        sys.executable, "-m", "pytest", target, "-q",
+def run_pytest(
+    tree: Path, target: str, report: Path, timeout: float, suite: Suite = Suite(), sandbox: Sandbox | None = None,
+) -> RunReport:
+    args = [
+        target, "-q",
         "-p", "no:cacheprovider",
         "-p", "fourway.pytest_plugin",
         "--import-mode=importlib",
@@ -85,10 +82,22 @@ def run_pytest(tree: Path, target: str, report: Path, timeout: float, suite: Sui
         "--continue-on-collection-errors",
         *suite.args,
     ]
-    try:
-        subprocess.run(cmd, cwd=tree, env=env, capture_output=True, timeout=timeout)
-    except subprocess.TimeoutExpired:
-        return RunReport({}, frozenset(), crashed="timeout")
+    if sandbox is not None:
+        if not sandbox.run(tree, suite.pythonpath, report, args, timeout):
+            return RunReport({}, frozenset(), crashed="timeout")
+    else:
+        env = {
+            "PATH": os.environ.get("PATH", ""),
+            "HOME": os.environ.get("HOME", ""),
+            "PYTHONPATH": os.pathsep.join(str(tree / p) for p in (".", *suite.pythonpath)),
+            "PYTHONHASHSEED": "0",
+            "PYTHONDONTWRITEBYTECODE": "1",
+            "FOURWAY_REPORT": str(report),
+        }
+        try:
+            subprocess.run([sys.executable, "-m", "pytest", *args], cwd=tree, env=env, capture_output=True, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            return RunReport({}, frozenset(), crashed="timeout")
     if not report.exists():
         return RunReport({}, frozenset(), crashed="error")
     data = json.loads(report.read_text())
@@ -103,6 +112,7 @@ def run_four_way(
     repeat: int = 1,
     timeout: float = 120.0,
     suite: Suite = Suite(),
+    sandbox: Sandbox | None = None,
 ) -> dict[str, dict[str, str]]:
     """Run ``target`` on each tree ``repeat`` times. Return {test id: {variant: outcome}}.
 
@@ -114,7 +124,7 @@ def run_four_way(
 
     def run_variant(variant: str) -> list[RunReport]:
         return [
-            run_pytest(trees[variant], target, reports_dir / f"{variant}-{i}.json", timeout, suite)
+            run_pytest(trees[variant], target, reports_dir / f"{variant}-{i}.json", timeout, suite, sandbox)
             for i in range(repeat)
         ]
 

@@ -13,16 +13,27 @@ from . import bench, gitops, ledger, mine, pipeline
 from .case import load_corpus
 from .classify import CONFLICTS, REGRESSIONS
 from .generators import BLIND, CONTROLS, Replay
+from .sandbox import Sandbox, SandboxError
 
 # The corpus ships with the repository, not the package; find it from a checkout.
 _REPO_CORPUS = Path(__file__).resolve().parents[2] / "corpus"
 DEFAULT_CORPUS = _REPO_CORPUS if _REPO_CORPUS.is_dir() else Path("corpus")
 
 
+def _sandbox(wanted: bool) -> Sandbox | None:
+    """Return a ready sandbox if ``wanted``, raising SandboxError with what to fix if it isn't ready."""
+    if not wanted:
+        return None
+    sandbox = Sandbox()
+    sandbox.ensure()
+    return sandbox
+
+
 def _check_corpus(args: argparse.Namespace) -> int:
     failed = dropped = 0
+    sandbox = _sandbox(args.sandbox)
     for case in load_corpus(args.corpus):
-        problems = bench.check_case(case)
+        problems = bench.check_case(case, sandbox)
         prune = bool(problems) and args.prune_mined and case.mined
         print(f"{'ok  ' if not problems else 'drop' if prune else 'FAIL'}  {case.id}")
         for problem in problems:
@@ -62,9 +73,15 @@ def _bench(args: argparse.Namespace) -> int:
         return 2
     if args.replay_from:
         options = {"root": args.replay_from}
+    sandbox = _sandbox(args.sandbox)
+    try:
+        bench.refuse_untrusted_locally(cases, args.generator, sandbox)
+    except ValueError as e:
+        print(e, file=sys.stderr)
+        return 2
     results = bench.run(
         cases, args.generator, repeat=args.repeat, timeout=args.timeout,
-        ledger_path=args.ledger, options=options,
+        ledger_path=args.ledger, options=options, sandbox=sandbox,
     )
     summary = bench.summarize(args.generator, results)
     print(bench.format_report(summary, results))
@@ -79,18 +96,26 @@ def _pair(args: argparse.Namespace) -> int:
     if not scenarios:
         print(f"no test_*.py files in {args.scenarios}", file=sys.stderr)
         return 2
+    try:
+        sandbox = _sandbox(not args.trusted)
+    except SandboxError as e:
+        print(f"{e}\nIf you wrote both changes yourself, pass --trusted to run the scenarios locally.", file=sys.stderr)
+        return 2
     shas = [gitops.resolve(args.repo, ref) for ref in (args.base, args.a, args.b)]
     with tempfile.TemporaryDirectory(prefix="fourway-pair-") as tmp:
         work = Path(tmp)
         clone = gitops.clone(args.repo, work / "repo")
         try:
             result = pipeline.verify(
-                clone, *shas, scenarios, work / "run", repeat=args.repeat, timeout=args.timeout
+                clone, *shas, scenarios, work / "run", repeat=args.repeat, timeout=args.timeout, sandbox=sandbox
             )
         except gitops.MergeConflict as e:
             print(e, file=sys.stderr)
             return 2
-    rec = ledger.record(result, scenarios, generator="manual", repeat=args.repeat)
+    rec = ledger.record(
+        result, scenarios, generator="manual", repeat=args.repeat,
+        env=sandbox.env_digest() if sandbox else None,
+    )
     if args.ledger:
         ledger.append(args.ledger, rec)
     for test, finding in sorted(result.findings.items()):
@@ -99,6 +124,12 @@ def _pair(args: argparse.Namespace) -> int:
         print(f"{marker} {finding:<15} {test}  [{outcomes}]")
     print(f"\nverdict  {result.verdict}\nevidence {rec['id']}")
     return 1 if result.verdict == "conflict" else 0
+
+
+def _sandbox_build(args: argparse.Namespace) -> int:
+    sandbox = Sandbox()
+    print(f"built {sandbox.build()} ({sandbox.image_id})")
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -115,6 +146,7 @@ def main(argv: list[str] | None = None) -> int:
 
     check = sub.add_parser("check-corpus", help="validate every benchmark case against its own answer key")
     check.add_argument("--corpus", type=Path, default=DEFAULT_CORPUS)
+    check.add_argument("--sandbox", action="store_true", help="run every test suite in the sandbox container")
     check.add_argument("--prune-mined", action="store_true",
                        help="delete mined pairs that fail instead of failing; seeded cases still fail")
     check.set_defaults(func=_check_corpus)
@@ -136,8 +168,9 @@ def main(argv: list[str] | None = None) -> int:
                      help="Claude effort level (generator claude only; default high)")
     run.add_argument("--from", dest="replay_from", type=Path,
                      help="--out directory of an earlier run (generator replay only)")
-    run.add_argument("--seeded-only", action="store_true",
-                     help="leave out pairs mined from history (required for model scenarios until #2)")
+    run.add_argument("--sandbox", action="store_true",
+                     help="run every tree in the sandbox container; required for model scenarios on mined pairs")
+    run.add_argument("--seeded-only", action="store_true", help="leave out pairs mined from history")
     common(run)
     run.set_defaults(func=_bench)
 
@@ -147,11 +180,21 @@ def main(argv: list[str] | None = None) -> int:
     pair.add_argument("--a", required=True)
     pair.add_argument("--b", required=True)
     pair.add_argument("--scenarios", type=Path, required=True, help="directory of test_*.py files")
+    pair.add_argument("--trusted", action="store_true",
+                      help="run locally instead of in the sandbox; only for changes and scenarios you wrote")
     common(pair)
     pair.set_defaults(func=_pair)
 
+    box = sub.add_parser("sandbox", help="manage the container that sandboxed runs use")
+    box.add_argument("action", choices=["build"], help="build the image from the Dockerfile in the package")
+    box.set_defaults(func=_sandbox_build)
+
     args = parser.parse_args(argv)
-    return args.func(args)
+    try:
+        return args.func(args)
+    except SandboxError as e:
+        print(f"sandbox: {e}", file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":

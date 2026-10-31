@@ -52,12 +52,14 @@ def record(
     models: Sequence[str] = (),
     config: Mapping | None = None,
     repeat: int = 1,
+    env: str | None = None,
 ) -> dict:
+    """``env`` is the environment guard; by default, this process's own. A sandboxed run passes its image's."""
     body = {
         "schema": SCHEMA,
         "guards": {
             **result.shas,
-            "env": env_digest(),
+            "env": env or env_digest(),
             "scenarios": scenarios_digest(scenarios),
         },
         "generator": {"name": generator, "models": sorted(models), "config": dict(config or {})},

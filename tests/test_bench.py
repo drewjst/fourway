@@ -10,6 +10,7 @@ import pytest
 
 from fourway import bench, generators
 from fourway.case import load_corpus
+from fourway.sandbox import Sandbox
 
 CORPUS = Path(__file__).parents[1] / "corpus"
 
@@ -143,7 +144,7 @@ def test_no_pull_request_appears_in_two_mined_pairs():
 
 
 def test_model_scenarios_never_run_on_a_mined_pair(cases, monkeypatch, tmp_path):
-    """Decision 0002: a mined pair's diffs are third-party input, so its scenarios wait for the sandbox."""
+    """Decision 0002: a mined pair's diffs are third-party input, so its scenarios run only in the sandbox."""
     called = []
 
     class Recorder:
@@ -162,6 +163,7 @@ def test_model_scenarios_never_run_on_a_mined_pair(cases, monkeypatch, tmp_path)
     with pytest.raises(ValueError, match="decision 0002"):
         bench.run([mined], "replay", options={"root": tmp_path})
     assert called == []
+    bench.refuse_untrusted_locally([cases[0], mined], "recorder", Sandbox())  # the sandbox lifts the refusal
 
 
 def test_false_positives_split_the_ways_the_corpus_fixed_in_advance(cases):

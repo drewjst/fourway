@@ -105,9 +105,10 @@ when nothing else landed between them. Tree B alone never existed.
 
 A mined pair's diffs and descriptions come from people outside this project,
 so [decision 0002](../docs/decisions/0002-generated-scenarios-run-only-on-trusted-diffs.md)
-applies: a generator's scenarios run on mined pairs only in the sandboxed
-runner (issue #2). `check-corpus` runs only the upstream suites, not
-generated code.
+applies: a generator's scenarios run on mined pairs only in the sandbox
+([decision 0003](../docs/decisions/0003-scenarios-on-third-party-changes-run-in-a-container.md)),
+so `bench` refuses them without `--sandbox`. `check-corpus` runs only the
+upstream suites, not generated code.
 
 Mining reads history and never runs upstream code; `check-corpus` runs it. To
 mine a repository, run these commands. The first two write the inputs

@@ -68,8 +68,8 @@ The repository contains the following:
   scored run is recorded in [`results/`](results/).
 
 The corpus also has six cases seeded into pinned commits of three real
-repositories: `cachetools`, `tenacity`, and `tinydb`. The runner isn't
-sandboxed, so building those cases runs upstream code.
+repositories: `cachetools`, `tenacity`, and `tinydb`. Checking the corpus runs
+those repositories' test suites, locally unless you pass `--sandbox`.
 
 ## Usage
 
@@ -91,9 +91,14 @@ Score a generator:
 uv run fourway bench --generator oracle
 ```
 
-Model-written scenarios don't run on mined pairs until the runner is
-sandboxed, so `bench` refuses them unless you pass `--seeded-only`. The
-controls run on the whole corpus.
+Model-written scenarios run on mined pairs only in the sandbox, a container
+with no network, no credentials, and a read-only tree. `bench` refuses them
+without `--sandbox`; `--seeded-only` leaves the mined pairs out instead. The
+controls run anywhere. Build the sandbox image once, with Docker running:
+
+```bash
+uv run fourway sandbox build
+```
 
 Mine clean pairs from a pinned repository's history, then check them. The
 corpus README lists the commands that fetch the inputs:
@@ -111,7 +116,7 @@ Score the Claude generator. This calls the Claude API once per case and needs
 generated scenario and its four outcomes:
 
 ```bash
-uv run fourway bench --generator claude --seeded-only --repeat 3 --out runs/claude
+uv run fourway bench --generator claude --sandbox --repeat 3 --out runs/claude
 ```
 
 Rescore the scenarios that an earlier run saved, without calling the API. A
@@ -145,10 +150,14 @@ The test suite enforces all three.
 
 A generated scenario is code that a model wrote from diff text. If the diff
 comes from someone you don't trust, a prompt injection in the diff can steer
-the model into writing a test that runs anything. Until the runner executes
-scenarios in a container with no network and no credentials, run fourway only
-on changes you wrote. For details, see
-[decision 0002](docs/decisions/0002-generated-scenarios-run-only-on-trusted-diffs.md).
+the model into writing a test that runs anything. Run scenarios on changes
+you didn't write only with `--sandbox`: each tree's tests then run in a
+container with no network, no credentials, and a read-only copy of the tree.
+`fourway pair` uses the sandbox unless you pass `--trusted`. The sandbox
+contains a scenario but doesn't make its verdict trustworthy, and containers
+share the host's kernel on Linux. For details, see
+[decision 0002](docs/decisions/0002-generated-scenarios-run-only-on-trusted-diffs.md)
+and [decision 0003](docs/decisions/0003-scenarios-on-third-party-changes-run-in-a-container.md).
 
 ## Research
 

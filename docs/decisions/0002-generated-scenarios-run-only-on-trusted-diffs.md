@@ -1,6 +1,7 @@
 # 0002: Generated scenarios run only on trusted diffs until the runner is sandboxed
 
-**Status:** accepted, 2026-10-30
+**Status:** accepted, 2026-10-30. [Decision 0003](0003-scenarios-on-third-party-changes-run-in-a-container.md)
+meets its condition with the `--sandbox` runner, 2026-10-31.
 
 ## Context
 
