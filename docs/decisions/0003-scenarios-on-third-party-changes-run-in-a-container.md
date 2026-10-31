@@ -2,7 +2,9 @@
 
 **Status:** accepted, 2026-10-31. It meets the condition that
 [decision 0002](0002-generated-scenarios-run-only-on-trusted-diffs.md) set
-before fourway accepts a change it didn't write.
+before fourway accepts a change it didn't write. Amended 2026-10-31: the
+report comes back on stdout, so nothing from the host is writable in the
+container.
 
 ## Context
 
@@ -22,9 +24,13 @@ limits:
 - No network: `--network none`.
 - No Linux capabilities, no privilege escalation, and the host user's ids
   instead of root.
-- A read-only root filesystem and a read-only tree. The only writable places
-  are a scratch `/tmp` and an empty directory for this run's report alone, so
-  one tree's scenario can't rewrite another tree's report.
+- A read-only root filesystem and a read-only tree. The only writable place
+  is a scratch `/tmp`. The plugin writes its report there, and the container
+  prints it on stdout. fourway reads at most 16 MB and accepts exactly one
+  report with the plugin's fields; anything else reads as a crashed run.
+  Nothing from the host is writable, so a scenario can't rewrite another
+  tree's report, fill the host's disk, or leave a symlink in place of its
+  report for the host to follow.
 - No environment from the host. The container gets `PYTHONPATH`,
   `PYTHONHASHSEED`, `PYTHONDONTWRITEBYTECODE`, `HOME=/tmp`, and
   `FOURWAY_REPORT`, plus the base image's own variables, such as `PATH`.
@@ -57,6 +63,16 @@ that one protection removed, and fails there.
   microVM runtime would be stronger.
 - The Docker daemon is trusted, and anyone who runs fourway can run
   containers.
+- A test that writes into its tree fails in the sandbox. On 2026-10-31, every
+  corpus v5 case's suite ran both locally and in the sandbox, and the outcomes
+  were compared test by test: 86,660 test-tree outcomes, of which 28 differ.
+  All 28 are tomlkit's `tests/test_toml_file.py::test_toml_file`, once in each
+  of 28 tomlkit pairs. It rewrites `tests/examples/example.toml`, so it passes
+  on all four trees locally and fails on all four in the sandbox. All 88 cases
+  pass `check-corpus --sandbox` anyway, because check rule 7 ignores a test
+  that fails alike on all four trees, so that pass alone can't show this
+  difference. tomlkit's sandboxed suite checks one test fewer than its local
+  one.
 - `check-corpus` runs the upstream suites outside the sandbox unless
   `--sandbox` is passed. The owner approved running those suites locally on
   2026-10-30 and 2026-10-31.
@@ -67,6 +83,9 @@ that one protection removed, and fails there.
   sandboxed runner. The container is what protects the host, and the language
   that starts it doesn't change that. A Go runner stays an option for when a
   single installable binary matters.
+- **A writable directory for each run's report.** The first version of this
+  decision mounted one. A scenario could fill the host's disk through it, or
+  replace its report with a symlink to a host file, which fourway then read.
 - **A virtual machine per run.** It's stronger than a container, but a
   four-way run needs four of them per pair, and it adds a dependency that the
   development machine and CI don't have.
