@@ -1,0 +1,888 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>fourway: each change passes, together they break</title>
+<meta name="description" content="CI tests every change on its own. Fourway tests what your changes do together, and returns a failing test when only the merge breaks. Open source.">
+<meta property="og:title" content="fourway">
+<meta property="og:description" content="Each change passes. Together, they break. Fourway tests what concurrent agent changes do together.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://drewjst.github.io/fourway/">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+body { margin: 0; }
+/* Layout: product-led SaaS. A light, quiet page whose hero is the product itself, a pull
+   request check, with one fixed dark "mission control" band for the agent-scale story.
+   In the dark theme the whole page takes the mission-control palette. Blue is change A,
+   amber is change B, red is a conflict; each also carries a label or a shape. */
+:root {
+  --bg: #FAFAFB;
+  --surface: #FFFFFF;
+  --subtle: #F3F4F7;
+  --line: #E4E7EC;
+  --line-strong: #CBD0D8;
+  --ink: #0E1116;
+  --muted: #596173;
+  --accent: #2E62F6;
+  --on-accent: #FFFFFF;
+  --ok: #1A7F37;
+  --hit: #C11F2A;
+  --hit-wash: #FFEBE9;
+  --a: #2E62F6;
+  --b: #A64B06;
+  --header: rgba(250, 250, 251, 0.84);
+  --shadow: 0 1px 2px rgba(14, 17, 22, 0.04), 0 24px 48px -16px rgba(14, 17, 22, 0.18);
+  --code-bg: #0E1116;
+  --code-ink: #E6EAF0;
+  --code-muted: #8B95A7;
+  --code-hit: #FF8A80;
+  --code-a: #8DB4FF;
+  --code-b: #FFC27A;
+  --font: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --wrap: 74rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B1020;
+    --surface: #10172B;
+    --subtle: #141D36;
+    --line: #22304E;
+    --line-strong: #33446B;
+    --ink: #E9EEFB;
+    --muted: #8F9CBA;
+    --accent: #6EA8FF;
+    --on-accent: #0B1020;
+    --ok: #3FB950;
+    --hit: #FF5C7A;
+    --hit-wash: #2A1424;
+    --a: #6EA8FF;
+    --b: #FFB547;
+    --header: rgba(11, 16, 32, 0.82);
+    --shadow: 0 0 0 1px rgba(110, 168, 255, 0.06), 0 24px 60px -20px rgba(0, 0, 0, 0.65);
+    --code-bg: #070B16;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0B1020;
+  --surface: #10172B;
+  --subtle: #141D36;
+  --line: #22304E;
+  --line-strong: #33446B;
+  --ink: #E9EEFB;
+  --muted: #8F9CBA;
+  --accent: #6EA8FF;
+  --on-accent: #0B1020;
+  --ok: #3FB950;
+  --hit: #FF5C7A;
+  --hit-wash: #2A1424;
+  --a: #6EA8FF;
+  --b: #FFB547;
+  --header: rgba(11, 16, 32, 0.82);
+  --shadow: 0 0 0 1px rgba(110, 168, 255, 0.06), 0 24px 60px -20px rgba(0, 0, 0, 0.65);
+  --code-bg: #070B16;
+  color-scheme: dark;
+}
+
+body { background: var(--bg); color: var(--ink); font: 400 17px/1.6 var(--font); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(2.5rem, 1.4rem + 4.4vw, 4.4rem); font-weight: 650; letter-spacing: -0.045em; line-height: 1.02; }
+h2 { font-size: clamp(1.9rem, 1.3rem + 2.2vw, 2.9rem); font-weight: 650; letter-spacing: -0.035em; line-height: 1.08; }
+h3 { font-size: 1.2rem; font-weight: 600; letter-spacing: -0.015em; line-height: 1.3; }
+p { margin: 0; max-width: 64ch; }
+a { color: var(--accent); text-underline-offset: 0.2em; }
+code, pre { font-family: var(--mono); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+
+.wrap { max-width: var(--wrap); margin-inline: auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.section { padding-block: clamp(4.5rem, 3rem + 5vw, 7.5rem); }
+.head { display: grid; gap: 1rem; margin-bottom: 3rem; max-width: 46rem; }
+.head p { color: var(--muted); font-size: 1.15rem; line-height: 1.55; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; min-height: 46px; padding: 0 1.15rem; border-radius: 10px; font: 600 0.97rem/1 var(--font); text-decoration: none; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); cursor: pointer; }
+.btn:hover { border-color: var(--ink); }
+.btn-primary { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.btn-primary:hover { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn-sm { min-height: 38px; padding: 0 0.8rem; font-size: 0.86rem; border-radius: 8px; }
+.btn-accent { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.btn[disabled] { opacity: 0.55; cursor: default; }
+
+.tag { display: inline-flex; align-items: center; width: fit-content; white-space: nowrap; padding: 0.22rem 0.55rem; border-radius: 999px; font: 500 0.75rem/1.2 var(--font); border: 1px solid var(--line-strong); color: var(--muted); }
+.tag-built { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.tag-next { border-color: var(--accent); color: var(--accent); }
+.tag-exploring { border-style: dashed; }
+.tag-hit { border-color: var(--hit); color: var(--hit); }
+
+.sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; flex: none; }
+.sw-a { background: var(--a); }
+.sw-b { background: var(--b); }
+.sw-hit { background: repeating-linear-gradient(135deg, var(--hit) 0 2px, transparent 2px 4px); box-shadow: inset 0 0 0 1.5px var(--hit); }
+
+/* Draft note and nav */
+.draft { background: var(--subtle); border-bottom: 1px solid var(--line); color: var(--muted); font-size: 0.85rem; }
+.draft .wrap { padding-block: 0.45rem; }
+.nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--header); -webkit-backdrop-filter: saturate(1.4) blur(14px); backdrop-filter: saturate(1.4) blur(14px); border-bottom: 1px solid var(--line); }
+.nav .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 1.75rem; padding-block: 0.65rem; }
+.logo { display: inline-flex; align-items: center; gap: 0.55rem; margin-right: auto; min-height: 44px; font-weight: 700; font-size: 1.15rem; letter-spacing: -0.035em; color: var(--ink); text-decoration: none; }
+.logo svg { width: 22px; height: 22px; }
+.lg-a { stroke: var(--a); } .lg-b { stroke: var(--b); } .lg-hit { fill: var(--hit); }
+.nav-links { display: flex; flex-wrap: wrap; align-items: center; gap: 0 1.5rem; }
+.nav-links a:not(.btn) { color: var(--muted); text-decoration: none; font-size: 0.93rem; font-weight: 500; padding-block: 0.7rem; }
+.nav-links a:not(.btn):hover { color: var(--ink); }
+main [id] { scroll-margin-top: 80px; }
+.nav .btn { min-height: 40px; font-size: 0.9rem; }
+
+/* Hero */
+.hero .wrap { display: grid; grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr); gap: 3rem 4.5rem; align-items: center; padding-block: clamp(3.5rem, 2rem + 5vw, 6.5rem) clamp(3.5rem, 2rem + 4vw, 5.5rem); }
+.hero-copy { display: grid; gap: 1.6rem; min-width: 0; }
+.pill { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; width: fit-content; padding: 0.3rem 0.8rem 0.3rem 0.35rem; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 0.86rem; color: var(--muted); }
+.pill b { padding: 0.1rem 0.55rem; border-radius: 999px; background: var(--subtle); color: var(--ink); font-weight: 600; }
+.lede { font-size: 1.2rem; color: var(--muted); line-height: 1.55; max-width: 32em; }
+.ctas { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.fine { color: var(--muted); font-size: 0.88rem; }
+
+.mock { margin: 0; display: grid; gap: 0.75rem; min-width: 0; }
+.pr { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; min-width: 0; }
+.pr-head { display: grid; gap: 0.4rem; padding: 1.05rem 1.2rem; border-bottom: 1px solid var(--line); }
+.pr-top { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; }
+.pr-open { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.6rem; border-radius: 999px; background: var(--ok); color: var(--on-accent); font-size: 0.78rem; font-weight: 600; }
+.pr-title { font-weight: 600; letter-spacing: -0.01em; }
+.pr-title span { color: var(--muted); font-weight: 400; }
+.pr-branch { font-size: 0.82rem; color: var(--muted); }
+.pr-branch code { font-size: 0.78rem; background: var(--subtle); padding: 0.1rem 0.4rem; border-radius: 5px; color: var(--ink); }
+.checks { list-style: none; margin: 0; padding: 0; }
+.checks li { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 0.75rem; align-items: center; padding: 0.7rem 1.2rem; border-bottom: 1px solid var(--line); font-size: 0.9rem; }
+.checks svg { width: 16px; height: 16px; }
+.checks .name { font-weight: 500; min-width: 0; }
+.checks .detail { color: var(--muted); font-size: 0.82rem; text-align: right; }
+.checks .row-fw { background: var(--hit-wash); }
+.checks .row-fw .detail { color: var(--hit); font-weight: 600; }
+.ic-ok { fill: var(--ok); }
+.ic-hit { fill: var(--hit); }
+.ic-run { fill: none; stroke: var(--muted); stroke-width: 2; stroke-dasharray: 30 14; transform-origin: 8px 8px; animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.row-fw .ic-run { display: none; }
+.pr.is-running .row-fw { background: transparent; }
+.pr.is-running .row-fw .ic-hit-g { display: none; }
+.pr.is-running .row-fw .ic-run { display: inline; }
+.pr.is-running .row-fw .detail { color: var(--muted); font-weight: 500; }
+.fw { display: grid; gap: 0.9rem; padding: 1.05rem 1.2rem 1.2rem; }
+.fw-title { font-size: 0.92rem; }
+.fw-title strong { font-weight: 600; }
+.cells { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.45rem; }
+.cell { display: grid; gap: 0.1rem; padding: 0.55rem 0.65rem; border: 1px solid var(--line); border-radius: 10px; font-size: 0.78rem; min-width: 0; transition: border-color 160ms, background-color 160ms; }
+.cell span { color: var(--muted); }
+.cell b { font-weight: 600; color: var(--ok); }
+.cell[data-state="failed"] { border-color: var(--hit); background: var(--hit-wash); }
+.cell[data-state="failed"] b { color: var(--hit); }
+.cell[data-state="queued"] b, .cell[data-state="running"] b { color: var(--muted); font-weight: 500; }
+.cell[data-state="running"] { border-color: var(--accent); }
+.fw pre { margin: 0; padding: 0.8rem 0.9rem; background: var(--code-bg); color: var(--code-ink); border-radius: 10px; font-size: 0.76rem; line-height: 1.65; overflow-x: auto; }
+.fw pre .r { color: var(--code-hit); }
+.fw pre .m { color: var(--code-muted); }
+.fw-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.mock figcaption { font-size: 0.82rem; color: var(--muted); }
+
+/* Catches */
+.catches { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; }
+.catch { display: grid; gap: 1.1rem; align-content: start; padding: 1.5rem; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; min-width: 0; }
+.catch .area { color: var(--muted); font-size: 0.85rem; font-weight: 500; }
+.catch h3 { font-size: 1.45rem; letter-spacing: -0.03em; line-height: 1.15; }
+.legs { margin: 0; display: grid; gap: 0.85rem; }
+.leg { display: grid; gap: 0.15rem; }
+.leg dt { display: flex; align-items: center; gap: 0.6rem; font-weight: 600; font-size: 0.85rem; }
+.leg dd { margin: 0; padding-left: calc(10px + 0.6rem); color: var(--muted); font-size: 0.95rem; line-height: 1.5; }
+.leg-hit dt { color: var(--hit); }
+.leg-hit dd { color: var(--ink); }
+.catch .foot { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; padding-top: 1rem; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--muted); }
+.catch .foot code { color: var(--hit); font-size: 0.82rem; }
+
+/* Mission control band: fixed dark in both themes */
+.mc {
+  --m-bg: #0B1020; --m-panel: #10172B; --m-chip: #16203A; --m-line: #22304E; --m-line-2: #2E3D61;
+  --m-ink: #E9EEFB; --m-muted: #8F9CBA; --m-a: #6EA8FF; --m-hit: #FF5C7A;
+  background-color: var(--m-bg); color: var(--m-ink);
+  background-image: radial-gradient(rgba(233, 238, 251, 0.07) 1px, transparent 1px); background-size: 22px 22px;
+  border-block: 1px solid var(--m-line);
+}
+.mc a { color: var(--m-a); }
+.mc .head p { color: var(--m-muted); }
+.mc-top { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr); gap: 2rem 4rem; align-items: end; margin-bottom: 2.5rem; }
+.mc-top .head { margin-bottom: 0; }
+.mc-stat { display: grid; gap: 0.35rem; padding: 1.1rem 1.25rem; border: 1px solid var(--m-line); border-radius: 14px; background: rgba(16, 23, 43, 0.85); }
+.mc-stat b { font-size: clamp(1.8rem, 1.4rem + 1.4vw, 2.4rem); font-weight: 650; letter-spacing: -0.035em; line-height: 1; font-variant-numeric: tabular-nums; }
+.mc-stat b span { color: var(--m-muted); font-weight: 500; font-size: 0.55em; margin-inline: 0.3em; }
+.mc-stat p { color: var(--m-muted); font-size: 0.85rem; }
+.fleet { margin: 0; border: 1px solid var(--m-line); border-radius: 16px; background: rgba(16, 23, 43, 0.92); overflow: hidden; }
+.fleet-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1px solid var(--m-line); }
+.fleet-stats div { display: grid; gap: 0.15rem; padding: 0.95rem 1.2rem; border-right: 1px solid var(--m-line); min-width: 0; }
+.fleet-stats div:last-child { border-right: 0; }
+.fleet-stats b { font-size: 1.6rem; font-weight: 600; letter-spacing: -0.025em; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.fleet-stats span { font-size: 0.8rem; color: var(--m-muted); }
+.fleet-stats .hit b { color: var(--m-hit); }
+.fleet-scroll { overflow-x: auto; }
+.fleet svg { display: block; width: 100%; min-width: 760px; height: auto; }
+.f-track { stroke: var(--m-line); stroke-width: 1; }
+.f-lane { fill: var(--m-muted); font: 500 12px var(--font); }
+.f-chip rect { fill: var(--m-chip); stroke: var(--m-line-2); stroke-width: 1; }
+.f-chip text { fill: var(--m-ink); font: 500 12.5px var(--font); }
+.f-chip.is-hit rect { stroke: var(--m-hit); fill: rgba(255, 92, 122, 0.1); }
+.f-main { stroke: var(--m-ink); stroke-width: 2; }
+.f-main-label { fill: var(--m-ink); font: 600 13px var(--font); }
+.f-arc { fill: none; stroke-width: 1.6; }
+.f-arc.ok { stroke: var(--m-a); stroke-dasharray: 4 6; opacity: 0.75; animation: scan 2.4s linear infinite; }
+.f-arc.hit { stroke: var(--m-hit); stroke-width: 2.4; animation: throb 1.8s ease-in-out infinite; }
+.f-flag { fill: var(--m-hit); font: 600 12px var(--font); }
+.f-flag-bg { fill: #2A1424; stroke: var(--m-hit); stroke-width: 1; }
+@keyframes scan { to { stroke-dashoffset: -40; } }
+@keyframes throb { 50% { opacity: 0.45; } }
+.fleet figcaption { padding: 0.8rem 1.2rem; border-top: 1px solid var(--m-line); font-size: 0.82rem; color: var(--m-muted); }
+.mc-points { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem 2.5rem; margin-top: 2.5rem; }
+.mc-points div { display: grid; gap: 0.35rem; }
+.mc-points strong { font-weight: 600; }
+.mc-points span { color: var(--m-muted); font-size: 0.95rem; }
+
+/* How it works */
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1.5rem 1.25rem; counter-reset: step; position: relative; }
+.steps::before { content: ""; position: absolute; left: 14px; right: 14px; top: 14px; height: 1px; background: var(--line-strong); }
+.steps li { position: relative; display: grid; gap: 0.45rem; align-content: start; padding-top: 2.6rem; counter-increment: step; min-width: 0; }
+.steps li::before { content: counter(step); position: absolute; top: 0; left: 0; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: var(--surface); border: 1px solid var(--line-strong); font: 600 0.8rem/1 var(--font); color: var(--ink); }
+.steps li.key::before { background: var(--ink); border-color: var(--ink); color: var(--bg); }
+.steps h3 { font-size: 1rem; }
+.steps p { color: var(--muted); font-size: 0.92rem; line-height: 1.5; }
+
+.dive { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-top: 4rem; }
+.dive-head { grid-column: 1 / -1; display: grid; gap: 0.5rem; margin-bottom: 0.5rem; }
+.dive-head p { color: var(--muted); }
+.file { display: grid; min-width: 0; border-radius: 14px; overflow: hidden; background: var(--code-bg); border: 1px solid var(--line); }
+.file-head { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; align-items: center; justify-content: space-between; padding: 0.65rem 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.85rem; color: var(--code-ink); }
+.file-head .who { display: inline-flex; align-items: center; gap: 0.55rem; font-weight: 600; }
+.file-head code { color: var(--code-muted); font-size: 0.78rem; }
+.file-head .sw-a { background: var(--code-a); }
+.file-head .sw-b { background: var(--code-b); }
+.file-head .sw-hit { background: repeating-linear-gradient(135deg, var(--code-hit) 0 2px, transparent 2px 4px); box-shadow: inset 0 0 0 1.5px var(--code-hit); }
+.file-hit { grid-column: 1 / -1; }
+.file pre { margin: 0; padding: 1rem; overflow-x: auto; font-size: 0.82rem; line-height: 1.7; color: var(--code-ink); }
+.file .ha { color: var(--code-a); }
+.file .hb { color: var(--code-b); }
+.file .cm { color: var(--code-muted); }
+.file .as { color: var(--code-hit); }
+.file-note { padding: 0.8rem 1rem; border-top: 1px solid rgba(255, 255, 255, 0.08); color: var(--code-muted); font-size: 0.86rem; }
+
+.outcomes { margin-top: 1.25rem; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.outcomes summary { cursor: pointer; padding: 1rem 1.2rem; font-weight: 600; min-height: 44px; box-sizing: border-box; }
+.outcomes summary span { color: var(--muted); font-weight: 400; }
+.table-box { overflow-x: auto; border-top: 1px solid var(--line); }
+.truth { border-collapse: collapse; width: 100%; min-width: 44rem; }
+.truth th, .truth td { text-align: left; padding: 0.65rem 1.2rem; border-bottom: 1px solid var(--line); vertical-align: top; font-size: 0.92rem; }
+.truth thead th { color: var(--muted); font-weight: 500; font-size: 0.82rem; }
+.truth td.o { font-family: var(--mono); font-size: 0.8rem; white-space: nowrap; color: var(--muted); }
+.truth td.o.p { color: var(--ok); }
+.truth td.o.f { color: var(--hit); font-weight: 500; }
+.truth tr.conflict td:first-child code { color: var(--hit); font-weight: 500; }
+.truth .meaning { color: var(--muted); }
+.truth tbody tr:last-child td { border-bottom: 0; }
+.truth-note { padding: 0.85rem 1.2rem; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.88rem; }
+
+/* Roadmap */
+.road-top { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 2.5rem 4rem; align-items: start; margin-bottom: 2.5rem; }
+.road-top .head { margin-bottom: 0; }
+.must { margin-top: 1.5rem; font-size: 1.35rem; font-weight: 600; letter-spacing: -0.025em; line-height: 1.35; max-width: 30ch; }
+.must span { color: var(--muted); }
+.stack { list-style: none; margin: 0; padding: 0.5rem; display: grid; gap: 0.4rem; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow); min-width: 0; }
+.layer { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.15rem 1rem; align-items: center; padding: 0.75rem 0.9rem; border-radius: 10px; background: var(--subtle); }
+.layer strong { font-weight: 600; font-size: 0.95rem; }
+.layer .desc { grid-column: 1 / -1; color: var(--muted); font-size: 0.86rem; line-height: 1.45; }
+.layer.built { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ink); }
+.layer.git { background: transparent; box-shadow: inset 0 0 0 1px var(--line-strong); }
+.groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
+.group { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; min-width: 0; overflow: hidden; }
+.group > h3 { padding: 1.1rem 1.25rem 0.4rem; font-size: 1.05rem; }
+.features { list-style: none; margin: 0; padding: 0 0.5rem 0.5rem; }
+.feature { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.25rem 1rem; padding: 0.85rem 0.75rem; border-top: 1px solid var(--line); }
+.feature:first-child { border-top: 0; }
+.feature strong { font-weight: 600; }
+.feature p { grid-column: 1 / -1; color: var(--muted); font-size: 0.93rem; line-height: 1.5; }
+.feature p code { font-size: 0.84rem; color: var(--ink); background: var(--subtle); padding: 0.05rem 0.35rem; border-radius: 4px; }
+.legend { display: flex; flex-wrap: wrap; gap: 0.6rem 1.25rem; margin-top: 1.25rem; color: var(--muted); font-size: 0.86rem; }
+.legend > span { display: inline-flex; align-items: center; gap: 0.45rem; }
+
+/* Benchmark */
+.measures { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; }
+.measure { display: grid; gap: 1rem; align-content: start; padding: 1.4rem; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; min-width: 0; }
+.measure .name { color: var(--muted); font-size: 0.9rem; font-weight: 500; }
+.measure .value { font-size: 2.3rem; font-weight: 650; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+.measure .value span { color: var(--muted); font-size: 0.45em; font-weight: 500; letter-spacing: 0; margin-left: 0.4em; }
+.track { position: relative; height: 58px; margin-inline: 2px; }
+.track .rail { position: absolute; left: 0; right: 0; top: 27px; height: 4px; border-radius: 2px; background: var(--subtle); box-shadow: inset 0 0 0 1px var(--line); }
+.track .interval { position: absolute; top: 24px; height: 10px; border-radius: 5px; background: var(--accent); opacity: 0.3; }
+.track .point { position: absolute; top: 21px; width: 16px; height: 16px; margin-left: -8px; border-radius: 50%; background: var(--surface); border: 3px solid var(--accent); box-sizing: border-box; }
+.track .bar { position: absolute; top: 8px; bottom: 8px; width: 0; border-left: 2px dashed var(--ink); }
+.track .bar-label { position: absolute; top: -0.55rem; transform: translateX(-50%); font-size: 0.72rem; font-weight: 600; white-space: nowrap; }
+.track .bar-start { transform: none; }
+.track .bar-end { transform: translateX(-100%); }
+.track .end { position: absolute; bottom: -0.45rem; font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.track .end-l { left: 0; }
+.track .end-r { right: 0; }
+.measure .verdict { display: grid; gap: 0.5rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+.measure .verdict p { color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
+.bench-foot { margin-top: 1.25rem; color: var(--muted); font-size: 0.88rem; max-width: 80ch; }
+
+/* Spec */
+.spec { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 2.5rem; margin: 0; padding: 0.5rem 1.4rem; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; }
+.spec div { display: grid; grid-template-columns: minmax(7.5rem, 0.4fr) minmax(0, 1fr); gap: 1rem; padding-block: 0.85rem; border-bottom: 1px solid var(--line); }
+.spec div:nth-last-child(-n+2) { border-bottom: 0; }
+.spec dt { color: var(--muted); font-size: 0.9rem; font-weight: 500; }
+.spec dd { margin: 0; font-size: 0.95rem; min-width: 0; }
+.spec dd code { font-size: 0.84rem; }
+
+/* Start */
+.start-card { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 2rem 3.5rem; align-items: center; padding: clamp(1.5rem, 1rem + 3vw, 3rem); border-radius: 22px; background: #0B1020; color: #E9EEFB; border: 1px solid #22304E; background-image: radial-gradient(rgba(233, 238, 251, 0.07) 1px, transparent 1px); background-size: 22px 22px; }
+.start-card h2 { color: #E9EEFB; }
+.start-copy { display: grid; gap: 1.1rem; min-width: 0; }
+.start-copy p { color: #8F9CBA; font-size: 1.1rem; line-height: 1.55; }
+.contact { color: #E9EEFB; font-weight: 600; }
+.term { border: 1px solid #22304E; border-radius: 14px; background: #070B16; min-width: 0; overflow: hidden; }
+.term-head { display: flex; justify-content: space-between; gap: 1rem; padding: 0.6rem 1rem; border-bottom: 1px solid #22304E; color: #8F9CBA; font-size: 0.82rem; }
+.term pre { margin: 0; padding: 1rem; overflow-x: auto; color: #E9EEFB; font-size: 0.85rem; line-height: 1.75; }
+.term pre .m { color: #8F9CBA; }
+.term-foot { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; padding: 0.75rem 1rem; border-top: 1px solid #22304E; }
+.term-foot .btn { background: transparent; color: #E9EEFB; border-color: #33446B; }
+.term-foot .btn:hover { border-color: #E9EEFB; }
+.copy-status { color: #8F9CBA; font-size: 0.85rem; min-height: 1.4em; }
+
+.foot { border-top: 1px solid var(--line); color: var(--muted); font-size: 0.88rem; }
+.foot .wrap { display: grid; gap: 0.4rem; padding-block: 2rem 3rem; }
+
+@media (max-width: 1000px) {
+  .hero .wrap, .mc-top, .road-top, .start-card { grid-template-columns: minmax(0, 1fr); }
+  .catches, .measures { grid-template-columns: minmax(0, 1fr); }
+  .steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .steps::before { display: none; }
+  .mc-points { grid-template-columns: minmax(0, 1fr); }
+  .groups, .spec { grid-template-columns: minmax(0, 1fr); }
+  .spec div:nth-last-child(2) { border-bottom: 1px solid var(--line); }
+  .fleet-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fleet-stats div:nth-child(2) { border-right: 0; }
+  .fleet-stats div:nth-child(-n+2) { border-bottom: 1px solid var(--m-line); }
+}
+@media (max-width: 640px) {
+  .nav-links a.wide { display: none; }
+  .steps { grid-template-columns: minmax(0, 1fr); }
+  .dive { grid-template-columns: minmax(0, 1fr); }
+  .cells { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .spec div { grid-template-columns: minmax(0, 1fr); gap: 0.2rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .f-arc.ok, .f-arc.hit, .ic-run { animation: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="draft">
+  <div class="wrap">Fourway is an early, open-source benchmark. Features tagged Planned or Exploring don't exist yet, and the pull request check shown here is a concept.</div>
+</div>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="logo" href="#top" aria-label="fourway home">
+      <svg viewBox="0 0 22 22" aria-hidden="true"><path class="lg-a" d="M11 2 L2 11 L11 20" fill="none" stroke-width="2.6" stroke-linejoin="round"/><path class="lg-b" d="M11 2 L20 11 L11 20" fill="none" stroke-width="2.6" stroke-linejoin="round"/><circle class="lg-hit" cx="11" cy="20" r="2.4"/></svg>
+      fourway
+    </a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#how" class="wide">How it works</a>
+      <a href="#roadmap" class="wide">Roadmap</a>
+      <a href="#benchmark" class="wide">Benchmark</a>
+      <a href="https://github.com/drewjst/fourway" class="wide">GitHub</a>
+      <a class="btn btn-primary" href="#start">Run the benchmark</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap">
+      <div class="hero-copy">
+        <span class="pill"><b>Open source</b>The merge check for teams that ship with agents</span>
+        <h1 id="hero-title">Each change passes. Together, they break.</h1>
+        <p class="lede">CI tests every change on its own. Fourway tests what your changes do together, and stops the merge with a failing test when only the combination breaks.</p>
+        <div class="ctas">
+          <a class="btn btn-primary" href="#start">Run the benchmark</a>
+          <a class="btn" href="#how">See how it works</a>
+        </div>
+        <p class="fine">Apache-2.0 licensed. Works on Python codebases today.</p>
+      </div>
+
+      <figure class="mock">
+        <div class="pr" id="pr">
+          <div class="pr-head">
+            <div class="pr-top">
+              <span class="pr-open">Open</span>
+              <span class="pr-title">Retry gateway timeouts when charging <span>#482</span></span>
+            </div>
+            <div class="pr-branch"><code>agent/retry-timeouts</code> into <code>main</code>, opened by a coding agent</div>
+          </div>
+          <ul class="checks">
+            <li><svg viewBox="0 0 16 16" aria-hidden="true"><circle class="ic-ok" cx="8" cy="8" r="7"/><path d="M4.8 8.2 L7 10.4 L11.2 5.8" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="name">tests</span><span class="detail">Passed in 2m 14s</span></li>
+            <li><svg viewBox="0 0 16 16" aria-hidden="true"><circle class="ic-ok" cx="8" cy="8" r="7"/><path d="M4.8 8.2 L7 10.4 L11.2 5.8" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="name">review</span><span class="detail">Approved</span></li>
+            <li class="row-fw"><svg viewBox="0 0 16 16" aria-hidden="true"><g class="ic-hit-g"><circle class="ic-hit" cx="8" cy="8" r="7"/><path d="M5.5 5.5 L10.5 10.5 M10.5 5.5 L5.5 10.5" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round"/></g><circle class="ic-run" cx="8" cy="8" r="6.5"/></svg><span class="name">fourway / merge check</span><span class="detail" id="fw-detail">Breaks with #479</span></li>
+          </ul>
+          <div class="fw">
+            <p class="fw-title">Conflicts with <strong>#479 Use a fresh idempotency key for every request</strong>, which is also in flight.</p>
+            <div class="cells" aria-live="polite">
+              <div class="cell" data-state="passed" data-final="passed"><span>main</span><b>passed</b></div>
+              <div class="cell" data-state="passed" data-final="passed"><span>#482</span><b>passed</b></div>
+              <div class="cell" data-state="passed" data-final="passed"><span>#479</span><b>passed</b></div>
+              <div class="cell" data-state="failed" data-final="failed"><span>both</span><b>failed</b></div>
+            </div>
+<pre><code>test_lost_response_never_captures_twice
+<span class="r">assert len(captured) == 1</span>
+<span class="m">  where len(captured) = 2: the retry carried a new key</span></code></pre>
+            <div class="fw-actions">
+              <a class="btn btn-sm btn-accent" href="#how">Send the repro to #482</a>
+              <a class="btn btn-sm" href="#benchmark">View evidence</a>
+              <button class="btn btn-sm" type="button" id="rerun">Re-run</button>
+            </div>
+          </div>
+        </div>
+        <figcaption>Concept of the planned pull request check. The failing test is the real one fourway's generator wrote in benchmark run 2.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="section" id="catches" aria-labelledby="catches-title" style="padding-top: 0">
+    <div class="wrap">
+      <div class="head">
+        <h2 id="catches-title">Three bugs that pass code review</h2>
+        <p>Each pair is a case in fourway's benchmark. Both changes are reasonable, both pass their tests, and they merge without a conflict. Fourway's generated tests caught all three.</p>
+      </div>
+      <div class="catches">
+        <article class="catch">
+          <span class="area">Payments</span>
+          <h3>A customer is charged twice</h3>
+          <dl class="legs">
+            <div class="leg"><dt><span class="sw sw-a" aria-hidden="true"></span>Change A</dt><dd>Retry gateway timeouts when charging.</dd></div>
+            <div class="leg"><dt><span class="sw sw-b" aria-hidden="true"></span>Change B</dt><dd>Give every gateway request a fresh idempotency key.</dd></div>
+            <div class="leg leg-hit"><dt><span class="sw sw-hit" aria-hidden="true"></span>Together</dt><dd>A lost response gets retried under a new key, and the gateway captures the payment again.</dd></div>
+          </dl>
+          <p class="foot">Finding <code>emergent</code></p>
+        </article>
+        <article class="catch">
+          <span class="area">Pricing</span>
+          <h3>A price change never reaches the cart</h3>
+          <dl class="legs">
+            <div class="leg"><dt><span class="sw sw-a" aria-hidden="true"></span>Change A</dt><dd>Cache prices in the catalog, because prices change only on a redeploy.</dd></div>
+            <div class="leg"><dt><span class="sw sw-b" aria-hidden="true"></span>Change B</dt><dd>Add an admin editor that changes a price without a redeploy.</dd></div>
+            <div class="leg leg-hit"><dt><span class="sw sw-hit" aria-hidden="true"></span>Together</dt><dd>An admin edits a price, and the catalog keeps serving the cached one.</dd></div>
+          </dl>
+          <p class="foot">Finding <code>differential_b</code></p>
+        </article>
+        <article class="catch">
+          <span class="area">Receipts</span>
+          <h3>Customers stop getting receipts</h3>
+          <dl class="legs">
+            <div class="leg"><dt><span class="sw sw-a" aria-hidden="true"></span>Change A</dt><dd>Send a receipt by listening for <code>charge.succeeded</code>.</dd></div>
+            <div class="leg"><dt><span class="sw sw-b" aria-hidden="true"></span>Change B</dt><dd>Rename the event to <code>payment.captured</code> and update every subscriber.</dd></div>
+            <div class="leg leg-hit"><dt><span class="sw sw-hit" aria-hidden="true"></span>Together</dt><dd>B updated the subscribers it could see. A's new one still listens for the old name.</dd></div>
+          </dl>
+          <p class="foot">Finding <code>differential_a</code></p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section mc" id="scale" aria-labelledby="scale-title">
+    <div class="wrap">
+      <div class="mc-top">
+        <div class="head">
+          <h2 id="scale-title">Agents multiply the changes. Interactions multiply faster.</h2>
+          <p>A merge queue runs about one check per change. The pairs that could interact grow with the square of the changes in flight, and that's where the incidents hide.</p>
+        </div>
+        <div class="mc-stat">
+          <b>2,500<span>to</span>30,000+</b>
+          <p>Code changes merged per day at Anthropic, May to September 2026. Source: <a href="https://www.anthropic.com/research/redesigning-source-control">Redesigning source control for the age of agents</a>.</p>
+        </div>
+      </div>
+      <figure class="fleet">
+        <div class="fleet-stats">
+          <div><b>12</b><span>changes in flight</span></div>
+          <div><b>66</b><span>possible pairs</span></div>
+          <div><b>9</b><span>pairs that share code</span></div>
+          <div class="hit"><b>3</b><span>conflicts, each with a repro</span></div>
+        </div>
+        <div class="fleet-scroll">
+          <svg id="fleet" viewBox="0 0 1100 400" role="img" aria-label="Six agent lanes with twelve changes in flight toward main. Nine pairs that share code are connected, and three of those pairs are flagged as conflicts."></svg>
+        </div>
+        <figcaption>Simulated view of the planned merge layer. The three red pairs are the benchmark's real conflicts, and the other changes are illustrative.</figcaption>
+      </figure>
+      <div class="mc-points">
+        <div><strong>Check the pairs that matter</strong><span>Only changes that share code or rules get paired, so cost follows risk instead of the square of your changes.</span></div>
+        <div><strong>Keep every catch</strong><span>A test that catches a real conflict stays as a permanent check that runs without a model.</span></div>
+        <div><strong>Before merge or before deploy</strong><span>Run where your merge queue runs, or on each batch that landed together if you've outgrown the queue.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="how" aria-labelledby="how-title">
+    <div class="wrap">
+      <div class="head">
+        <h2 id="how-title">How fourway checks a pair</h2>
+        <p>Git's merge is three-way: it compares text on the base and both sides. Fourway adds the fourth tree, the merged result, and compares behavior.</p>
+      </div>
+      <ol class="steps">
+        <li><h3>Read both changes</h3><p>The diffs, the code they touch, and what each author said the change is for.</p></li>
+        <li><h3>Write tests</h3><p>Aimed at how the two changes interact, not at either one alone.</p></li>
+        <li class="key"><h3>Run four trees</h3><p>Each test runs on the base, A, B, and the merge, more than once.</p></li>
+        <li><h3>Read the pattern</h3><p>The four outcomes show whether the merge lost what a change needed.</p></li>
+        <li><h3>Return a repro</h3><p>A conflict comes back as a failing test for the change to revise.</p></li>
+        <li><h3>Keep the evidence</h3><p>Tied to exact commits and tests, and expires when any of them change.</p></li>
+      </ol>
+
+      <div class="dive">
+        <div class="dive-head">
+          <h3>Inside the double charge</h3>
+          <p>Two small diffs in two files. A reviewer reading either one alone has no reason to object.</p>
+        </div>
+        <div class="file">
+          <div class="file-head"><span class="who"><span class="sw sw-a" aria-hidden="true"></span>Change A</span><code>payments/charges.py</code></div>
+<pre><code>for attempt in range(1, MAX_ATTEMPTS + 1):
+    try:
+        capture = gateway.capture(
+            key=<span class="ha">idempotency_key(order)</span>,
+            amount_cents=order.amount_cents,
+            reference=order.id,
+        )
+        break
+    except GatewayTimeout:
+        if attempt == MAX_ATTEMPTS:
+            raise</code></pre>
+        </div>
+        <div class="file">
+          <div class="file-head"><span class="who"><span class="sw sw-b" aria-hidden="true"></span>Change B</span><code>payments/keys.py</code></div>
+<pre><code>def idempotency_key(order: Order) -&gt; str:
+    <span class="cm">"""Return a key for one gateway request.
+    Every call returns a new key."""</span>
+    return f"charge:{order.id}:<span class="hb">{secrets.token_hex(8)}</span>"</code></pre>
+        </div>
+        <div class="file file-hit">
+          <div class="file-head"><span class="who"><span class="sw sw-hit" aria-hidden="true"></span>The test fourway's generator wrote</span><code>fourway_scenarios/test_retry_idempotency.py</code></div>
+<pre><code>ORDER = Order(id="ord_1", customer_id="cus_1", amount_cents=1250)
+
+def test_lost_response_never_captures_twice():
+    gateway = FakeGateway(faults={1: "timeout_after"})
+    try:
+        charge(ORDER, gateway)
+    except GatewayTimeout:
+        pass
+    captured = gateway.captured("ord_1")
+    <span class="as">assert len(captured) == 1</span>
+    <span class="as">assert sum(c.amount_cents for c in captured) == 1250</span></code></pre>
+          <p class="file-note">Claude wrote this test from the two diffs and their descriptions. It passes on the base, on A, and on B, and fails only on the merge, so either agent can run it to reproduce the bug.</p>
+        </div>
+      </div>
+
+      <details class="outcomes">
+        <summary>How fourway reads the four outcomes <span>Seven findings</span></summary>
+        <div class="table-box">
+          <table class="truth">
+            <thead><tr><th scope="col">Finding</th><th scope="col">Base</th><th scope="col">A</th><th scope="col">B</th><th scope="col">A+B</th><th scope="col">Meaning</th></tr></thead>
+            <tbody>
+              <tr class="conflict"><td><code>emergent</code></td><td class="o">any</td><td class="o p">pass</td><td class="o p">pass</td><td class="o f">fail</td><td class="meaning">Each change holds. Only the combination breaks.</td></tr>
+              <tr class="conflict"><td><code>differential_a</code></td><td class="o f">fail</td><td class="o p">pass</td><td class="o f">fail</td><td class="o f">fail</td><td class="meaning">A's new behavior is lost when B lands.</td></tr>
+              <tr class="conflict"><td><code>differential_b</code></td><td class="o f">fail</td><td class="o f">fail</td><td class="o p">pass</td><td class="o f">fail</td><td class="meaning">B's new behavior is lost when A lands.</td></tr>
+              <tr><td><code>regression_a</code></td><td class="o p">pass</td><td class="o f">fail</td><td class="o p">pass</td><td class="o f">fail</td><td class="meaning">A breaks it alone. An ordinary bug in A.</td></tr>
+              <tr><td><code>regression_b</code></td><td class="o p">pass</td><td class="o p">pass</td><td class="o f">fail</td><td class="o f">fail</td><td class="meaning">B breaks it alone. An ordinary bug in B.</td></tr>
+              <tr><td><code>inconclusive</code></td><td class="o f">fail</td><td class="o f">fail</td><td class="o f">fail</td><td class="o f">fail</td><td class="meaning">The test never passes, so it proves nothing.</td></tr>
+              <tr><td><code>ok</code></td><td class="o">any</td><td class="o">any</td><td class="o">any</td><td class="o p">pass</td><td class="meaning">The merge keeps the behavior.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="truth-note">The first three findings are conflicts. A test whose outcome changes between runs is <code>flaky</code> and excluded, and a pair with no usable test is <code>unverified</code>, never clean.</p>
+      </details>
+    </div>
+  </section>
+
+  <section class="section" id="roadmap" aria-labelledby="road-title" style="padding-top: 0">
+    <div class="wrap">
+      <div class="road-top">
+        <div>
+          <div class="head">
+            <h2 id="road-title">From a check to the merge layer</h2>
+            <p>Git keeps your code. Fourway adds the layers Git doesn't have: what each change is for, which changes can collide, and proof that what landed together works together.</p>
+          </div>
+          <p class="must">CI made “it builds” a fact for every change. <span>Fourway makes “it works together” a fact for every merge.</span></p>
+        </div>
+        <ol class="stack" aria-label="The merge layer, top to bottom">
+          <li class="layer"><strong>Agent API</strong><span class="tag">Planned</span><span class="desc">Agents ask what's in flight near their code and whether a combination was verified.</span></li>
+          <li class="layer built"><strong>Evidence ledger</strong><span class="tag tag-built">Built</span><span class="desc">Which exact commits, environment, and tests were verified, and when that expires.</span></li>
+          <li class="layer"><strong>Kept tests</strong><span class="tag">Planned</span><span class="desc">Every catch stays as a permanent check with no model cost.</span></li>
+          <li class="layer built"><strong>Four-way verifier</strong><span class="tag tag-built">Built</span><span class="desc">Generated tests on the base, each change, and the merge.</span></li>
+          <li class="layer"><strong>Interaction graph</strong><span class="tag">Planned</span><span class="desc">Finds the pairs that share code or rules.</span></li>
+          <li class="layer"><strong>Change records</strong><span class="tag">Planned</span><span class="desc">What each change is for, what it relies on, and its side effects.</span></li>
+          <li class="layer git"><strong>Git</strong><span class="tag">Yours today</span><span class="desc">Stores the code. Nothing about how you branch or merge changes.</span></li>
+        </ol>
+      </div>
+
+      <div class="groups">
+        <section class="group" aria-labelledby="g1">
+          <h3 id="g1">In every pull request</h3>
+          <ul class="features">
+            <li class="feature"><strong>Merge check</strong><span class="tag">Planned</span><p>A status check on each pull request: verified against the changes in flight, or the failing test that shows why not.</p></li>
+            <li class="feature"><strong>Revise loop</strong><span class="tag">Planned</span><p>The failing test goes to the agent whose change should revise. It fixes forward, and fourway checks the pair again.</p></li>
+            <li class="feature"><strong>Merge certificate</strong><span class="tag">Planned</span><p>Every merge records what it was verified against, so “was this tested with that?” has an answer later.</p></li>
+          </ul>
+        </section>
+        <section class="group" aria-labelledby="g2">
+          <h3 id="g2">Across the repository</h3>
+          <ul class="features">
+            <li class="feature"><strong>History backtest</strong><span class="tag tag-next">Next</span><p>Point fourway at recent merges and see which pairs it would have flagged, before you change any workflow.</p></li>
+            <li class="feature"><strong>Rules file</strong><span class="tag">Planned</span><p>Write the behaviors that must always hold, such as <code>a customer is charged at most once per order</code>, in a file in the repository. Every pair is checked against them.</p></li>
+            <li class="feature"><strong>Deploy gate</strong><span class="tag">Planned</span><p>For teams without a merge queue, fourway checks each batch that landed together before it deploys.</p></li>
+          </ul>
+        </section>
+        <section class="group" aria-labelledby="g3">
+          <h3 id="g3">For your agents</h3>
+          <ul class="features">
+            <li class="feature"><strong>Conflict forecast</strong><span class="tag">Planned</span><p>Before an agent edits, it asks over MCP what else is in flight near that code and which rules apply, and steers around the collision.</p></li>
+            <li class="feature"><strong>Verified lookup</strong><span class="tag">Planned</span><p>Any agent or CI job can ask whether a set of commits was verified together and get the evidence back.</p></li>
+            <li class="feature"><strong>Learns from incidents</strong><span class="tag tag-exploring">Exploring</span><p>Connects flagged conflicts to the incidents that followed, so the pairs it checks first improve with every deploy.</p></li>
+          </ul>
+        </section>
+        <section class="group" aria-labelledby="g4">
+          <h3 id="g4">Beyond application code</h3>
+          <ul class="features">
+            <li class="feature"><strong>Feature flags</strong><span class="tag tag-exploring">Exploring</span><p>Two flags are two changes that stay in flight. Both off, A on, B on, and both on is the same four-way grid.</p></li>
+            <li class="feature"><strong>Prompts and agent configs</strong><span class="tag tag-exploring">Exploring</span><p>One person edits a system prompt while another edits a tool schema. Your evals become the tests.</p></li>
+            <li class="feature"><strong>Infrastructure and migrations</strong><span class="tag tag-exploring">Exploring</span><p>Plans and policy checks on four trees before anything applies, and migrations checked against readers still on the old schema.</p></li>
+          </ul>
+        </section>
+      </div>
+      <div class="legend" aria-label="Status key">
+        <span><span class="tag tag-built">Built</span>In the repository</span>
+        <span><span class="tag tag-next">Next</span>The next phase</span>
+        <span><span class="tag">Planned</span>Designed, not built</span>
+        <span><span class="tag tag-exploring">Exploring</span>An idea under evaluation</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="benchmark" aria-labelledby="bench-title" style="padding-top: 0">
+    <div class="wrap">
+      <div class="head">
+        <h2 id="bench-title">Measured in the open, including what it can't prove yet</h2>
+        <p>Fourway is a benchmark today, not a tool for your pull requests. It has to clear three bars first, and every scored run is committed with its generated tests and outcomes.</p>
+      </div>
+      <ul class="measures">
+        <li class="measure">
+          <span class="name">Conflicts found</span>
+          <span class="value">3 of 3<span>seeded conflicts</span></span>
+          <div class="track" role="img" aria-label="Recall 3 of 3. The 95 percent interval runs from 44 to 100 percent. The bar is 50 percent.">
+            <div class="rail"></div>
+            <div class="interval" style="left: 44%; width: 56%"></div>
+            <div class="point" style="left: 100%"></div>
+            <div class="bar" style="left: 50%"></div>
+            <span class="bar-label" style="left: 50%">Bar: 50% or more</span>
+            <span class="end end-l">0%</span><span class="end end-r">100%</span>
+          </div>
+          <div class="verdict"><span class="tag tag-exploring">Not proven yet</span><p>The 95% interval is 44% to 100%. Three cases can't rule out recall below the bar.</p></div>
+        </li>
+        <li class="measure">
+          <span class="name">False alarms</span>
+          <span class="value">1 of 3<span>clean pairs, as recorded</span></span>
+          <div class="track" role="img" aria-label="False alarms 1 of 3. The 95 percent interval runs from 6 to 79 percent. The bar is under 5 percent.">
+            <div class="rail"></div>
+            <div class="interval" style="left: 6%; width: 73%"></div>
+            <div class="point" style="left: 33.3%"></div>
+            <div class="bar" style="left: 5%"></div>
+            <span class="bar-label bar-start" style="left: 0">Bar: under 5%</span>
+            <span class="end end-l">0%</span><span class="end end-r">100%</span>
+          </div>
+          <div class="verdict"><span class="tag tag-exploring">Not proven yet</span><p>The false alarm was a bug in fourway's runner. After the fix, the same tests flag 0 of 3. Proving under 5% takes at least 73 clean pairs with none flagged.</p></div>
+        </li>
+        <li class="measure">
+          <span class="name">Model cost</span>
+          <span class="value">$0.08<span>per pair</span></span>
+          <div class="track" role="img" aria-label="Cost 8 cents per pair. The bar is under 5 dollars.">
+            <div class="rail"></div>
+            <div class="point" style="left: 1.4%"></div>
+            <div class="bar" style="left: 83.3%"></div>
+            <span class="bar-label bar-end" style="left: 83.3%">Bar: under $5</span>
+            <span class="end end-l">$0</span><span class="end end-r">$6</span>
+          </div>
+          <div class="verdict"><span class="tag tag-built">Clears the bar</span><p>$0.47 in total for six pairs, with one model call per pair.</p></div>
+        </li>
+      </ul>
+      <p class="bench-foot">Run 2, Claude Opus 5.5, 2026-10-30, on six cases: three conflicts and three clean pairs. The benchmark has since grown to twelve cases, six of them seeded into real open-source repositories, and run 3 on that set isn't scored yet. Published test-generation research found about a third of semantic conflicts (SAM detected 9 of 29).</p>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="spec-title" style="padding-top: 0">
+    <div class="wrap">
+      <div class="head"><h2 id="spec-title">Spec sheet</h2></div>
+      <dl class="spec">
+        <div><dt>Inputs</dt><dd>A base and two changes, as Git refs in one repository</dd></div>
+        <div><dt>Trees tested</dt><dd>The base, change A, change B, and their merge</dd></div>
+        <div><dt>Test author</dt><dd>Claude, from both diffs and descriptions (<code>claude-opus-5-5</code> by default), or your own tests</dd></div>
+        <div><dt>Runner</dt><dd>pytest, each test repeated so flaky outcomes are excluded</dd></div>
+        <div><dt>Evidence</dt><dd>A <code>sha256</code> record of the commits, environment, and tests</dd></div>
+        <div><dt>Languages</dt><dd>Python</dd></div>
+        <div><dt>Runs on</dt><dd>Your machine, from the command line</dd></div>
+        <div><dt>Security</dt><dd>Generated tests are code. Run only on changes you trust until the sandboxed runner ships.</dd></div>
+        <div><dt>License</dt><dd>Apache-2.0</dd></div>
+        <div><dt>Source</dt><dd><a href="https://github.com/drewjst/fourway">github.com/drewjst/fourway</a></dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section class="section" id="start" aria-labelledby="start-title" style="padding-top: 0">
+    <div class="wrap">
+      <div class="start-card">
+        <div class="start-copy">
+          <h2 id="start-title">Bring a pair your CI missed</h2>
+          <p>If your team runs agents in parallel and has had an incident from two changes that each merged cleanly, that pair is the test fourway needs next.</p>
+          <p>Share it in <a class="contact" href="https://github.com/drewjst/fourway/issues/new">a GitHub issue</a>: the two changes, what broke, and how you found out.</p>
+        </div>
+        <div class="term">
+          <div class="term-head"><span>Run the benchmark</span><span>Needs uv</span></div>
+<pre id="cmd"><code>uv sync
+uv run fourway check-corpus
+uv run fourway bench --generator oracle</code></pre>
+          <div class="term-foot">
+            <button class="btn btn-sm" type="button" id="copy">Copy the commands</button>
+            <span class="copy-status" id="copy-status" aria-live="polite"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p>fourway is open source under the Apache-2.0 license. <a href="https://github.com/drewjst/fourway">github.com/drewjst/fourway</a></p>
+    <p>Roadmap details: <a href="https://github.com/drewjst/fourway/blob/main/docs/design/merge-layer.md">the merge-layer design note</a>.</p>
+    <p>Research: Da Silva et al., Detecting Semantic Conflicts with Unit Tests (SAM), Journal of Systems and Software, 2024.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Hero: re-run the merge check.
+  var pr = document.getElementById("pr");
+  var rerun = document.getElementById("rerun");
+  var detail = document.getElementById("fw-detail");
+  var cells = Array.prototype.slice.call(document.querySelectorAll(".cell"));
+  var timers = [];
+  function setCell(c, state) { c.setAttribute("data-state", state); c.querySelector("b").textContent = state; }
+  rerun.addEventListener("click", function () {
+    timers.forEach(clearTimeout);
+    timers = [];
+    if (reduce) {
+      cells.forEach(function (c) { setCell(c, c.getAttribute("data-final")); });
+      return;
+    }
+    rerun.disabled = true;
+    pr.classList.add("is-running");
+    detail.textContent = "Running on 4 trees";
+    cells.forEach(function (c) { setCell(c, "queued"); });
+    cells.forEach(function (c, i) {
+      timers.push(setTimeout(function () { setCell(c, "running"); }, 300 + i * 700));
+      timers.push(setTimeout(function () { setCell(c, c.getAttribute("data-final")); }, 300 + i * 700 + 500));
+    });
+    timers.push(setTimeout(function () {
+      pr.classList.remove("is-running");
+      detail.textContent = "Breaks with #479";
+      rerun.disabled = false;
+    }, 300 + cells.length * 700));
+  });
+
+  // Mission control: twelve changes in flight.
+  var svg = document.getElementById("fleet");
+  var NS = "http://www.w3.org/2000/svg";
+  function el(name, attrs, text, parent) {
+    var e = document.createElementNS(NS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    (parent || svg).appendChild(e);
+    return e;
+  }
+  var lanes = 6, top = 50, gap = 60, mainX = 1040, left = 110;
+  var arcLayer = el("g", {});
+  for (var i = 0; i < lanes; i++) {
+    var ly = top + i * gap;
+    el("line", { class: "f-track", x1: left, x2: mainX, y1: ly, y2: ly });
+    el("text", { class: "f-lane", x: 20, y: ly + 4 }, "agent " + (i + 1));
+  }
+  el("line", { class: "f-main", x1: mainX, x2: mainX, y1: 20, y2: top + (lanes - 1) * gap + 30 });
+  el("text", { class: "f-main-label", x: mainX + 10, y: 26 }, "main");
+  var chips = {
+    retry:    { lane: 0, x: 170, w: 130, t: "retry timeouts" },
+    tax:      { lane: 0, x: 560, w: 120, t: "tax rounding" },
+    keys:     { lane: 1, x: 300, w: 190, t: "fresh idempotency keys" },
+    refund:   { lane: 1, x: 700, w: 140, t: "refund webhook" },
+    cache:    { lane: 2, x: 150, w: 120, t: "cache prices" },
+    currency: { lane: 2, x: 520, w: 150, t: "currency in keys" },
+    editor:   { lane: 3, x: 370, w: 160, t: "admin price editor" },
+    flag:     { lane: 3, x: 740, w: 160, t: "flag: new checkout" },
+    receipts: { lane: 4, x: 210, w: 130, t: "send receipts" },
+    rename:   { lane: 4, x: 590, w: 170, t: "rename charge event" },
+    webhooks: { lane: 5, x: 300, w: 140, t: "retry webhooks" },
+    invoice:  { lane: 5, x: 660, w: 120, t: "invoice PDF" }
+  };
+  var pairs = [
+    ["retry", "keys", "hit"], ["cache", "editor", "hit"], ["receipts", "rename", "hit"],
+    ["keys", "currency", "ok"], ["tax", "currency", "ok"], ["refund", "webhooks", "ok"],
+    ["flag", "editor", "ok"], ["invoice", "tax", "ok"], ["rename", "refund", "ok"]
+  ];
+  var hitIds = {};
+  pairs.forEach(function (p) { if (p[2] === "hit") { hitIds[p[0]] = 1; hitIds[p[1]] = 1; } });
+  function center(id) { var c = chips[id]; return { x: c.x + c.w / 2, y: top + c.lane * gap }; }
+  pairs.forEach(function (p) {
+    var a = center(p[0]), b = center(p[1]);
+    var mx = (a.x + b.x) / 2, bend = Math.max(30, Math.abs(a.y - b.y) * 0.35);
+    var d = "M" + a.x + " " + a.y + " C" + (mx - bend) + " " + a.y + " " + (mx + bend) + " " + b.y + " " + b.x + " " + b.y;
+    el("path", { class: "f-arc " + p[2], d: d }, null, arcLayer);
+  });
+  Object.keys(chips).forEach(function (id) {
+    var c = chips[id], cy = top + c.lane * gap;
+    var g = el("g", { class: "f-chip" + (hitIds[id] ? " is-hit" : "") });
+    el("rect", { x: c.x, y: cy - 15, width: c.w, height: 30, rx: 7 }, null, g);
+    el("text", { x: c.x + 12, y: cy + 4.5 }, c.t, g);
+  });
+  // The flag sits between lanes 1 and 2, left of the retry and keys arc.
+  el("rect", { class: "f-flag-bg", x: 100, y: 67, width: 186, height: 22, rx: 5 });
+  el("text", { class: "f-flag", x: 109, y: 82 }, "Charged twice. Repro ready.");
+
+  // Copy the benchmark commands.
+  var copy = document.getElementById("copy");
+  var copyStatus = document.getElementById("copy-status");
+  var cmd = document.getElementById("cmd");
+  copy.addEventListener("click", function () {
+    var text = cmd.textContent;
+    function fallback() {
+      var range = document.createRange();
+      range.selectNodeContents(cmd);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      copyStatus.textContent = "Selected. Press Ctrl+C or Command+C to copy.";
+    }
+    try {
+      navigator.clipboard.writeText(text).then(function () { copyStatus.textContent = "Copied."; }, fallback);
+    } catch (e) {
+      fallback();
+    }
+  });
+})();
+</script>
+</body>
+</html>

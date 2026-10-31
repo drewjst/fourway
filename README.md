@@ -47,6 +47,11 @@ Published test-generation approaches found about a third of semantic conflicts
 seeded conflicts, under 5% false positives on clean pairs, and under $5 per
 pair.
 
+For a plain-language overview, see the project page at
+[drewjst.github.io/fourway](https://drewjst.github.io/fourway/). Its source is
+[`site/`](site/), and `.github/workflows/pages.yml` deploys it when `site/`
+changes on `main`.
+
 The repository contains the following:
 
 - The four-way runner, the classifier, and an evidence ledger keyed on the
