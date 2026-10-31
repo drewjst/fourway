@@ -1,0 +1,61 @@
+base = { repo = "tomlkit", commit = "4623b450be4184517bb03a982cfe86a3cb483463" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Remove the internal TOMLChar wrapper"
+pr = "https://github.com/python-poetry/tomlkit/pull/492"
+from = "4623b450be4184517bb03a982cfe86a3cb483463"
+to = "eaa897d6d0300f7ffc78188c8957b98aaa5c8c65"
+body = """
+> **Stacked on #489, #490 and #491** — the capstone of that series; best reviewed/merged after them.
+> This also **supersedes #488** (interning `TOMLChar`): per @dimbleby's suggestion on that PR, removing the wrapper entirely is the better end-state, so I'd close #488 in favour of this.
+
+## What
+
+After the bulk run-scans (#490/#491), the parser only constructs a `TOMLChar` (a `str` subclass) at run boundaries and uses a handful of its `is_*()` helpers. This removes the class entirely:
+
+- `Source` yields plain `str` characters; `inc()` / `advance_*` read `self[i]` directly.
+- End-of-input is detected **positionally** (`_idx >= len` / `Source.end()`) instead of an identity sentinel.
+- The remaining character-class checks use module-level frozensets.
+
+A real NUL byte is still rejected as an invalid control char and is never mistaken for end-of-input, since EOF is now positional rather than a value/identity comparison.
+
+## Benchmarks
+
+Median, interleaved A/B vs `master` (includes #489–#491):
+
+| document | speedup |
+|---|---|
+| large flat, single-line strings (~90 KB) | 5.8× |
+| poetry.lock-like (~64 KB) | 2.4× |
+| pyproject.toml | 1.9× |
+| typical mixed (~4 KB) | 1.6× |
+
+The removal itself adds ~1.1–1.18× over #491. No regression on any shape.
+
+## Tests
+
+Full suite passes (972, incl. the toml-test conformance submodule). On top of that, an **11.5k-input adversarial differential** — EOF/truncation at every prefix length, real-NUL placement in every position, empty/whitespace/BOM, and structural fuzz — is **byte-identical** in output and exception type to `master`. No public API change (`TOMLChar` was not exported).
+"""
+
+[b]
+title = "Fix corrupt output when adding to a dotted key inside an inline table"
+pr = "https://github.com/python-poetry/tomlkit/pull/500"
+from = "eaa897d6d0300f7ffc78188c8957b98aaa5c8c65"
+to = "a076a6afbe035694bd6b1cfdbd8ad7284e93b862"
+body = """
+Adding a key to a dotted-key table inside an inline table produced unparseable output (#495):
+
+```python
+doc = parse('a = {b.c = 1}\\n')
+doc[\"a\"][\"b\"][\"d\"] = 2
+doc.as_string()  # 'a = {b.c = 1d = 2\\n}'
+```
+
+`InlineTable.as_string` rendered the dotted prefix once and then dumped the materialized table's block-style body verbatim. The fix renders one `prefix.child = value` pair per child (recursing for nested dotted keys), mirroring what `Container._render_table` does for dotted keys in regular tables, so the result is `a = {b.c = 1, b.d = 2}`. Repeating the prefix is required for correctness: rendering the new key bare (`{b.c = 1, d = 2}`) would change its meaning to `a.d`.
+
+Fixes #495.
+"""

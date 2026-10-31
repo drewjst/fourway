@@ -1,0 +1,25 @@
+base = { repo = "toolz", commit = "5360b1544bb9e7131f9cb7f63eaa3629221660c1" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a"]
+assisted = []
+
+[a]
+title = "fix memory leak from exceptions"
+pr = "https://github.com/pytoolz/toolz/pull/437"
+from = "5360b1544bb9e7131f9cb7f63eaa3629221660c1"
+to = "2a6ef533854bd0bb383889071059f7ca3690c005"
+body = """
+fix #436 
+Not sure if there's a cleaner way, but this works.
+"""
+
+[b]
+title = "Fix wrong docstring for unzip()"
+pr = "https://github.com/pytoolz/toolz/pull/432"
+from = "0da106df6a12759d1a49ee30b903cc093562a406"
+to = "4e0e8190899568e919338751e0bd3f0c131b22fe"
+body = """
+The current version of unzip() works only if the inner sequence is
+finite, but in Python 3 zip() can be used. See also comment in #239.
+"""

@@ -1,0 +1,86 @@
+base = { repo = "tomlkit", commit = "67d3e86502706df2a9ed67114ab67e25bcdcbbb7" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "fix: preserve leading newline of multiline string built with string()"
+pr = "https://github.com/python-poetry/tomlkit/pull/551"
+from = "67d3e86502706df2a9ed67114ab67e25bcdcbbb7"
+to = "8cd44f58b499da3c80a29bc877a512665a15e0bb"
+body = """
+## Problem
+
+`tomlkit.string(value, multiline=True)` produces output that silently loses a **leading newline** on round-trip.
+
+```python
+>>> import tomlkit
+>>> s = tomlkit.string(\"\\nfoo\", multiline=True)
+>>> str(s)                 # the String value is correct
+'\\nfoo'
+>>> s.as_string()          # ...but its serialized form is not
+'\"\"\"\\nfoo\"\"\"'
+>>> str(tomlkit.parse(f'k = {s.as_string()}\\n')[\"k\"])
+'foo'                      # <- leading newline dropped!
+```
+
+Per the [TOML spec](https://toml.io/en/v1.0.0#string): *\"A newline immediately following the opening delimiter will be trimmed.\"* So `\"\"\"\\nfoo\"\"\"` decodes to `foo`, not `\\nfoo`. The `String` object reports the right value, but its rendered form is wrong, so the data loss only appears after the output is parsed again.
+
+This is a genuine serialization bug, **not** a TOML 1.0 vs 1.1 difference — both `tomllib` (1.0.0) and tomlkit's own parser (1.1.0) decode the old output to the wrong value:
+
+| `string(value, multiline=True).as_string()` | reparses to (before) | reparses to (after) |
+|---|---|---|
+| `\"\\n\"` → `\"\"\"\\n\"\"\"` | `\"\"` ❌ | `\"\\n\"` ✅ |
+| `\"\\nabc\"` → `\"\"\"\\nabc\"\"\"` | `\"abc\"` ❌ | `\"\\nabc\"` ✅ |
+| `\"\\r\\nx\"` → `\"\"\"\\r\\nx\"\"\"` | `\"x\"` ❌ | `\"\\r\\nx\"` ✅ |
+| `\"abc\\n\"` → `\"\"\"abc\\n\"\"\"` | `\"abc\\n\"` ✅ (unchanged) | `\"abc\\n\"` ✅ |
+
+Affects both basic (`\"\"\"`) and literal (`'''`) multiline strings, and values starting with `\\r\\n`.
+
+## Root cause
+
+In `String.from_raw` (`tomlkit/items.py`), the rendered body is placed directly between the delimiters. For a multiline type, `\\n`/`\\r` are intentionally kept literal (not escaped) for readability — but nothing accounts for the parser's rule that trims the first newline after the opening delimiter, so a body beginning with a newline is one newline short after re-parsing.
+
+## Fix
+
+When the string is multiline and its rendered body begins with a newline, emit an **extra** leading newline — the one the parser trims — so the intended value survives the round-trip. This is exactly the representation the spec prescribes for such values. Single-line strings and multiline strings that don't start with a newline are unchanged (surgical, +7 lines).
+
+## Tests
+
+- An existing `test_create_string` case asserted the old lossy output (`\"\"\"\\nMy\\nString\\n\"\"\"`). It only checked `as_string()`, never a round-trip, so it had **locked in the bug**. Updated it to the correct, round-trippable rendering.
+- Added `test_create_multiline_string_with_leading_newline_round_trips`, covering basic/literal multiline and `\\r\\n`-leading values, asserting `parse(render(v)) == v`.
+
+Proof the regression test guards the fix (source change stashed, tests kept):
+
+```
+# without the source fix:
+6 failed, 32 passed        # 5 new round-trip cases + the corrected case
+# with the fix restored:
+38 passed
+```
+
+Full suite: **1040 passed** (was 1035), `ruff check` clean, `ruff format --check` clean on changed files.
+
+"""
+
+[b]
+title = "reject a comment containing line breaks in Item.comment and add_line"
+pr = "https://github.com/python-poetry/tomlkit/pull/544"
+from = "8cd44f58b499da3c80a29bc877a512665a15e0bb"
+to = "21a4942ed31e773061c9fc047d55b1bb3c637ee3"
+body = """
+## Summary
+
+1. `Item.comment()` and `Array.add_line(comment=...)` accepted a comment containing an embedded newline and rendered everything after the first line without a `#`, so the output no longer re-parses (tomlkit and `tomllib` both reject it).
+2. Per review these two APIs are single-line only, so a comment containing a line break now raises `ValueError` up front instead of being reformatted; the item is left unmodified when it raises.
+3. Single-line comment behavior is unchanged. Tests cover both rejection paths; full suite passes.
+
+## Agent Drafting Metadata
+
+<!-- Fill this section if an AI agent helped draft this PR. -->
+- Agent:
+- Model:
+- Notes:
+
+"""

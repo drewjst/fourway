@@ -1,0 +1,108 @@
+base = { repo = "tomlkit", commit = "de68fd06eef61aab0d50d69fb589a43f00a046bf" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Render inline tables in O(n) instead of O(n²)"
+pr = "https://github.com/python-poetry/tomlkit/pull/525"
+from = "de68fd06eef61aab0d50d69fb589a43f00a046bf"
+to = "86f45625bf67b5ae875fec8ced6d9032aef886e1"
+body = """
+## What
+
+`InlineTable.as_string()` recomputed, **on every separator comma**, two `any(self._value.body[i + 1:])` scans of the remaining body — \"is there a following `Null`?\" and \"is there a following key?\" — to decide whether a dangling separator comma should be dropped. On an inline table with many keys that is **O(n²)** in the number of elements.
+
+The two predicates only depend on the position of the last real key and the last `Null` (deleted) element, both of which can be found once. Precompute them in a single pass — together with `has_explicit_commas`, which already needed a full pass — and turn the two per-comma scans into O(1) index comparisons:
+
+```python
+has_following_null = last_null_idx > i
+has_following_key = last_item_idx is not None and last_item_idx > i
+```
+
+The render is now **O(n)**.
+
+## Benchmark
+
+`as_string()` of an inline table with `n` keys (median, interleaved A/B vs `master`):
+
+| n keys | speedup |
+|---|---|
+| 50 | ~3.9× |
+| 200 | ~11× |
+| 800 | ~41× |
+
+`master` is quadratic (~0.23 → 2.7 → 41 ms/render); the patched render is linear. No effect on small inline tables or other rendering.
+
+## Tests
+
+No behaviour change: the precomputed predicates are exactly equivalent to the tail scans. Full suite incl. the toml-test conformance submodule passes. The delicate part is the deferred-separator / removed-key comma logic, so round-trip output was verified **byte-identical** — including **edited** inline tables (keys added/removed, trailing/leading commas, comments, dotted/nested) — by a differential over ~7k generated inline tables with `del`/`__setitem__` mutations. Added a focused regression test pinning the rendered output after key deletions.
+"""
+
+[b]
+title = "Fix duplicated prefix and captured sibling when replacing a dotted key with a table"
+pr = "https://github.com/python-poetry/tomlkit/pull/526"
+from = "86f45625bf67b5ae875fec8ced6d9032aef886e1"
+to = "ee4eedbacc8eb72872af050996c7396ecce190b9"
+body = """
+## Summary
+
+Replacing a dotted key's value with a table corrupted the output in two ways, reported in #524 and #513.
+
+**#524** — duplicated prefix on a spurious header:
+```python
+doc = tomlkit.loads(\"fruit.apple = true\\n\")
+doc[\"fruit\"] = {\"a\": 1}
+print(tomlkit.dumps(doc))
+```
+master:
+```toml
+[fruit]
+fruit.a = 1
+```
+
+**#513** — a following sibling is silently swallowed (the data changes):
+```python
+doc = tomlkit.loads(\"a.b = 1\\nc.d = 2\\n\")
+doc[\"a\"] = {}
+print(tomlkit.dumps(doc))
+```
+master:
+```toml
+[a]
+
+c.d = 2
+```
+`c.d` is now a child of `[a]`.
+
+### Cause
+
+A dotted key (`a.b = 1` stores key `a` with `is_dotted() == True`) is only consistent with a *super table*, which renders inline. When the value is replaced by a plain `dict`, `Container._replace_at` inherits the old dotted key, but the new table is **not** a super table, so it renders with its own `[header]` while the dotted key still prefixes the children — and the header then captures every following entry that renders inline.
+
+### Fix
+
+In `_replace_at`, when a non-super table replaces a dotted key:
+
+- drop the dotted key so the replacement renders as a plain table (fixes the duplicated prefix), and
+- if an inline sibling still follows, move the new table past it — reusing the existing value→table repositioning. That scan now treats dotted-key tables as inline (skipping them when locating the first real `[header]`), which additionally fixes the same capture for a plain value replaced by a table that sits before a dotted key.
+
+Result:
+```toml
+# #524
+[fruit]
+a = 1
+
+# #513
+c.d = 2
+
+[a]
+```
+
+### Tests
+
+Added four regression tests in `tests/test_toml_document.py` (both issue repros, a non-empty variant, and the value→table-before-dotted case). The full suite passes (1027, including the toml-test conformance suite); `ruff` and `ruff format` are clean.
+
+Fixes #513
+Fixes #524
+"""

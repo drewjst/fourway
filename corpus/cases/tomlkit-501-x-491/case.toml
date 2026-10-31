@@ -1,0 +1,50 @@
+base = { repo = "tomlkit", commit = "a1c5bd25b5686e4481b461f8eb336d3108376fb3" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "reject non-hex digits in \\u and \\U escapes"
+pr = "https://github.com/python-poetry/tomlkit/pull/501"
+from = "a1c5bd25b5686e4481b461f8eb336d3108376fb3"
+to = "8571bcd13f0e68e454df9be8d33975b2f5acd44e"
+body = """
+1. `_peek_unicode` converts the 4 (`\\u`) or 8 (`\\U`) characters after the prefix with `int(extracted, 16)`, but never checks they are hex digits the way the sibling `_peek_hex` does.
+2. `int(s, 16)` silently accepts underscores between digits, a leading sign, and surrounding whitespace, so escapes like `\\u12_3`, `\\u+123`, `\\u 123` and `\\U0010_FFFF` decode to an arbitrary code point instead of being rejected.
+3. Validate the extracted characters with the same `strip` check used by `_peek_hex` before converting; valid escapes and the surrogate-range handling are unchanged. Added a regression test.
+"""
+
+[b]
+title = "Bulk-scan single-line string bodies"
+pr = "https://github.com/python-poetry/tomlkit/pull/491"
+from = "8571bcd13f0e68e454df9be8d33975b2f5acd44e"
+to = "4623b450be4184517bb03a982cfe86a3cb483463"
+body = """
+> **Stacked on #489 and #490** — the first two commits here are those PRs (index-based `Source` + bulk run scanning). Best reviewed/merged after them; GitHub will collapse this to just the string-scan commit once they land. Happy to rebase.
+
+## What
+
+Parsing a single-line string appended its body **one character at a time** (`value += current; inc()`). For long string values (the bulk of most config / lockfile content) this dominates.
+
+This scans the run of ordinary characters up to the next delimiter, backslash or control character in a single pass (`Source.advance_until`) and appends the whole slice at once; the stop character is then handled by the existing branch on the next iteration. Multiline strings keep the per-character loop (CRLF handling).
+
+The stop-set is **exactly** the control characters the per-character loop rejects, so `InvalidControlChar` / escape / delimiter handling is unchanged, and a mid-string EOF raises `UnexpectedEofError` just as the per-char `inc(exception=...)` did.
+
+## Benchmarks
+
+Parsing speedup across document shapes (median, interleaved A/B vs `master`, includes #489+#490):
+
+| document | speedup |
+|---|---|
+| large flat, single-line string values (~90 KB) | 4.9× |
+| pyproject.toml | 2.1× |
+| poetry.lock-like (~64 KB) | 2.1× |
+| typical mixed (~4 KB) | 1.5× |
+
+No regression on any shape (multiline-heavy and nested docs are unchanged).
+
+## Tests
+
+Full suite passes (972 tests, incl. the toml-test conformance submodule). On top of that, a **4135-input adversarial differential** (random escapes valid+invalid, every control byte 0x00–0x1F+DEL in basic & literal, unicode/astral/combining, the other-quote char inside strings, truncated/malformed inputs for error parity) is **byte-identical** in output and exception type to the per-character loop. No public API or behaviour change.
+"""

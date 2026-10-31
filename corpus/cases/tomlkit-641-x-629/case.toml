@@ -1,0 +1,63 @@
+base = { repo = "tomlkit", commit = "90365ea1d67cee7aa3bc62e03ba817a6ddb6f67d" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Write ESC as \\^[ instead of the TOML 1.1-only \\e escape"
+pr = "https://github.com/python-poetry/tomlkit/pull/641"
+from = "90365ea1d67cee7aa3bc62e03ba817a6ddb6f67d"
+to = "01b0f45cd43ca6d250e733b2db3a2ac84426c055"
+body = """
+## Summary
+
+Since the TOML 1.1 update (#456), `_escaped` maps `e` to ESC, and `_compact_escapes` is derived from it, so `dumps()` now writes `\\x1b` as `\\e` in basic strings, multiline basic strings and quoted keys. `\\e` is only valid in TOML 1.1, so the output can no longer be read by TOML 1.0 parsers such as the stdlib `tomllib`:
+
+```python
+>>> tomllib.loads(tomlkit.dumps({\"a\": \"x\\x1by\"}))
+tomllib.TOMLDecodeError: Unescaped '\\' in a string (at line 1, column 8)
+```
+
+This excludes `e` from the encode table only, so ESC is written as `\\^[` (valid in both 1.0 and 1.1), while the parser keeps accepting `\\e`.
+
+Tests: dumping ESC in a value, a quoted key and a multiline string gives `\\^[` and round-trips; the output loads with `tomllib` (3.11+); parsing `\"\\e\"` / `\"\"\"\\e\"\"\"` still yields `\\x1b`.
+
+## Agent Drafting Metadata
+
+- Agent: Claude Code
+- Model: Claude Opus 5.5
+- Notes: Agent investigated, implemented the fix and tests, and drafted this description. Full test suite (1100 tests) and pre-commit hooks pass locally.
+
+"""
+
+[b]
+title = "Do not add a plus sign to a negative zero float result"
+pr = "https://github.com/python-poetry/tomlkit/pull/629"
+from = "01b0f45cd43ca6d250e733b2db3a2ac84426c055"
+to = "76d4714da0402bb76c73b9dc2f04a0eb48852aee"
+body = """
+## Summary
+
+Arithmetic on a float written with an explicit sign renders `+-0.0` when the result is negative zero, and tomlkit cannot parse that output.
+
+```python
+import tomlkit
+
+doc = tomlkit.parse(\"x = -1.5\")
+doc[\"x\"] *= 0
+print(doc.as_string())          # actual: x = +-0.0    expected: x = -0.0
+tomlkit.parse(doc.as_string())  # InvalidNumberError: Invalid number at line 1 col 9
+```
+
+`Float._new` (`tomlkit/items.py:879` on master) adds `+` when `self._sign and result >= 0`. `-0.0 >= 0` is `True`, and `str(-0.0)` is already `\"-0.0\"`. This is the line #345 changed for #341, and negative zero is the case that change left open. A signed integer reaches the same line through true division (`n = +0`, then `doc[\"n\"] /= -1`).
+
+The fix adds the `+` only when `str(result)` does not already start with `-`. Negative zero is the only value that is `>= 0` and prints with a leading `-`, so no other result renders differently.
+
+## Agent Drafting Metadata
+
+- Agent: Quality Playbook, run with Claude Code
+- Model: Claude Fable 5.1, Claude Opus 5.5 and Claude Sonnet 5.5
+- Notes: Found by Quality Playbook, an AI code-review tool, with Claude; I reviewed the change. The agent also drafted the test, the fix and this text.
+
+"""

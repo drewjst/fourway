@@ -1,0 +1,8 @@
+url = "https://github.com/python-semver/python-semver"
+license = "BSD-3-Clause"
+tests = "tests"
+# .pytest.ini puts tests/ on the path for its helper modules.
+pythonpath = ["src", "tests"]
+# .pytest.ini adds coverage flags that need pytest-cov, and doctests over the docs.
+pytest_args = ["-o", "addopts="]
+packages = ["src/semver/"]

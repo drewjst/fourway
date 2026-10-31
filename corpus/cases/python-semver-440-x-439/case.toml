@@ -1,0 +1,26 @@
+base = { repo = "python-semver", commit = "c47774db88386f7db79e5ec9fe3672c07ed7c063" }
+label = "clean"
+class = "mined, other files"
+runtime = ["b"]
+assisted = []
+
+[a]
+title = "Update workflow file"
+pr = "https://github.com/python-semver/python-semver/pull/440"
+from = "c47774db88386f7db79e5ec9fe3672c07ed7c063"
+to = "7a950aaaf47c303c0ab9f01713bd787e034fa429"
+body = """
+* Move from v4 -> v5 for action/* GitHub Actions
+* Ignore `.venv*`
+* Update settings in `setup.cfg` for Flake8 and pycodestyle
+
+"""
+
+[b]
+title = "Improve type hints to fix TODOs"
+pr = "https://github.com/python-semver/python-semver/pull/439"
+from = "7a950aaaf47c303c0ab9f01713bd787e034fa429"
+to = "4815626cb6e2c2d0ee0edc015d3ae32485fadd03"
+body = """
+Pass black/flake8/mypy in both Python3.7 and Python3.12
+"""

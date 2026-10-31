@@ -1,0 +1,41 @@
+base = { repo = "tomlkit", commit = "ce58a1dbf8692c631bd64826e60f09c45fa7fb25" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Fix doubled comma when inserting into a comma-first array"
+pr = "https://github.com/python-poetry/tomlkit/pull/499"
+from = "ce58a1dbf8692c631bd64826e60f09c45fa7fb25"
+to = "f8ce14b39c3bfe57f20f75fbc29cb9e5586811e7"
+body = """
+Fixes #494.
+
+In a comma-first formatted array the comma that separates an item from the previous one lives in that item's *indent* whitespace (the parser folds `\\n ,` into the next group's indent when a comment ends the previous group). `Array.insert()` copies such an indent onto the new item, but then also adds a trailing comma to the previous item — and for middle inserts gives the new item a trailing comma too — so the output contains double separators and no longer parses:
+
+```python
+doc = tomlkit.parse(\"a = [\\n      1 # one\\n     ,2\\n    ]\\n\")
+doc[\"a\"].append(99)
+tomlkit.parse(tomlkit.dumps(doc))  # UnexpectedCharError: ',' — dumped \"2,\\n     ,99\"
+```
+
+The fix skips both extra commas when the indent copied onto the new item already carries one: the embedded comma is the separator. Output is style-preserving (`,2` → `,99`) and round-trips. Same structure as the `__delitem__` `comma_in_indent` handling from #486, which `insert()` never got.
+
+Regression tests cover append, middle insert (both previously produced unparseable output), and front insert (comma-less indent, unchanged behavior).
+
+"""
+
+[b]
+title = "reject tab characters in bare keys"
+pr = "https://github.com/python-poetry/tomlkit/pull/497"
+from = "f8ce14b39c3bfe57f20f75fbc29cb9e5586811e7"
+to = "a1c5bd25b5686e4481b461f8eb336d3108376fb3"
+body = """
+1. `_parse_bare_key` consumes spaces and tabs while reading a bare key, then strips outer whitespace and only rejects the key if it still contains a literal space, so an interior tab is never caught.
+2. As a result bare keys, dotted-key segments and table names with embedded tabs are accepted (`a\\tb = 1`, `[a\\tb]`, `x.y\\tz = 1`), which the spec disallows and which stdlib `tomllib` and the official toml-test corpus reject.
+
+Changed the check to reject the key when the stripped value contains a space or a tab. Validation stays in the parser since callers receive the already-built key.
+
+Verified against the failing inputs above, the existing parser tests, and the full toml-test suite. Added a regression test that fails before the change and passes after.
+"""

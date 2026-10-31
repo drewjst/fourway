@@ -1,0 +1,54 @@
+base = { repo = "tomlkit", commit = "4bec845b604f899a18da29cd3ea692e1b320354a" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Preserve fold in datetime subtraction"
+pr = "https://github.com/python-poetry/tomlkit/pull/623"
+from = "4bec845b604f899a18da29cd3ea692e1b320354a"
+to = "40dd59cfdc5b724a8d1256f39f89534265ec1f99"
+body = """
+## Summary
+
+Preserve `fold` when reconstructing a `DateTime` for subtraction. A repeated-hour datetime with `fold=1` now subtracts its equivalent UTC instant to zero instead of minus one hour. Follow-up to #620.
+
+Regression tests cover both folds and confirm timedelta subtraction keeps the standard-library fold reset behavior. `tests/test_items.py` passes on CPython 3.11 (100 passed) and PyPy 3.12 (99 passed, 1 skipped). `mypy` reports the same five existing errors as clean main.
+
+## Agent Drafting Metadata
+
+- Agent: Codex
+- Model: GPT-6.1
+- Notes: Drafted the patch, regression tests, and PR description.
+
+"""
+
+[b]
+title = "fix: preserve underscores when creating integers from strings"
+pr = "https://github.com/python-poetry/tomlkit/pull/610"
+from = "0518af253901e57872c03835db6fe9bacab40ee7"
+to = "f466807e253b7479a3dbd9621f8b0782384ade9e"
+body = """
+Fixes #336.
+
+## Invariants
+
+1. **Emission preserves the author's grouping.** When `integer()` receives a string, the original text is stored verbatim as the item's raw text (`Integer.as_string()` already returns the stored raw), so `dumps(integer(\"1_000\"))` now emits `1_000` instead of silently normalizing to `1000`.
+2. **The grammar validator is the single source of truth for what may be preserved.** The new `_INTEGER_RE` encodes the TOML v1.0.0 § Integer grammar (https://toml.io/en/v1.0.0#integer): decimal with optional sign and no leading zeros, `0x`/`0o`/`0b` with lowercase prefix and no sign, underscores only between digits. Its accept set mirrors `Parser._parse_number`, so anything this function preserves is also parseable — a preserved literal always round-trips.
+3. **Invalid strings are rejected at construction, so no invalid TOML can be emitted.** Anything outside the grammar raises `ValueError` (the same exception `int(raw)` raised before for garbage input), instead of being emitted verbatim or silently normalized.
+4. **The parse path is untouched.** Only the `api.integer(str)` constructor path changes. `integer(int)` keeps the exact old behavior (`item(int(raw))`, including `bool` → `Integer(1)`), and the parser is not modified.
+
+## Notes
+
+- The value is computed with `int(raw, 0)` on the already-validated string; base-0 handles the `0x`/`0o`/`0b` prefixes, and Python's underscore placement rules coincide with TOML's for validated input.
+- `Integer.__init__`'s `_sign` detection (`^[+\\-]\\d+$`) is intentionally left alone: it only affects how arithmetic results re-render an explicit `+`, which is orthogonal to this fix.
+
+## Tests
+
+- Parametrized emission tests over valid groupings (`1_000`, `5_349_221`, `0xdead_beef`, `0xDEAD_BEEF`, `0o7_7`, `0b1_0`, `+1_000`, `-1_000`).
+- Rejection tests asserting `ValueError` for `_100`, `100_`, `1__000`, `01_2`, `0x_1`, `0X1`, `+0x1`, `\"\"`, `\"abc\"`, `\"1.0\"`, `\" 1\"`.
+- Round-trip tests asserting the emission path agrees with the parse path (`parse(\"n = 1_000\\n\")`).
+- Full suite: 407 passed (excluding `test_toml_tests.py`, which needs the uninitialized corpus submodule).
+
+"""

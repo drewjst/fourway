@@ -7,7 +7,9 @@ import pytest
 
 from fourway import gitops
 from fourway.case import load_case
-from fourway.mine import Landing, case_toml, changes_runtime, is_assisted, is_code, is_reverted, landings, pairs
+from fourway.mine import (
+    Landing, case_toml, changes_runtime, is_assisted, is_code, is_reverted, landings, mine, pairs,
+)
 
 T = "2026-01-0{}T00:00:00Z"
 
@@ -176,3 +178,28 @@ def test_an_ai_credit_in_the_description_or_the_commit_marks_a_side_assisted(tmp
     assert not is_assisted(repo, replace(base, commit=plain, body="Fixes #3. Co-authored with my colleague."))
     assert is_assisted(repo, replace(base, commit=plain, body="Done.\n\n🤖 Generated with [Claude Code](https://claude.com)"))
     assert is_assisted(repo, replace(base, commit=trailer))
+
+
+def test_a_pair_whose_trees_git_archive_would_rewrite_is_reported_not_written(tmp_path, monkeypatch):
+    """versioneer's export-subst gives each exported tree different bytes; such a pair drops with its reason."""
+    monkeypatch.setenv("FOURWAY_CACHE", str(tmp_path / "cache"))
+    repo = gitops.init(tmp_path / "upstream")
+    (repo / ".gitattributes").write_text("pkg/_version.py export-subst\n")
+    (repo / "pkg").mkdir()
+    (repo / "pkg" / "_version.py").write_text('refs = "$Format:%d$"\n')
+    gitops.commit_all(repo, "start")
+    prs = []
+    for n in (1, 2):
+        (repo / "pkg" / f"m{n}.py").write_text("x = 1\n")
+        prs.append({
+            "number": n, "html_url": f"https://example.com/pull/{n}", "title": f"Add m{n}", "body": "",
+            "user": "someone", "user_type": "User", "created_at": T.format(1), "merged_at": T.format(1 + n),
+            "merge_commit_sha": gitops.commit_all(repo, f"Add m{n} (#{n})"),
+        })
+    corpus = tmp_path / "corpus"
+    (corpus / "repos").mkdir(parents=True)
+    (corpus / "repos" / "pkg.toml").write_text(f'url = "file://{repo}"\nlicense = "MIT"\npackages = ["pkg/"]\n')
+
+    [(case_id, problems)] = mine(corpus, "pkg", repo, prs, cutoff=T.format(9))
+    assert case_id == "pkg-1-x-2" and "export attributes" in problems[0]
+    assert not (corpus / "cases" / case_id).exists()

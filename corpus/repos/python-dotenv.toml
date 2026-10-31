@@ -1,0 +1,5 @@
+url = "https://github.com/theskumar/python-dotenv"
+license = "BSD-3-Clause"
+tests = "tests"
+pythonpath = ["src"]
+packages = ["src/dotenv/"]

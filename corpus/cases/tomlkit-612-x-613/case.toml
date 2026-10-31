@@ -1,0 +1,54 @@
+base = { repo = "tomlkit", commit = "79039653cbe5ff2a2e23042717455a2ac4875539" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Escape content appended to a String via __add__"
+pr = "https://github.com/python-poetry/tomlkit/pull/612"
+from = "79039653cbe5ff2a2e23042717455a2ac4875539"
+to = "61941deb3c7155e88d5f038148b33a599c04a530"
+body = """
+## Summary
+
+`String.__add__` spliced the appended text into the raw literal without escaping it, so appending a quote or backslash to a basic string produced a literal that is not valid TOML - including to this library's own parser:
+
+```python
+i = item(\"foo\")
+i += '\"'
+i.as_string()   # before: '\"foo\"\"'  (unparseable)
+                # after:  '\"foo\\\"\"'
+```
+
+Escape the appended plain text with the string type's escape sequences (a `String` operand keeps contributing its already-escaped raw form), mirroring what `from_raw` already does. This is the same class of bug as #231, which fixed the literal round-trip but not `__add__`.
+
+## Agent Drafting Metadata
+- Agent: Claude (Anthropic)
+- Model: Claude Opus
+- Notes: Agent assisted with investigation and drafting; the fix, tests and verification were reviewed by the submitter. Full suite passes (1059 passed).
+"""
+
+[b]
+title = "Render tz-aware times as local times without an offset"
+pr = "https://github.com/python-poetry/tomlkit/pull/613"
+from = "763bd661bfed068209c03510ae94493eb2db12b5"
+to = "ce8f8ee982411c4afef5cfb90df7313cc5f7d779"
+body = """
+## Summary
+
+`item()` and `Time._new` built the raw literal with `time.isoformat()`, which includes the UTC offset for tz-aware values - e.g. `07:32:00+02:00`. TOML local times have no offset or timezone (the spec's examples are plain `07:32:00`), and this library's own parser rejects the offset, so the serialized document was invalid and could not be read back:
+
+```python
+i = item(time(7, 32, tzinfo=timezone(timedelta(hours=2))))
+i.as_string()   # before: '07:32:00+02:00'  (rejected by tomlkit.parse)
+                # after:  '07:32:00'
+```
+
+Render from hour/minute/second/microsecond only. Naive times are byte-for-byte unchanged.
+
+## Agent Drafting Metadata
+- Agent: Claude (Anthropic)
+- Model: Claude Opus
+- Notes: Agent assisted with investigation and drafting; the fix, tests and verification were reviewed by the submitter. Full suite passes (1059 passed).
+"""

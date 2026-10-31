@@ -1,0 +1,66 @@
+base = { repo = "tomlkit", commit = "89cdcc7845da111e5d6b7eb0c1823684a274711a" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Reject non-lowercase special float literals"
+pr = "https://github.com/python-poetry/tomlkit/pull/628"
+from = "89cdcc7845da111e5d6b7eb0c1823684a274711a"
+to = "446d6fab132ef38a2ec052a5b2124e04b427dea6"
+body = """
+## Summary
+
+Reject signed special float spellings such as `+NaN` and `-Inf`, which TOML 1.1 requires to be lowercase. Valid signed `inf`/`nan`, uppercase exponents, base-prefixed numbers, and original formatting still round-trip unchanged.
+
+Validation: 1,124 tests passed; Ruff lint and formatting passed. Mypy retains 29 errors also reproduced on the unmodified base.
+
+## Agent Drafting Metadata
+
+- Agent: Codex
+- Model: GPT-6.1 Sol; GPT-6 Luna (research)
+- Notes: AI-assisted implementation, regression tests, and PR drafting.
+
+"""
+
+[b]
+title = "Preserve inline table key order in item() (#546)"
+pr = "https://github.com/python-poetry/tomlkit/pull/552"
+from = "446d6fab132ef38a2ec052a5b2124e04b427dea6"
+to = "a963fe16d67afaa5293a2c21cfaf9bba666d5647"
+body = """
+## Summary
+
+Closes #546.
+
+`item()` reordered the keys of an inline table under the default `sort_keys=False`:
+
+```python
+tomlkit.item([[{\"a\": {\"x\": 1}, \"b\": 2}]]).as_string()
+# -> '[[{a = {x = 1}, b = 2}]]'   (before: '[[{b = 2, a = {x = 1}}]]')
+```
+
+## Root cause
+
+In the `list`/`tuple` branch of `item()`, the sort key was
+
+```python
+key=lambda i: (isinstance(i[1], dict), i[0] if _sort_keys else 1)
+```
+
+so `isinstance(i[1], dict)` stayed in the tuple **unconditionally**, forcing dict-valued keys last even when not sorting. The sibling `dict` branch has the correct form (`(isinstance(i[1], dict), i[0]) if _sort_keys else 1`).
+
+## Fix
+
+Keep the dicts-last ordering **only for arrays of tables** (`Table` constructor), which render as `[[table]]` headers where a dict-valued key would otherwise capture the following keys — this is why simply removing the dicts-last ordering (PR #547) was not acceptable. Inline tables cannot capture, so their insertion order is preserved unless `sort_keys=True` is passed (matching the `dict` branch).
+
+Verified:
+- inline: `[[{a = {x = 1}, b = 2}]]` (order preserved)
+- inline with `_sort_keys=True`: `[[{b = 2, a = {x = 1}}]]` (still sorted, dicts-last)
+- array of tables: unchanged — `b = 2` still emitted before the `[a]` sub-table header
+
+## Tests
+
+Added `test_item_inline_table_preserves_key_order` covering all three cases. It fails on `master` and passes with this change. Full suite passes (356 passed); `ruff check`/`ruff format` clean; added a CHANGELOG entry.
+"""

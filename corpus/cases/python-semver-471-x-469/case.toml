@@ -1,0 +1,60 @@
+base = { repo = "python-semver", commit = "9c191564b58bfa7140a7c01f0ed7141506b5ce3b" }
+label = "clean"
+class = "mined, same file"
+runtime = ["b"]
+assisted = []
+
+[a]
+title = "fix: replace semver.parse() with semver.Version.parse() in docstrings"
+pr = "https://github.com/python-semver/python-semver/pull/471"
+from = "9c191564b58bfa7140a7c01f0ed7141506b5ce3b"
+to = "a8bb4f89fc010b367d0925dc4da72c883d2d15d3"
+body = """
+## Problem
+
+Six docstrings in `version.py` use `semver.parse()` which returns a plain `dict`, not a `Version` object:
+
+```python
+>>> ver = semver.parse(\"3.4.5\")
+>>> ver.bump_major()  # AttributeError: 'dict' object has no attribute 'bump_major'
+```
+
+Affected methods: `bump_major`, `bump_minor`, `bump_patch`, `bump_prerelease`, `bump_build`, `next_version`.
+
+## Fix
+
+Replace all 6 occurrences of `semver.parse()` with `semver.Version.parse()`, which correctly returns a `Version` instance and makes the doctests runnable and accurate.
+
+```python
+>>> ver = semver.Version.parse(\"3.4.5\")
+>>> ver.bump_major()
+Version(major=4, minor=0, patch=0, prerelease=None, build=None)
+```
+"""
+
+[b]
+title = "fix: next_version should bump version for build-only versions"
+pr = "https://github.com/python-semver/python-semver/pull/469"
+from = "a8bb4f89fc010b367d0925dc4da72c883d2d15d3"
+to = "4e09ef0e4c94314731f960d4ce763a2da2e096f1"
+body = """
+Fixes a bug where `next_version` on versions with build metadata but no prerelease would strip the build without bumping the version.
+
+## Bug
+
+`Version.parse('1.2.3+build.5').next_version('patch')` returns `1.2.3` instead of `1.2.4`.
+
+The condition in `next_version` was `(version.prerelease or version.build)`, which caused build-only versions to enter the finalization path meant for prereleases. Build metadata does not affect semver precedence, so its presence should not trigger version finalization -- the version should be bumped.
+
+Same issue affects `next_version('minor')` on X.Y.0+build and `next_version('major')` on X.0.0+build.
+
+## Fix
+
+Change the condition from `version.prerelease or version.build` to `version.prerelease`. Prerelease+build versions still correctly finalize (stripping both prerelease and build).
+
+## Checklist
+
+- [x] One-line fix in `version.py`
+- [x] 7 new test cases covering build-only and prerelease+build scenarios
+- [x] All 340 existing+tests pass (100% coverage)
+"""

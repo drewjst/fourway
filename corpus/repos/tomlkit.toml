@@ -1,0 +1,7 @@
+url = "https://github.com/python-poetry/tomlkit"
+license = "MIT"
+tests = "tests"
+# test_toml_tests.py reads the toml-test suite from a git submodule, which an
+# exported commit doesn't include.
+pytest_args = ["--ignore=tests/test_toml_tests.py"]
+packages = ["tomlkit/"]

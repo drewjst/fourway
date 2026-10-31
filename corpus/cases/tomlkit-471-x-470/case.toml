@@ -1,0 +1,42 @@
+base = { repo = "tomlkit", commit = "8e32f9cb7fcfbc45e893c34e0e9a590a26675fd6" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Honor sort_keys for parsed TOML documents"
+pr = "https://github.com/python-poetry/tomlkit/pull/471"
+from = "8e32f9cb7fcfbc45e893c34e0e9a590a26675fd6"
+to = "2c87eafe7c852d19c1b91a1c9bed4d47bd03816f"
+body = """
+## Summary
+- honor `sort_keys=True` when dumping parsed `TOMLDocument` / container values
+- keep the existing fast path for unsorted container dumps
+- add regression coverage for `loads()` + `dumps(sort_keys=True)`
+
+Closes #466.
+
+## Validation
+Autoresearch-style binary gates:
+- E1 baseline repro exists: `tomlkit.dumps(tomlkit.loads('zzz = 1\\naaa = \"foo\"'), sort_keys=True)` preserved the original order on `master`
+- E2 regression expectation fails on baseline: the new test expects sorted output for a parsed document
+- E3 regression passes after fix: parsed documents now dump as `'aaa = \"foo\"\\nzzz = 1\\n'`
+- E4 targeted tests pass:
+  - `python3 -m pytest tests/test_api.py -k 'sorted_keys or raw_dict_can_be_dumped or mapping_types_can_be_dumped'`
+- E5 broader nearby suite passes:
+  - `python3 -m pytest tests/test_api.py`
+
+## Notes
+The fix only changes the `sort_keys=True` container path. Unsorted container dumps still use the existing direct `as_string()` fast path.
+
+"""
+
+[b]
+title = "fix: fix a parser hang"
+pr = "https://github.com/python-poetry/tomlkit/pull/470"
+from = "843f79992139ec56266f52161b27a3eadd1f6a35"
+to = "96a4d22fdd07e25742009a6bcd8a2d23e9b5574a"
+body = """
+
+"""

@@ -1,0 +1,57 @@
+base = { repo = "tomlkit", commit = "eec255e2bdf7719f40a8a01f25085e63b4658893" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Copy trivia in _new so arithmetic results cannot mutate the original item"
+pr = "https://github.com/python-poetry/tomlkit/pull/683"
+from = "eec255e2bdf7719f40a8a01f25085e63b4658893"
+to = "e781ee0418c3713a47807b041887d76f8afcf755"
+body = """
+## Summary
+
+The `_new` constructors of `Integer`, `Float`, `String`, `DateTime`, `Date` and `Time` pass the **original** item's `Trivia` object to the result, so the result aliases the original's comment/indentation state. Editing the result then rewrites the line still stored in the document:
+
+```python
+doc = tomlkit.parse('x = 1  # keep\\ny = 2\\n')
+z = doc[\"x\"] + 1
+z.trivia.comment = \"# MUTATED\"
+tomlkit.dumps(doc)
+# 'x = 1  # MUTATED\\ny = 2\\n'   <- the document changed via the result
+```
+
+`Table.__copy__` and `InlineTable.__copy__` in the same file already pass `self._trivia.copy()` — `Trivia.copy()` exists for exactly this — and the container's `_replace_at` copies trivia explicitly, so only the six arithmetic/`replace()` paths leak. This adds the same `.copy()` there; nothing changes in what gets rendered at creation time, only the aliasing is cut.
+
+New parametrized test `test_arithmetic_result_does_not_share_trivia` (int/float/string/datetime/date/time): asserts `result.trivia is not original.trivia` and that mutating the result's comment leaves the document byte-identical. All 6 cases fail on current master and pass here. Full suite: `pytest tests/ --ignore=tests/test_toml_tests.py` — 529 passed.
+
+## Agent Drafting Metadata
+
+- Agent: ZCode coding agent
+- Model: GLM-5.3
+- Notes: Reproduction, six-line fix and regression test verified in an isolated worktree against origin/master (eddd27e); full offline test suite run before and after.
+
+"""
+
+[b]
+title = "Reject datetime strings in the date factory"
+pr = "https://github.com/python-poetry/tomlkit/pull/673"
+from = "0092bddb22afc13242fe6963a4529d73ef6eda5c"
+to = "004fce630d2537542a03fa8d4d6d62dae418b422"
+body = """
+## Summary
+
+`tomlkit.date()` currently accepts a local or offset timestamp and returns a `DateTime`, because Python's `datetime` subclasses `date`. Reject datetime values with the existing date-only `ValueError`, preserving valid dates and the separate `datetime()` factory.
+
+Adds regressions for local, UTC, and non-UTC offset timestamps. All three fail before the fix. The complete suite passes: 1,206 tests on Python 3.12.13, including the pinned toml-test submodule. All repository pre-commit hooks pass; the local pre-commit runner was upgraded because the declared 2.20 version cannot parse the current hook manifest's stage names. An installed-wheel consumer round-trips a real date/datetime TOML document through stdlib `tomllib` and checks timestamp rejection. Other interpreter versions and upstream CI are not yet verified.
+
+The earlier #645 addressing this behavior was self-closed unmerged; this change was developed from the current factory and its date-only contract.
+
+## Agent Drafting Metadata
+
+- Agent: OpenAI Codex
+- Model: GPT-6-based Codex; the exact deployment model identifier is not exposed in this session
+- Notes: Codex prepared the implementation, regression tests, and this description. A separate Codex agent independently reviewed exact commit `5ef0158` and ran the seven date-related API tests, with no unresolved findings. This is automated review, not human maintainer review.
+
+"""

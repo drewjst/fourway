@@ -1,0 +1,75 @@
+base = { repo = "tomlkit", commit = "76d4714da0402bb76c73b9dc2f04a0eb48852aee" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Keep single-line array bracket off a trailing comment line"
+pr = "https://github.com/python-poetry/tomlkit/pull/581"
+from = "76d4714da0402bb76c73b9dc2f04a0eb48852aee"
+to = "88aa4b1c1128587b8c8ee92d0db11db7bfbdc0ed"
+body = """
+## Summary
+
+`tomlkit.array().add_line(\"foo\", comment=\"bar\").as_string()` produced `[\\n    \"foo\", # bar]` — the closing `]` landed on the comment line, so the output failed to round-trip (`tomlkit.loads(...)` raised `UnexpectedCharError`). Fixes #580.
+
+`Array.as_string()`'s single-line branch concatenated `]` directly after the joined items. A trailing comment (from `add_line(..., comment=...)`) carries no newline, so the bracket was swallowed by the comment. This moves the bracket onto its own line when the last rendered element is a `Comment`; genuine single-line arrays (`[1, 2, 3]`) and multi-line arrays are byte-for-byte unchanged (the existing `test_array_add_line` assertion still passes).
+
+Note: the issue suggested making `add_line` promote single-line arrays to multiline, but that reformats `add_line(1, 2, 3)` onto separate lines and breaks `test_array_add_line`, so the fix belongs in `as_string`, not `add_line`.
+
+Added a regression test (`test_array_add_line_single_line_comment_round_trips`), verified red before the fix (`UnexpectedCharError`) and green after. `pytest tests/test_items.py` (87 passed) and `ruff format --check` pass locally.
+
+## Agent Drafting Metadata
+
+- Agent: Claude Code
+- Model: Claude (Opus)
+- Notes: AI-assisted. The fix, the regression test, and this description were reviewed and verified locally by me (red-green cycle plus the full `tests/test_items.py`).
+
+"""
+
+[b]
+title = "Fix Array.__delitem__ corrupting rendered output on slice deletion"
+pr = "https://github.com/python-poetry/tomlkit/pull/599"
+from = "88aa4b1c1128587b8c8ee92d0db11db7bfbdc0ed"
+to = "8c30fc17d91aee7469c0287e509300e78aa15227"
+body = """
+## Summary
+
+`Array.__delitem__` keeps the in-memory list and the rendered value groups in sync, but for **slice** deletions it recomputes which rendered positions to drop with:
+
+```python
+range(key.start or 0, key.stop or length, key.step or 1)
+```
+
+This mishandles ordinary slices:
+
+- `stop == 0` (`a[:0]`): `0 or length` evaluates to `length`, so a no-op deletion removes **every** rendered element.
+- negative bounds aren't normalized: `a[-1:]` → `range(-1, length)`, and `a[:-1]` → `range(0, -1)` (empty, removes nothing).
+
+`list.__delitem__` handles the slice correctly, so the list contents stay right, but `as_string()` / `dumps()` silently disagree with them:
+
+```python
+import tomlkit
+doc = tomlkit.parse(\"a = [1, 2, 3]\\n\")
+del doc[\"a\"][:0]        # deletes nothing
+tomlkit.dumps(doc)      # 'a = []\\n'  — expected 'a = [1, 2, 3]\\n'
+```
+
+| operation | `list(arr)` | `arr.as_string()` | expected |
+|---|---|---|---|
+| `del arr[:0]`  | `[1, 2, 3]` | `[]`        | `[1, 2, 3]` |
+| `del arr[-1:]` | `[1, 2]`    | `[]`        | `[1, 2]`    |
+| `del arr[:-1]` | `[3]`       | `[1, 2, 3]` | `[3]`       |
+
+**Fix:** use `slice.indices(length)`, which resolves `None`, negative, and out-of-range bounds exactly the way `list.__delitem__` does, so the removed render positions always match the list.
+
+**Tests:** added `test_array_slice_deletion_keeps_render_in_sync` covering `a[:0]`, `a[-1:]`, and `a[:-1]`. Full `tests/test_items.py` passes (87 passed).
+
+## Agent Drafting Metadata
+
+- Agent: Claude Code (property-based testing workflow)
+- Model: Claude Opus 5
+- Notes: The bug was found by property-based testing (Hypothesis) run against `main`. The one-line fix and the regression test were drafted with the agent and verified locally — the repro fails before the change and `tests/test_items.py` passes (87 passed) after. Reviewed by the submitter before opening.
+
+"""

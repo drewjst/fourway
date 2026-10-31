@@ -1,0 +1,170 @@
+base = { repo = "python-semver", commit = "1e8757912f633684e1a65d9d7c7e2270c3c79928" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Fix bump_build() silently returning an unchanged version for digitless build metadata"
+pr = "https://github.com/python-semver/python-semver/pull/480"
+from = "1e8757912f633684e1a65d9d7c7e2270c3c79928"
+to = "ea2524a51767cefab58a9b3bb6bcf38e5cdc7d54"
+body = """
+Calling `Version.parse(\"1.2.3+alpha\").bump_build()` returned a version whose build metadata was still \"alpha\" — an identical version object string-wise, despite bump_build() being documented to raise the build part. The private helper `_increment_string()` leaves a string without any digits unchanged, so a build like \"alpha\" (no numeric identifier anywhere) was passed through untouched. `bump_build()` now detects that case and appends \".0\" (`\"1.2.3+alpha\"` -> `\"1.2.3+alpha.0\"`), exactly mirroring how PR #460 fixed the analogous prerelease case (`\"3.4.5-rc9\"` -> `\"3.4.5-rc9.0\"`). Numeric-ending builds keep the existing incrementing behavior (`\"1.2.3+build.9\"` -> `\"1.2.3+build.10\"`). Found while investigating #466 (passing the bump token parameter); the CLI `--token` option itself is already covered by open PR #467 and is intentionally not duplicated here.
+
+Implementation reason: `_increment_string()` only increments the last numeric sequence and returns the input unchanged when there is none; for the prerelease part this hole was already fixed in _increment_prerelease by appending `\".0\"` so the bumped version is a new, higher build step. `bump_build()` had no such guard, so for digitless build metadata it silently returned an equal version, breaking the documented raise contract and making repeated bumps indistinguishable from no-ops. The minimal fix reuses the same \".0\"-append strategy at the `bump_build()` call site, leaving numeric behavior and the token-constructs-new-build behavior untouched.
+
+Validation: a new regression test fails on the unchanged base and passes with this patch; reproduced in an independent clean checkout.
+
+Full-suite results (including pre-existing failures, if any):
+
+```json
+{
+  \"base\": {
+    \"exit\": 1,
+    \"tests\": 393,
+    \"failures\": 5,
+    \"errors\": 0,
+    \"skipped\": 0,
+    \"failed_cases\": [
+      \"tests.test_bump_build_digitless.test_bump_build_digitless_metadata_should_append_0\",
+      \"tests.test_bump_build_digitless.test_bump_build_digitless_metadata_should_return_new_version\",
+      \"tests.test_bump_build_digitless.test_bump_build_digitless_multi_identifier_should_append_0\",
+      \"tests.test_bump_build_digitless.test_bump_build_token_ignored_for_existing_digitless_build\",
+      \"tests.test_bump_build_digitless.test_bump_build_digitless_bump_is_repeatable\"
+    ]
+  },
+  \"patch\": {
+    \"exit\": 0,
+    \"tests\": 393,
+    \"failures\": 0,
+    \"errors\": 0,
+    \"skipped\": 0,
+    \"failed_cases\": []
+  }
+}
+```
+
+AI assistance: implementation and review used Hermes with self-hosted GLM 5.3. Automated test evidence was checked separately. This does not represent a human review.
+
+Additional checks were reproduced on fresh base and patched checkouts:
+
+| Check | Base | Patch |
+| --- | --- | --- |
+| documented_bump_contract | exit 0 | exit 0 |
+| mypy | 1 diagnostics | 1 diagnostics |
+| ruff | 159 diagnostics | 159 diagnostics |
+| docformatter | 24 diagnostics | 24 diagnostics |
+
+These diagnostic counts and samples are also present on the unchanged base; comparison of the complete diagnostic sets found no additions.
+
+<details>
+<summary>Pre-existing checker diagnostics (up to five per tool)</summary>
+
+```json
+{
+  \"mypy\": {
+    \"total\": 1,
+    \"sample\": [
+      {
+        \"file\": \"src/semver/version.py\",
+        \"code\": \"import-untyped\",
+        \"message\": \"Skipping analyzing \\\"fast_semver_rs_backend\\\": module is installed, but missing library stubs or py.typed marker\"
+      }
+    ]
+  },
+  \"ruff\": {
+    \"total\": 159,
+    \"sample\": [
+      {
+        \"file\": \"docs/advanced/coerce.py\",
+        \"code\": \"I001\",
+        \"message\": \"Import block is un-sorted or un-formatted\"
+      },
+      {
+        \"file\": \"docs/advanced/coerce.py\",
+        \"code\": \"UP035\",
+        \"message\": \"`typing.Tuple` is deprecated, use `tuple` instead\"
+      },
+      {
+        \"file\": \"docs/advanced/coerce.py\",
+        \"code\": \"UP006\",
+        \"message\": \"Use `tuple` instead of `Tuple` for type annotation\"
+      },
+      {
+        \"file\": \"docs/advanced/coerce.py\",
+        \"code\": \"UP045\",
+        \"message\": \"Use `X | None` for type annotations\"
+      },
+      {
+        \"file\": \"docs/advanced/coerce.py\",
+        \"code\": \"RUF100\",
+        \"message\": \"Unused `noqa` directive (non-enabled: `E203`)\"
+      }
+    ]
+  },
+  \"docformatter\": {
+    \"total\": 24,
+    \"sample\": [
+      {
+        \"file\": \"before/src/semver/_deprecated.py\",
+        \"code\": \"docformat\",
+        \"message\": \"-    :param replace: the function to replace (use the full qualified\"
+      },
+      {
+        \"file\": \"before/src/semver/_deprecated.py\",
+        \"code\": \"docformat\",
+        \"message\": \"-        name like ``semver.version.Version.bump_major``.\"
+      },
+      {
+        \"file\": \"before/src/semver/_deprecated.py\",
+        \"code\": \"docformat\",
+        \"message\": \"+    :param replace: the function to replace (use the full qualified name like\"
+      },
+      {
+        \"file\": \"before/src/semver/_deprecated.py\",
+        \"code\": \"docformat\",
+        \"message\": \"+        ``semver.version.Version.bump_major``.\"
+      },
+      {
+        \"file\": \"before/src/semver/_deprecated.py\",
+        \"code\": \"docformat\",
+        \"message\": \"-    :param category: allow you to specify the deprecation warning class\"
+      }
+    ]
+  }
+}
+```
+</details>
+
+Changelog: the reviewed bugfix entry is attached using this PR number after draft creation, following `changelog.d/README.rst`. The PR is marked ready only after the fragment passes Towncrier.
+
+"""
+
+[b]
+title = "Handle malformed collection operands in Version comparisons"
+pr = "https://github.com/python-semver/python-semver/pull/479"
+from = "1b7350c1a7cacea983ab10b345990fee78761d44"
+to = "0aa17a3447958cfe13634b0c3917e7aa4eee3334"
+body = """
+Comparing a `Version` with a malformed list, tuple, or dictionary leaks errors from the internal constructor. For example, `Version(1, 0, 0) == []` raises `TypeError` even though equality with unsupported operands should evaluate to `False`.
+
+Convert collection operands in the comparison decorator and return `NotImplemented` when construction raises `TypeError` or `ValueError`. Equality then returns `False`, and ordering raises Python's standard unsupported-comparison `TypeError`. Valid collections and subclass behavior are preserved; `Version.compare()` and string parsing are unchanged.
+
+The patch adds 19 regression cases, updates the documentation's comparison example, and includes `changelog.d/pr479.bugfix.rst` using the actual PR number as documented by `changelog.d/README.rst`.
+
+Validation against base `1e8757912f633684e1a65d9d7c7e2270c3c79928`, reproduced independently in clean checkouts:
+
+| Check | Base with new regressions | Patch |
+| --- | --- | --- |
+| New regression module | 18 failed, 1 passed | 19 passed |
+| Canonical `python -m pytest -q`, including documentation | 18 failed, 387 passed | 405 passed |
+| Mypy 2.1.0 | 1 existing diagnostic | Same diagnostic |
+| Ruff 0.16.0, complete repository | 159 existing diagnostics | Same set; new test file clean |
+| docformatter | Existing formatting differences | Identical differences |
+
+The changelog was added in a separate commit after draft creation. Towncrier validation passed; that commit changes only the reviewed newsfragment, leaving the tested code and documentation unchanged.
+
+AI assistance: implementation and independent code review used Hermes with self-hosted GLM 5.3. Automated validation was reproduced separately. This does not represent a human review.
+
+"""

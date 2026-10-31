@@ -1,0 +1,29 @@
+base = { repo = "python-semver", commit = "6adf8765f6e21910f1f0c13151ce84f32f8d431d" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Fix #463: Remove duplicate code Version.bump_build"
+pr = "https://github.com/python-semver/python-semver/pull/464"
+from = "6adf8765f6e21910f1f0c13151ce84f32f8d431d"
+to = "d959aa7d669bbabd9ccce89f2119639bdc8a05dd"
+body = """
+
+"""
+
+[b]
+title = "Fix #460 Improve bump_prerelease to alway get a newer version"
+pr = "https://github.com/python-semver/python-semver/pull/462"
+from = "d959aa7d669bbabd9ccce89f2119639bdc8a05dd"
+to = "d8813b67a2ec5d579365f51a6d8f96d02f3fcbc3"
+body = """
+This PR fixes #460 and contains the following changes:
+* Bumping an existing prerelease always results in a newer prerelease
+* Bumping an empty prerelease can optionally bump the patch version to ensure a newer version
+
+I ran the test suites successfully, except for 'checks', which also failed before I made any change. I ensured I did not introduce any new errors in this suite. I also added quite a bunch of tests to validate the new functionality, and adjusted a few that changed due to changing existing functionality.
+
+Open to any suggestions for improvement, as my Python experience is a bit limited :-)
+"""

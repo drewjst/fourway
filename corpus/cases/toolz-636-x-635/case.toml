@@ -1,0 +1,39 @@
+base = { repo = "toolz", commit = "a1e25cbd2c398b534f0736f5838e416202b0cb28" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Support Python 3.15 and refresh dev tooling"
+pr = "https://github.com/pytoolz/toolz/pull/636"
+from = "a1e25cbd2c398b534f0736f5838e416202b0cb28"
+to = "55ce42dc3b6f786ed9d4e38633cc5cfe3622a526"
+body = """
+No library changes were needed for 3.15; the full suite, doctests and a wheel/sdist build all pass on 3.15.0rc2. Just declare support and update the tooling around it.
+
+- Declare 3.15: classifier, tox envlist, and CI matrix (3.15 and 3.15t, with allow-prereleases since 3.15 is still at rc)
+- Bump GitHub Actions and pre-commit hooks to current releases, and hash-pin the remaining floating action refs, which zizmor 1.30 requires
+- Add a PEP 735 `test` dependency group, used by both CI and tox
+- Fix codespell's file filter: it pointed at `docs/`, so `doc/` was never checked
+- Drop a stale duplicate `PYPY` definition in functoolz that the later definition already shadowed
+- readthedocs: ubuntu-24.04 and Python 3.14; re-enable fail_on_warning now that the `_static` warning is gone
+- dependabot: 7-day cooldown and grouped updates
+- Build wheels on 3.14 instead of 3.9, and fix the workflow name typo
+"""
+
+[b]
+title = "Fix interpose([]) raising StopIteration"
+pr = "https://github.com/pytoolz/toolz/pull/635"
+from = "55ce42dc3b6f786ed9d4e38633cc5cfe3622a526"
+to = "d2eba0374a452c2b18fe188b04527e22bda3548c"
+body = """
+## Summary
+- `interpose(el, [])` called `next()` on an empty concat/zip pipeline and raised `StopIteration`.
+- Catch that case and return an empty iterator; nonempty behavior unchanged.
+- Adds a regression test.
+
+## Test plan
+- [x] `pytest toolz/tests/test_itertoolz.py -k interpose`
+- [x] Manual: `list(interpose('a', [])) == []` and `list(interpose('a', [1,2,3])) == [1,'a',2,'a',3]`
+"""

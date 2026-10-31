@@ -1,0 +1,25 @@
+base = { repo = "tenacity", commit = "b49eb370573626abd5ddb5dc03228c503079be59" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Add `retry_if_exception_cause_type` and `wait_exponential_jitter` to __all__"
+pr = "https://github.com/jd/tenacity/pull/393"
+from = "b49eb370573626abd5ddb5dc03228c503079be59"
+to = "3cf1c9064af203999c94822adaf1b7eafb7b0bda"
+body = """
+Add omitted modules to import all.
+
+* related: https://github.com/jd/tenacity/pull/362
+"""
+
+[b]
+title = "better wait.WaitBaseT annotation"
+pr = "https://github.com/jd/tenacity/pull/392"
+from = "3cf1c9064af203999c94822adaf1b7eafb7b0bda"
+to = "548c5d490187af6f339cbffdd0add38aecc3ecb0"
+body = """
+fixes https://github.com/jd/tenacity/issues/391
+"""

@@ -1,0 +1,28 @@
+base = { repo = "tenacity", commit = "c18dcfbf4b6a719f668f12fdb4999afaeef62648" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Add type annotations to cover all code."
+pr = "https://github.com/jd/tenacity/pull/315"
+from = "c18dcfbf4b6a719f668f12fdb4999afaeef62648"
+to = "58fbe614433212e27484f70ed7984f33b1bdb707"
+body = """
+`tenacity` is marked as \"typed\" package,
+which means all public APIs should be annotated
+"""
+
+[b]
+title = "Add a __repr__ method to RetryCallState objects"
+pr = "https://github.com/jd/tenacity/pull/302"
+from = "58fbe614433212e27484f70ed7984f33b1bdb707"
+to = "20d9228351d17dd38f8e2af091c99af98b5fcd88"
+body = """
+Many folks use tools which dump locals when an exception occurs. For example, I use Sentry quite frequently to dig around in the stack below an exception to see what happened and what went wrong. Many of those stack-debugging tools stringify (via `__repr__`ing each local) and send the results to some sort of debugging console/webpage.
+
+When I encounter a Tenacity-retried function in my call stack, I can poke around inside Tenacity's locals a bit to see what went wrong, but I can't tell much about what caused Tenacity to give up, since all I can see of the retry call state object is e.g. `<tenacity.RetryCallState object at 0x7f99fe9119a0>`. That's not terribly useful.
+
+This PR adds a `__repr__` method to RetryCallState so that stringifications of those objects now contain some information useful for human debuggers--how many times something has been retried, how long Tenacity has slept for, and what the result of the last attempt (if any) was.
+"""

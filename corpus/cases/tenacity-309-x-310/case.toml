@@ -1,0 +1,23 @@
+base = { repo = "tenacity", commit = "4a5ac0026a447ad3f334ff0be54460c0ca5bbd9e", tests = "tenacity/tests" }
+label = "clean"
+class = "mined, same file"
+runtime = ["b"]
+assisted = []
+
+[a]
+title = "Remove encoding declarations"
+pr = "https://github.com/jd/tenacity/pull/309"
+from = "4a5ac0026a447ad3f334ff0be54460c0ca5bbd9e"
+to = "9d93bdef40d289ea45f4b693307c2c0385f1e90f"
+body = """
+They are useless for Python 3 code. Everything is UTF-8 by default.
+"""
+
+[b]
+title = "Replace abc.ABCMeta with abc.ABC"
+pr = "https://github.com/jd/tenacity/pull/310"
+from = "9d93bdef40d289ea45f4b693307c2c0385f1e90f"
+to = "b4d8d6bdc3d574ba558f016432c1ae676460ffd5"
+body = """
+`abc.ABC` is available in Python 3.4+ and is a simpler alternative to `abc.ABCMeta`. As `tenacity` no longer supports Python 2.7, we could use it.
+"""

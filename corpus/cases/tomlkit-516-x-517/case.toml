@@ -1,0 +1,74 @@
+base = { repo = "tomlkit", commit = "281ca004386b83bc12d88d79c15b99c714477dc6" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "reject a table redefined after its parent table header"
+pr = "https://github.com/python-poetry/tomlkit/pull/516"
+from = "281ca004386b83bc12d88d79c15b99c714477dc6"
+to = "7c978a512b9b99ac02a5abd689c10418448148b6"
+body = """
+## Summary
+
+1. `Container.append` sends a concrete `[table]` header that lands inside an existing implicit/super table through `_validate_table_candidate`, which only flagged a child key on a type change or a dotted-key redefinition.
+2. A child table header that was already defined fell through to a plain merge, so a subtable redefined after its parent received its own header (`[a.b]` / `[a]` / `[a.b]`, and the deeper `[a.b.c]` / `[a]` / `[a.b.c]`) was merged silently instead of rejected, while `tomllib` and the toml-test suite treat these as declaring the same table twice.
+3. `_validate_table_candidate` now raises when the existing child and the candidate child are both concrete (non-super) tables, and recurses through matching super tables so a duplicate nested deeper is caught as well. Valid out-of-order tables (a new sibling subtable, or extending a table with a deeper header) keep parsing, and the existing tests plus the toml-test 1.0/1.1 suites pass.
+
+## Agent Drafting Metadata
+
+<!-- Fill this section if an AI agent helped draft this PR. -->
+- Agent:
+- Model:
+- Notes:
+
+"""
+
+[b]
+title = "Don't build a discarded error when an array closes right after a value"
+pr = "https://github.com/python-poetry/tomlkit/pull/517"
+from = "7c978a512b9b99ac02a5abd689c10418448148b6"
+to = "989c1a79787d63806de37934a6c2b041e1f550d8"
+body = """
+## What
+
+When `_parse_array` is at a value-less position immediately followed by `]` — an empty array `[]`, or the position just after a trailing comma `[1, ]` — it calls `_parse_value()` only for it to raise `UnexpectedCharError` on the `]`, which the loop catches and discards:
+
+```python
+if not prev_value:
+    try:
+        elems.append(self._parse_value())
+        prev_value = True
+        continue
+    except UnexpectedCharError:
+        pass
+```
+
+Building that exception is not free. `parse_error` eagerly computes a line/column, and since `Source` is a `str` subclass, `_to_linecol` ends up splitting the **whole document**. So every array that closes right after a value pays an **O(document size)** scan just to build an error that is thrown away. On lock files — where almost every package has a `files = [ {…}, {…}, ]` block — this dominates.
+
+## Fix
+
+Guard the value attempt so it is skipped when the cursor is on the closing bracket:
+
+```python
+if not prev_value and self._current != \"]\":
+```
+
+The `]` then falls straight through to the existing close-bracket branch. `_parse_value()` never consumes input before raising on `]` (it `mark()`s the position and reads the current char), so skipping it is a pure no-op behaviourally — only the wasted exception is removed. `,` is intentionally **not** added to the guard, so a leading/double comma keeps raising exactly as before.
+
+## Benchmark
+
+Parsing a lock-style document (many `[[package]]` blocks each with a `files = [...]` array), median, interleaved A/B vs `master`:
+
+| document | speedup |
+|---|---|
+| ~6 KB | ~1.20× |
+| ~27 KB | ~1.59× |
+
+The win is **asymptotic** in document size (an O(size)-per-array scan is removed), so larger lock files benefit more. It is naturally ~neutral on documents without value-less array closes (e.g. `pyproject.toml`).
+
+## Tests
+
+Full suite incl. the toml-test conformance submodule passes. No public API or behaviour change: arrays round-trip byte-identically and malformed arrays raise the same exception class at the same line/column — verified by a differential over ~13k generated arrays (nested, arrays-of-tables, leading/trailing/double commas, comments, inline-table elements, EOF truncation). Added focused regression tests for both the round-trip and the error cases.
+"""

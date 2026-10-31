@@ -1,0 +1,71 @@
+base = { repo = "tomlkit", commit = "ae1b6790d99b21bc0a339a5825e7d5e40e7e6f6a" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Return a single key from key() for a single-element list (fixes #430)"
+pr = "https://github.com/python-poetry/tomlkit/pull/520"
+from = "ae1b6790d99b21bc0a339a5825e7d5e40e7e6f6a"
+to = "483f240ea7d45bd9c82fbd16d8e63270a69770c3"
+body = """
+Fixes #430.
+
+## Problem
+`key([\"my_key\"])` builds a single-element `DottedKey`, which behaves differently from `key(\"my_key\")` (a `SingleKey`). For example:
+
+    import tomlkit
+    doc = tomlkit.document()
+    doc.append(tomlkit.key([\"my_key\"]), \"value\")
+    \"my_key\" in doc        # -> False  (key(\"my_key\") gives True)
+
+## Fix
+In `key()`, when the iterable yields exactly one key, return that `SingleKey` instead of wrapping it in a `DottedKey`. Multi-element lists are unchanged (still dotted keys).
+
+## Tests
+Added a regression test. The existing suite passes (333 passed, excluding the `toml-test` git submodule which is not initialised in my checkout), and `ruff check` / `ruff format` are clean.
+"""
+
+[b]
+title = "Speed up unwrap() by resolving keys from the key map instead of items()"
+pr = "https://github.com/python-poetry/tomlkit/pull/521"
+from = "80b743ce7935ccf17c254b9f63ba9b2d92641e92"
+to = "9ac3f98214dbfbca0157b6c370c7986f497c34e4"
+body = """
+## What
+
+`Container.unwrap()` and `Table.unwrap()` (TOML → plain `dict`) iterated `self.items()` — the inherited `MutableMapping` view. That routes every key through `__getitem__` → `item()`, which **rebuilds a `SingleKey` from the bare string** for each key (running the key-type detection genexpr + recomputing `_original`) only to look the value back up. The structured `Key` objects already sit in the container's `_map` next to their body index.
+
+Resolve straight from `_map` instead:
+
+```python
+for key, idx in self._map.items():
+    if isinstance(idx, tuple):
+        value = OutOfOrderTableProxy(self, idx)   # unchanged path
+    else:
+        value = self._body[idx][1]
+    unwrapped[key.key] = value.unwrap() if hasattr(value, \"unwrap\") else value
+```
+
+`_map` iterates in the same insertion order as `items()`, so key order is preserved. **Out-of-order keys (a tuple index) still go through `OutOfOrderTableProxy`**, so their validation and fragment merge are unchanged — in particular a conflicting out-of-order fragment (a value later redefined as a table) still raises `KeyAlreadyPresent` from `unwrap()`, exactly as before. `Table.unwrap()` now delegates to the inner container's `unwrap()`.
+
+This is the conversion-path analogue of the native `__contains__` work in #483: stop rebuilding keys that already exist.
+
+## Benchmark
+
+`unwrap()` on a parsed document, median, interleaved A/B vs `master`:
+
+| document | speedup |
+|---|---|
+| large flat keys | ~12.7× |
+| `poetry.lock`-like | ~9.5× |
+| nested tables | ~8.6× |
+| `pyproject.toml`-like | ~3.1× |
+
+Parsing is untouched.
+
+## Tests
+
+Full suite incl. the toml-test conformance submodule passes. No behaviour change — the output dict (keys, values **and** order) plus exception parity are verified by a differential over ~9k generated documents (out-of-order / conflicting / nested / arrays-of-tables / dotted / inline, with `del` + `__setitem__` mutations). Added regression tests for out-of-order `unwrap()` and for the conflicting-fragment case that must still raise.
+"""

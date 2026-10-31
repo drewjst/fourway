@@ -1,0 +1,26 @@
+base = { repo = "python-dotenv", commit = "da0c82054f1ec1e03d57356d49b0b9ad09eb4209" }
+label = "clean"
+class = "mined, same file"
+runtime = []
+assisted = []
+
+[a]
+title = "docs: Add missing `interpolate` parameter to the docstrings of functions `load_dotenv` and `dotenv_values`"
+pr = "https://github.com/theskumar/python-dotenv/pull/614"
+from = "da0c82054f1ec1e03d57356d49b0b9ad09eb4209"
+to = "fa4e6a90b45428212452afc6ee0d5c8103b9301d"
+body = """
+I noticed these were missing.
+
+Thanks for maintaining this library!
+"""
+
+[b]
+title = "Fix minor docstring typos and capitalization"
+pr = "https://github.com/theskumar/python-dotenv/pull/621"
+from = "fa4e6a90b45428212452afc6ee0d5c8103b9301d"
+to = "68ea2d10dd8e97e6dea67c32742085f27729e3fe"
+body = """
+No functional changes, only fixed a typo in a comment
+Fixes #589
+"""

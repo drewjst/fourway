@@ -1,0 +1,58 @@
+base = { repo = "tomlkit", commit = "8c30fc17d91aee7469c0287e509300e78aa15227" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "fix: report the right line and column for CRLF and mixed line endings"
+pr = "https://github.com/python-poetry/tomlkit/pull/642"
+from = "8c30fc17d91aee7469c0287e509300e78aa15227"
+to = "c07c0c15c49a893bb8a4c9f63401822d31e08942"
+body = """
+## Summary
+
+The line and column reported in a parse error depend on the document's line endings. `Source._to_linecol` splits the source with `splitlines()`, which drops the terminators, and then assumes every break costs exactly one character:
+
+```python
+cur += len(line) + 1
+```
+
+A `\\r\\n` break costs two, so the running offset falls one character behind for every line before the error, and the error lands on the wrong line and the wrong column. `exceptions.py` documents that a `ParseError` \"references the line and location within the line where the error was encountered\", and `toml_file.py:36-44` only normalises `\\r\\n` when the whole document uses it consistently — so a file with mixed endings read from disk reaches this path today.
+
+The fix lets each split line carry its own terminator (`splitlines(keepends=True)`) and uses that length, so the offset matches the characters actually consumed. Documents that use only `\\n` come out identical; CRLF and mixed documents now report the position the LF form already did.
+
+Test: `pytest tests/test_parser.py -k position` fails on main (`858186a`) — the CRLF case reports `UnexpectedCharError(\"Unexpected character: '@' at line 4 col 0\")` where the character is on line 3, column 4 — and passes on this branch. The full suite (`pytest --ignore=tests/test_toml_tests.py -q`) is 420 passed, and `ruff check` / `ruff format --check` at the version pinned in `.pre-commit-config.yaml` (0.16.10) are clean. I also walked every character index of every file under `tests/examples` and compared the reported position before and after: 6913 positions disagreed for CRLF copies of those documents and 0 disagree after the change, while LF-only documents show 0 differences either way.
+
+Not run: `tests/test_toml_tests.py`, because the `tests/toml-test` submodule is empty in this checkout. I read it — it asserts `TOMLKitError` is raised for invalid documents and compares parsed JSON for valid ones, and does not look at line/column — but that is a reading, not a run.
+
+## Agent Drafting Metadata
+
+- Agent: Qoder (AI coding assistant), autonomous contribution
+- Model: not disclosed by the agent host
+- Notes: diagnosis and patch drafted with the assistant; every number above comes from commands run on this checkout. AI-assisted development. Human review requested before merge.
+
+"""
+
+[b]
+title = "Keep fold when unwrapping a datetime or time"
+pr = "https://github.com/python-poetry/tomlkit/pull/626"
+from = "c07c0c15c49a893bb8a4c9f63401822d31e08942"
+to = "89cdcc7845da111e5d6b7eb0c1823684a274711a"
+body = """
+## Summary
+
+`DateTime.unwrap()` and `Time.unwrap()` rebuilt the stdlib value without `fold`. A folded 01:30 then converted an hour early (`timestamp()` was 3600 seconds off). `==` still passed, because datetime equality ignores `fold`.
+
+## Test plan
+
+- [x] `pytest tests/test_items.py::test_unwrap_keeps_fold` fails on master (`fold` is 0) and passes with this change
+- [x] `pytest tests/test_items.py` (101 passed)
+
+## Agent Drafting Metadata
+
+- Agent: Cursor
+- Model: Grok 4.7
+- Notes:
+
+"""

@@ -1,0 +1,98 @@
+base = { repo = "tomlkit", commit = "5b2b1ffbc1a62df387d7114b733a606933bea17a" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Add a native OutOfOrderTableProxy.__contains__"
+pr = "https://github.com/python-poetry/tomlkit/pull/515"
+from = "5b2b1ffbc1a62df387d7114b733a606933bea17a"
+to = "82bb211e031dc50ebf4e25465ee6144b23acd9bf"
+body = """
+## What
+
+`OutOfOrderTableProxy` was the last mapping type still inheriting the `MutableMapping.__contains__` mixin. That mixin implements `key in proxy` as `try: proxy[key]` — routing through `__getitem__`, which resolves the value (and builds a `NonExistentKey` on every absent key) only to throw it away.
+
+Add a native `__contains__`:
+
+```python
+def __contains__(self, key: object) -> bool:
+    return key in self._internal_container
+```
+
+This is exactly the predicate `__getitem__` already uses as its guard (`if key not in self._internal_container: raise NonExistentKey`), and it is itself a native `Container.__contains__` — which still rebuilds the proxy for an out-of-order key so its validation runs exactly as before.
+
+This completes #483, which added native `__contains__` to `Container`, `Table` and `InlineTable`.
+
+## Iso-functional
+
+Both the old (mixin) and new path bottom out on the same `Container.__contains__`, so the membership result, the raised exception type and document (non-)mutation are identical. Verified by:
+- the full test suite incl. the toml-test conformance submodule;
+- a new focused test exercising a real `OutOfOrderTableProxy` (present / absent / `Key`-object / non-str→`TypeError` / no document mutation);
+- a differential over many out-of-order / nested-proxy / dotted-key / AoT documents and post-mutation states — membership result, exception type and `as_string()` all byte-identical to `master`.
+
+## Benchmark
+
+Membership on an out-of-order proxy (median, interleaved A/B vs `master`):
+
+| | speedup |
+|---|---|
+| present key | ~2.1× |
+| absent key | ~1.3× |
+
+The parse path is untouched (no measurable change there).
+"""
+
+[b]
+title = "Place inline-table separator after the value, not a trailing comment (fix #512)"
+pr = "https://github.com/python-poetry/tomlkit/pull/514"
+from = "82bb211e031dc50ebf4e25465ee6144b23acd9bf"
+to = "281ca004386b83bc12d88d79c15b99c714477dc6"
+body = """
+Fixes #512.
+
+## Problem
+
+Appending a key to a multiline inline table whose last value is followed by a comment puts the separator comma **inside the comment**, producing output that no longer round-trips:
+
+```python
+doc = tomlkit.loads(\"tbl = {\\n    p = { k = 1 },\\n    q = { k = 2 }  # comment\\n}\\n\")
+doc[\"tbl\"][\"added\"] = 3
+print(tomlkit.dumps(doc))
+```
+```toml
+tbl = {
+    p = { k = 1 },
+    q = { k = 2 }  # comment,
+added = 3}
+```
+
+The `,` is now part of the `# comment` line, so `added` has no separator and re-parsing the result raises a `ParseError`.
+
+## Cause
+
+In `InlineTable.as_string`, the separator for a newly-appended key is inserted lazily when the next key is reached:
+
+```python
+stripped = buf.rstrip()
+buf = f\"{stripped},{buf[len(stripped):]}\"
+```
+
+`buf.rstrip()` strips trailing whitespace, but when the previous value is followed by a comment it lands *after the comment text* rather than after the value, so the comma is swallowed by the comment.
+
+## Fix
+
+Track the buffer position right after each rendered value (`last_value_end`) and splice the deferred separator there. When there is no trailing comment this is exactly where `buf.rstrip()` pointed, so existing behaviour is unchanged; it only differs in the comment case. Output now round-trips:
+
+```toml
+tbl = {
+    p = { k = 1 },
+    q = { k = 2 },  # comment
+added = 3}
+```
+
+## Tests
+
+Added `test_appending_to_inline_table_with_trailing_comment_keeps_comma_outside_comment` (asserts the comma is outside the comment and that the result round-trips). It fails on `master` and passes with the fix; the full suite (993 tests) stays green.
+"""

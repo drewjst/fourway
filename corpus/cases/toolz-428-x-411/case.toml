@@ -1,0 +1,43 @@
+base = { repo = "toolz", commit = "cde596b8d587f8f7cf9360728f686782e82d7508" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Faster join"
+pr = "https://github.com/pytoolz/toolz/pull/428"
+from = "cde596b8d587f8f7cf9360728f686782e82d7508"
+to = "2ac03ce80c60085de6a6d6e16bb5b9dbfed943dc"
+body = """
+Make join much faster by avoiding the exception handling.
+
+```
+# Python 2.7 with len(leftseq) = 1000 and len(rightseq) = 10000
+# 30% of the keys in the left side appear in the right side.
+# first run is old join, second run is new join
+Inner Join
+100 loops, best of 3: 12.6 ms per loop
+100 loops, best of 3: 5.44 ms per loop
+Left Join
+100 loops, best of 3: 17 ms per loop
+100 loops, best of 3: 6.68 ms per loop
+Right Join
+100 loops, best of 3: 12.8 ms per loop
+100 loops, best of 3: 5.74 ms per loop
+Full Join
+100 loops, best of 3: 17.5 ms per loop
+100 loops, best of 3: 6.94 ms per loop
+```
+
+Also use iteritems(d) instead of d.items() to avoid creating a copy of left items on Python 2.
+"""
+
+[b]
+title = "Add `apply`"
+pr = "https://github.com/pytoolz/toolz/pull/411"
+from = "2ac03ce80c60085de6a6d6e16bb5b9dbfed943dc"
+to = "639043e5ead3c78ade96890336ffe33f9a8d6bb6"
+body = """
+
+"""

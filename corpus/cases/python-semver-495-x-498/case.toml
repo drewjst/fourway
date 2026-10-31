@@ -1,0 +1,39 @@
+base = { repo = "python-semver", commit = "84561d55265c2cba6f5df0d341d6e967ce20e082" }
+label = "clean"
+class = "mined, same file"
+runtime = ["b"]
+assisted = []
+
+[a]
+title = "Annotate supported bytes inputs to Version.is_valid"
+pr = "https://github.com/python-semver/python-semver/pull/495"
+from = "84561d55265c2cba6f5df0d341d6e967ce20e082"
+to = "94debf9d3e714ccb08ca7c0199b5bce96cfd7687"
+body = """
+`Version.is_valid()` already accepts UTF-8 encoded `bytes` through `Version.parse()`, but its `str` annotation makes type checkers reject those valid calls. Use the existing `String` alias and clarify the parameter documentation.
+
+Validation: the same bytes examples run on the original implementation; mypy rejects two calls before and accepts them afterward, and Pyright passes. The existing suite passes 488 tests, with one optional-native-backend skip and 100% statement/branch coverage. The repository's 160 Ruff diagnostics and one source-mypy error for the absent optional backend are identical on clean upstream and this patch.
+
+Prepared and verified with Codex (GPT-6.1-sol) assistance.
+
+"""
+
+[b]
+title = "Preserve version order when switching prerelease tokens"
+pr = "https://github.com/python-semver/python-semver/pull/498"
+from = "94debf9d3e714ccb08ca7c0199b5bce96cfd7687"
+to = "bcd151fa63df3053b9f30e698e9ae1020187be1a"
+body = """
+`Version.parse(\"1.2.3-rc.1\").next_version(\"prerelease\", \"alpha\")` currently returns `1.2.3-alpha.1`, which is older than the original version despite the method's ordering guarantee.
+
+When resetting the token would move backward, advance the patch version and start the requested prerelease there. This example becomes `1.2.4-alpha.1`. Forward changes such as `alpha` to `rc` retain the patch version, and same-token increments keep their existing behavior. Build metadata is cleared and the original object is unchanged.
+
+Fixes #497. This implements the patch-advance option from that issue so valid token changes continue returning a newer version instead of introducing a new exception.
+
+Validation: five regression cases failed before the fix. The full suite now passes 494 tests with one skip and reports 100% coverage. Cases cover legacy counters, numeric tokens, dotted tokens, forward changes and build metadata. One older expectation was updated because it also allowed a backward token change. Documentation and a changelog fragment describe the behavior.
+
+Full Ruff reports 159 existing findings versus 160 on unchanged upstream, with no new findings by file, rule and message. Mypy reports the same missing optional `fast_semver_rs_backend` module on both trees. `git diff --check` passes. Tested on Python 3.12.
+
+AI-assisted implementation and tests.
+
+"""

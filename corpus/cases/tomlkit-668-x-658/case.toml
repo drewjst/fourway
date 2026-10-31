@@ -1,0 +1,31 @@
+base = { repo = "tomlkit", commit = "18e7f98252f18db5c973435453cd25e1c7bd4c61" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = ["a"]
+
+[a]
+title = "chore: release 0.15.2"
+pr = "https://github.com/python-poetry/tomlkit/pull/668"
+from = "18e7f98252f18db5c973435453cd25e1c7bd4c61"
+to = "a0b15ebb09167ede584fc36ad5362fc3039b0530"
+body = """
+## Summary
+
+Release tomlkit 0.15.2 with fixes and improvements to TOML parsing, serialization, and item behavior. Update the changelog and package version, and add `uv.lock` for reproducible dependency resolution.
+
+## Agent Drafting Metadata
+
+- Agent: OpenAI Codex
+- Model: GPT-6
+- Notes: Drafted from the release commit and diff.
+"""
+
+[b]
+title = "Fix regression in String.from_raw and improve documentation"
+pr = "https://github.com/python-poetry/tomlkit/pull/658"
+from = "eddd27e43a62fe58707c311bfad2f52e72493f53"
+to = "10fbd373f4ce2916ba08d7a2c4421a77f68a2ca2"
+body = """
+This PR streamlines the control flow of `String.from_raw`, fixing #655, and improves the documentation of `string(..., escape=False)`.
+"""

@@ -1,0 +1,93 @@
+base = { repo = "tomlkit", commit = "096148f8947adbfbae7b36bce356a3da7fc1dbf1" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = ["a"]
+
+[a]
+title = "fix: don't reject an out-of-order super-table extended by a dotted key"
+pr = "https://github.com/python-poetry/tomlkit/pull/565"
+from = "096148f8947adbfbae7b36bce356a3da7fc1dbf1"
+to = "229ee8660872df482a56c93c83b14ac98fedf864"
+body = """
+## Summary
+
+tomlkit rejects valid TOML on the `parse()` path when an out-of-order table reopens an implicit **super-table** with a dotted key.
+
+`[a.b.c]` makes `a.b` an implicit super-table. Reopening `[a]` and extending `a.b` with a dotted key (`b.z = 1`) only adds a key to that super-table — it is not a redefinition — but `Container._validate_table_candidate` raises `Redefinition of an existing table`:
+
+```python
+import tomlkit, tomllib
+doc = \"[a.b.c]\\n[a]\\nb.z = 1\\n\"
+tomllib.loads(doc)   # -> {'a': {'b': {'c': {}, 'z': 1}}}   (accepted)
+tomlkit.parse(doc)   # -> ParseError: Redefinition of an existing table at line 3 col 0
+```
+
+stdlib `tomllib` — the validity oracle the existing tests already cite (`test_reject_out_of_order_dotted_*` reference it) — accepts it.
+
+**Cause:** the `if k.is_dotted(): raise` guard in `_validate_table_candidate` fires *before* the super-table recursion right below it, so a dotted key whose existing side is a super-table never gets to the recursion that would check the subtree for a real conflict. The dotted rejection is only correct when the existing side is a **concrete** table.
+
+**Fix:** only take the dotted-key rejection when the existing entry is not a super-table; otherwise fall through to the existing recursion (which raises only on an actual redefinition). Two lines.
+
+The concrete-table case (`[a.b]` then `[a]` `b.z = 1`) stays rejected, matching `tomllib` and the redefinition rejections added in #516 / #530 — all 27 out-of-order / redefinition tests still pass, and the full suite passes (372, including the new regression test). The target case now parses, round-trips byte-for-byte, and `unwrap()` matches `tomllib`.
+
+Regression test added next to the sibling out-of-order tests in `tests/test_toml_document.py`; it is red before the fix (ParseError) and green after.
+
+> Note: I also noticed a *separate* pre-existing defect where `parse()` succeeds but `.unwrap()` raises `KeyAlreadyPresent` on some valid AoT-based out-of-order docs (e.g. `[[y.a]]\\n[b.d.x]\\n[[y.a.c]]`). That's a different code path (AoT merge) and is **not** touched here — flagging only in case it's of interest.
+
+## Agent Drafting Metadata
+
+- Agent: Claude Code
+- Model: Claude Opus 4.8
+- Notes: An AI-assisted review pass surfaced the over-rejection; the repro against `tomllib`, the fix, the regression test, and the full-suite run were verified before opening. I read the `_validate_table_candidate` logic and confirmed the fix preserves every intended rejection (#516/#530) myself.
+
+"""
+
+[b]
+title = "Render an emptied array of tables as an empty array"
+pr = "https://github.com/python-poetry/tomlkit/pull/567"
+from = "229ee8660872df482a56c93c83b14ac98fedf864"
+to = "6b5f079099d4bd77b442f4fae96a10790ba3d55c"
+body = """
+## Summary
+
+Addresses the array-of-tables half of #553.
+
+When every element is removed from an array of tables, there is no `[[key]]` header left to render, and `_render_aot` looped over an empty body and emitted nothing — so the key vanished from the output entirely:
+
+```python
+doc = tomlkit.loads(\"[[a]]\\nx = 1\\n\")
+doc[\"a\"].pop()
+tomlkit.dumps(doc)   # '' — the 'a' key is gone
+```
+
+This renders the inline `a = []` form instead, which is what tomlkit already produces for an empty array built through the API (`doc[\"a\"] = []`).
+
+## The ordering part
+
+Rendering `a = []` in body order is not enough. TOML only reads bare key/value pairs before the first table header, so an emptied array of tables sitting after one would be read back as a key *of that table*:
+
+```toml
+[t]
+q = 2
+
+a = []      # parses as t.a, not a
+```
+
+So empty arrays of tables are hoisted to just before the first table header. Non-empty ones are untouched and still render in place, byte for byte.
+
+## Scope: the other half of the issue
+
+The issue also covers `doc[\"x\"][\"y\"].pop(\"z\")` leaving an empty super table that renders as nothing. I have **not** fixed that here, because the current behaviour is pinned by two existing tests — `test_delete_out_of_order_table_key` and `test_overwriting_out_of_order_table` both assert that a super table emptied by `del` disappears from the output rather than rendering its own header.
+
+Making emptied super tables render `[x.y]` breaks both. That looked like a deliberate call rather than an oversight, so I left it alone rather than rewriting your tests to suit. Happy to follow up if you'd like that changed — it is a small diff once the intended behaviour is settled.
+
+## Tests
+
+Four tests added, covering the bare case, the hoisting case, an emptied array preceded by a scalar, and a control asserting non-empty arrays of tables still round-trip unchanged.
+
+Revert-verified: with `container.py` reverted, the first three fail and the control still passes.
+
+Full suite on Windows / Python 3.12: **1055 passed** (1051 on a clean tree, plus these 4). `ruff check` and `ruff format --check` are clean on both changed files.
+
+"""

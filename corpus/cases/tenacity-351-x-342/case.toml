@@ -1,0 +1,23 @@
+base = { repo = "tenacity", commit = "a85896547de516efed5884dad1e6a0c7a6e7b2e4" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Implement a wait.wait_exponential_jitter per Google's storage guide"
+pr = "https://github.com/jd/tenacity/pull/351"
+from = "a85896547de516efed5884dad1e6a0c7a6e7b2e4"
+to = "da1bfc9cfdf259b5f28c0f89408065b03afb9894"
+body = """
+Relates to #162 and #223 in that the minimum wait will never be lower than the initial/min value.
+"""
+
+[b]
+title = "Support `datetime.timedelta` as a valid wait unit type"
+pr = "https://github.com/jd/tenacity/pull/342"
+from = "f6465c082fc153ec389b281aabc323f3c2d0ced9"
+to = "18d05a6f049ea734cc6da02de6e3f9ecaffbc877"
+body = """
+Closes #341 
+"""

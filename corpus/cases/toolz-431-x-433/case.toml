@@ -1,0 +1,47 @@
+base = { repo = "toolz", commit = "4e0e8190899568e919338751e0bd3f0c131b22fe" }
+label = "clean"
+class = "mined, other files"
+runtime = ["b"]
+assisted = []
+
+[a]
+title = "Add hint for groupby to documentation"
+pr = "https://github.com/pytoolz/toolz/pull/431"
+from = "4e0e8190899568e919338751e0bd3f0c131b22fe"
+to = "04adf41d67b4f4ab430ddd465b2a0149b2bacec8"
+body = """
+Same name, but does something different. Might be confusing, so let's
+warn users explicitly.
+"""
+
+[b]
+title = "Faster itertoolz.update_in"
+pr = "https://github.com/pytoolz/toolz/pull/433"
+from = "04adf41d67b4f4ab430ddd465b2a0149b2bacec8"
+to = "cde596b8d587f8f7cf9360728f686782e82d7508"
+body = """
+The existing, recursive, form of update_in is unnecessarily slow.  This borrows the non-recursive implementation from cytoolz and shows a good performance boost.
+
+```python
+from toolz import update_in, update_in2
+keys1 = list(reversed([list(range(i+100)) for i in range(100)]))
+keys2 = list(reversed([list(range(i)) for i in range(1, 11)]))
+
+# A custom assoc_in function which simply allows me to 
+# change which update_in function is called.
+
+%%timeit
+d = {}
+for x in keys1:
+    d = assoc_in(update_in, d, x, 42)
+# update_in (keys1)
+26.3 ms ± 668 µs per loop (mean ± std. dev. of 7 runs, 10 loops each)
+# update_in2 (keys1)
+4.96 ms ± 62.2 µs per loop (mean ± std. dev. of 7 runs, 100 loops each)
+
+# update_in (keys2)
+86.7 µs ± 2.48 µs per loop (mean ± std. dev. of 7 runs, 10000 loops each)
+# update_in2 (keys2)
+21.4 µs ± 118 ns per loop (mean ± std. dev. of 7 runs, 10000 loops each)
+```
+"""

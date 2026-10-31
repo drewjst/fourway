@@ -1,0 +1,54 @@
+base = { repo = "tomlkit", commit = "ee4eedbacc8eb72872af050996c7396ecce190b9" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Reject tables inserted into inline tables"
+pr = "https://github.com/python-poetry/tomlkit/pull/532"
+from = "ee4eedbacc8eb72872af050996c7396ecce190b9"
+to = "11e22aefccd8069a90ae75d20613b9b1068754a1"
+body = """
+## Summary
+- Reject `Table` values appended or assigned to an `InlineTable` instead of serializing invalid TOML
+- Add a regression test for the public `append()` and item assignment paths
+- Update the unreleased changelog
+
+Closes #531
+
+## Tests
+- `uv run --no-project --with pytest --with pyyaml python -m pytest tests/test_items.py::test_append_table_to_inline_table_raises -q`
+- `uv run --no-project --with pytest --with pyyaml python -m pytest tests/test_items.py tests/test_api.py -q`
+- `uv run --no-project --with pytest --with pyyaml python -m pytest -q`
+- `uv run --no-project --with ruff ruff check tomlkit tests --exclude tests/toml-test`
+- `uv run --no-project --with ruff ruff format --check tomlkit tests --exclude tests/toml-test`
+- `git diff --check`
+
+Notes: full `ruff check .` / `ruff format --check .` include the initialized `tests/toml-test` submodule and fail on its upstream `gen.py`. `mypy tomlkit tests --exclude tests/toml-test` currently reports existing strict typing errors on master (for example `source.py` generic annotations and numeric dunder return types in `items.py`).
+
+AI assistance was used under my direction.
+"""
+
+[b]
+title = "raise on malformed array element instead of dropping it"
+pr = "https://github.com/python-poetry/tomlkit/pull/527"
+from = "11e22aefccd8069a90ae75d20613b9b1068754a1"
+to = "d548e18b71b28d0e9628127bf0b9dfc5a254dca0"
+body = """
+## Summary
+
+Repro: parse `a = [{1]` or `a = [1, {2]`, an inline table that never reaches its `=`.
+Cause: `_parse_array` caught the `UnexpectedCharError` from the element's `_parse_value` and dropped it, so the cursor was left sitting on `]` and the array came back truncated (`[]`, `[1]`) rather than failing on the bad element.
+Fix: let the element parse error propagate. The existing `self._current != \"]\"` guard already handles the empty / trailing-comma case that `except` was covering, so nothing valid changes.
+
+Adds a regression test in `tests/test_parser.py`; full suite including the toml-test 1.1 cases stays green.
+
+
+## Agent Drafting Metadata
+
+<!-- Fill this section if an AI agent helped draft this PR. -->
+- Agent:
+- Model:
+- Notes:
+"""

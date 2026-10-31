@@ -1,0 +1,23 @@
+base = { repo = "python-semver", commit = "a1604fb9e8841d6cddbaff97bd4b8057b9600ae5" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Fix return type of classmethod parse"
+pr = "https://github.com/python-semver/python-semver/pull/396"
+from = "a1604fb9e8841d6cddbaff97bd4b8057b9600ae5"
+to = "6176316e49c5279118178330d050548eefe71927"
+body = """
+So that calling parse on a derived class will show correct type of derived class
+"""
+
+[b]
+title = "Fix #344 Allow empty string for bump method"
+pr = "https://github.com/python-semver/python-semver/pull/365"
+from = "bee273e9a5b825ff410e3405eb41a339814813d1"
+to = "a2a6169e7a280afd9cc313ced152cdefa77a9c72"
+body = """
+The methods `.bump_prerelease('')` and `.bump_build('')` generates a prerelease and build part without the token.
+"""

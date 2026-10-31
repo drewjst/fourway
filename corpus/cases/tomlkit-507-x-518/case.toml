@@ -1,0 +1,49 @@
+base = { repo = "tomlkit", commit = "9ac3f98214dbfbca0157b6c370c7986f497c34e4" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Merge AoT fragments when building an out-of-order table proxy"
+pr = "https://github.com/python-poetry/tomlkit/pull/507"
+from = "9ac3f98214dbfbca0157b6c370c7986f497c34e4"
+to = "25ae63abce3181fd376aed7acdc52418d126df04"
+body = """
+Fixes #505.
+
+When an array of tables is split across out-of-order parts of the same table, `OutOfOrderTableProxy.__init__` fed both fragments to `_raw_append`, which only knows how to chain duplicate `Table` parts and raised `KeyAlreadyPresent`. Since the proxy is also built by `__contains__`, valid documents (accepted by `tomllib`) failed at parse time once a `[hooks.*]` header followed the second fragment.
+
+The fragments are now presented as a new merged `AoT` that references the live element tables — neither fragment is mutated, so the table parts keep rendering their own elements (round-trip stays byte-identical) and element-level mutations through the proxy still write through to the document. This mirrors the isolation note in `OutOfOrderTableProxy.validate`, which deep-copies for the same reason.
+
+The reported config only reproduces when the repeated AoT is genuinely out of order (split by an unrelated table) — contiguous repeats as literally pasted in the issue already worked; verified the merged result matches `tomllib` for both shapes.
+"""
+
+[b]
+title = "Bulk-scan multiline string bodies"
+pr = "https://github.com/python-poetry/tomlkit/pull/518"
+from = "25ae63abce3181fd376aed7acdc52418d126df04"
+to = "c468c978b1c77528986c4e5eb9b27c92858ddeec"
+body = """
+## What
+
+[#491](https://github.com/python-poetry/tomlkit/pull/491) bulk-scanned **single-line** string bodies but deliberately left **multiline** (`\"\"\"` / `'''`) bodies on the per-character loop, because of `\\r\\n` handling. This extends the same fast path to multiline bodies: the run of ordinary characters is appended in one slice up to the next delimiter, backslash, carriage return or control character, instead of one `value += char; inc()` iteration per character.
+
+The key point is the stop-set. A multiline body may legitimately contain raw **line feeds** and **tabs**, so those are *not* stop characters — a whole multi-line body is consumed in a single pass. What still stops the scan:
+
+- the delimiter (`\"`/`'`) and, for basic strings, the backslash — handled by the existing close/escape branches; - a **carriage return** — so the existing branch keeps validating the `\\r\\n` pair (and rejecting a lone `\\r`), and `\\r\\n` is preserved byte-for-byte; - invalid control characters and DEL — still rejected at the same position by the existing branch.
+
+## Benchmark
+
+Parsing a multiline-heavy document (30 triple-quoted strings, 20-line bodies), median, interleaved A/B vs `master`: | body | speedup |
+|---|---|
+| LF (`\"\"\"`) | ~23× |
+| literal (`'''`) | ~23× |
+| CRLF (`\"\"\"`) | ~11× |
+
+CRLF is lower because each `\\r` breaks the run, but it is still a large win. Naturally ~neutral on documents without multiline strings.
+
+## Tests
+
+Full suite incl. the toml-test conformance submodule passes. No public API or behaviour change — verified by a differential over **~122k** generated multiline strings (LF / CRLF / bare CR, tabs, lone & double quotes, escapes, line-ending backslash, control bytes incl. NUL/FF/DEL, unicode/astral, EOF truncation): byte-identical round-trip and identical exception class/line/column vs `master`. Added focused regression tests for multiline round-trip and control-char rejection.
+"""

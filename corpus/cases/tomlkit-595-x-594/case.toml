@@ -1,0 +1,103 @@
+base = { repo = "tomlkit", commit = "72eef9159b497d0867cc9c0495c96d6b7317bce0" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = ["a"]
+
+[a]
+title = "Use \", \" separator when appending to a spaced inline table"
+pr = "https://github.com/python-poetry/tomlkit/pull/595"
+from = "72eef9159b497d0867cc9c0495c96d6b7317bce0"
+to = "1e7053158092a588d1fa744d7d5620a45895bb13"
+body = """
+When a key is appended to a parsed inline table whose entries are already separated with `\", \"` (comma + space), the deferred separator inserted for the new key was a bare `\",\"` with no space, leaving the table inconsistently spaced:
+
+```python
+>>> from tomlkit import parse
+>>> doc = parse(\"a = {x = 1, y = 2}\\n\")
+>>> doc[\"a\"][\"z\"] = 3
+>>> doc.as_string()
+'a = {x = 1, y = 2,z = 3}\\n'   # note the \"2,z\"
+```
+
+The existing entries use `\", \"`, and inline tables built from scratch also use `\", \"`, so the new separator is inconsistent.
+
+## Fix
+
+Insert `\", \"` to match the surrounding style — but only when the text that will follow the comma (the previous value’s trailing trivia plus the new key’s own indent) does not already start with a space. This keeps a *padded* table such as `{ foo = 1, bar = 2 }` (whose appended key already contributes a space via its indent) from becoming double-spaced. This is a follow-up to #477, which fixed the *missing* comma but emitted it without the conventional space.
+
+Result:
+
+```python
+>>> doc.as_string()
+'a = {x = 1, y = 2, z = 3}\\n'
+```
+
+Padded tables are unchanged: `{ foo = 1, bar = 2 }` + `baz` still renders `{ foo = 1, bar = 2, baz = 3}`.
+
+## Tests
+
+Added `test_appending_to_compact_inline_table_uses_spaced_separator`; verified it fails before the change and passes after. Full suite green (373 passed, `test_toml_tests.py` needs the vendored submodule and was not run).
+
+I can add a CHANGELOG entry once you confirm the target section (there is no `Unreleased` section currently).
+"""
+
+[b]
+title = "Reject trailing characters in key_value()"
+pr = "https://github.com/python-poetry/tomlkit/pull/594"
+from = "bdaa257a61d49b7c712e0462a4babef346ea4b55"
+to = "90365ea1d67cee7aa3bc62e03ba817a6ddb6f67d"
+body = """
+## Summary
+
+`tomlkit.key_value()` returned the first pair it could parse and threw away
+whatever followed:
+
+```python
+>>> tomlkit.key_value(\"a = 1 b = 2 c = 3\")
+(<Key a >, 1)
+```
+
+TOML 1.0.0 ([Key/Value Pair](https://toml.io/en/v1.0.0#keyvalue-pair)) requires
+a newline or EOF after a pair, and `parse()` already enforces it — each of the
+inputs in the new test raises `UnexpectedCharError` there.
+`tests/examples/invalid/key_value_with_trailing_chars.toml` exists for this exact
+rule and its own text spells it out, but it was only ever asserted against
+`parse()`.
+
+The fix mirrors what's already next door: `value()` (api.py:283-287) guards with
+`if not parser.end(): raise ...`, and the document parser reads a top-level pair
+with `_parse_key_value(True)` so the comment trail is consumed. `key_value()` now
+does both. Trailing whitespace, a trailing comment and a final newline stay
+valid; real trailing input raises.
+
+This follows the same call the project already made in #527, \"Raise on malformed
+array element instead of dropping it\".
+
+**Behaviour change:** input that was silently truncated now raises. I found no
+open PR or issue touching `key_value` (checked the changed files of all 22 open
+PRs; only #294 touches `api.py`, for `Decimal` codecs).
+
+### Verification
+
+`python -m pytest tests/ -q`, same command and environment either side:
+
+| | result |
+|---|---|
+| before (tests added, `api.py` at HEAD) | `5 failed, 1057 passed` |
+| after | `1062 passed` |
+
+I also checked the naive version of this fix — the `end()` guard alone, without
+`parse_comment=True`. It fails 3 of the new cases (`\"foo = 12\\n\"`,
+`\"foo = 12   \"`, `\"foo = 12  # comment\\n\"`), which is why those are in the test.
+
+## Agent Drafting Metadata
+
+- Agent: Claude Code
+- Model: Claude Opus 5 (`claude-opus-5`)
+- Notes: Found by comparing the public helpers in `api.py` against each other —
+  `key_value()` was the only one with a single test reference, and the sibling
+  `value()` had the end-of-input guard it was missing. The diff, tests and this
+  description were drafted with the agent and reviewed before submission.
+
+"""

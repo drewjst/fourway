@@ -1,0 +1,110 @@
+base = { repo = "tomlkit", commit = "8c959b51c7da2734662af759a7c9f95e9a78060a" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "fix: add the stdlib `fold` argument to Time and DateTime"
+pr = "https://github.com/python-poetry/tomlkit/pull/620"
+from = "8c959b51c7da2734662af759a7c9f95e9a78060a"
+to = "49d6efa980fedb321f16371a4b05abd2a449f775"
+body = """
+## Summary
+
+Fixes #619: `Time` and `DateTime` do not accept the stdlib `fold` argument.
+
+- `item(time(12, 34, 56, fold=1)).fold` returns `0` - the fold is silently dropped (same for `datetime`);
+- `item(time(12, 34, 56)).replace(fold=1)` raises `TypeError` on CPython 3.12 (measured);
+- on pure-Python implementations (PyPy, per this issue's traceback) `replace()` calls `type(self)(..., fold=fold)`, which these constructors reject.
+
+## Changes
+
+- `Time.__new__`/`__init__` and `DateTime.__new__`/`__init__` accept `fold: int = 0` - appended after `raw`, so existing positional call sites are unaffected, and callers pass it by keyword (as the stdlib does); it is forwarded to the stdlib constructor;
+- `Time._new`/`DateTime._new` carry `fold` over in `replace()` results;
+- `item()` forwards `value.fold` when converting `datetime`/`time` values.
+
+## Tests
+
+Two tests added in `tests/test_items.py` (`test_times_behave_like_times_fold`, `test_datetimes_behave_like_datetimes_fold`) cover construction, `item()` and `replace()` round-trips.
+
+Verified on a clean checkout with this patch applied via `git apply`:
+
+- `tests/test_items.py` -> `94 passed`
+- full suite -> `1060 passed in 3.23s` (Python 3.12, pytest only, unprivileged sandbox)
+
+## Agent Drafting Metadata
+
+- Agent: @tuyentran4992's assistant agent, using FixFork - a dev-stage debugging tool (https://github.com/tuyentran4992/fixfork) - to reproduce the issue and draft fix candidates.
+- Model: `nvidia/nemotron-3-super-120b-a12b` (Nebius Token Factory) inside the tool's runs.
+- Notes: the tool's live runs on this issue are public (reports, raw model replies, event logs): https://github.com/tuyentran4992/fixfork/tree/master/examples/tomlkit-619 - they did not produce the final patch end-to-end; the patch above was completed and verified by hand against tomlkit's full suite before submission.
+
+"""
+
+[b]
+title = "Keep unwrap() key order after a value is replaced"
+pr = "https://github.com/python-poetry/tomlkit/pull/591"
+from = "49d6efa980fedb321f16371a4b05abd2a449f775"
+to = "ac3b04efe9b2e49186a0cdcb69f1fa254d2f0f10"
+body = """
+## Summary
+
+`unwrap()` returns keys in the wrong order after a value is replaced.
+
+```python
+doc = parse(\"a = 1\\nb = 2\\nc = 3\\n\")
+doc[\"b\"] = 9
+
+dumps(doc)          # 'a = 1\\nb = 9\\nc = 3\\n'
+list(doc.keys())    # ['a', 'b', 'c']
+list(doc.unwrap())  # ['a', 'c', 'b']   <-- 'b' moved to the end
+```
+
+`_replace_at` deletes the key from `_map` and re-inserts it (`container.py:916-917`), which moves it to the end of the dict's insertion order, while `_body[idx]` correctly keeps the original slot. `dumps()` and `keys()` walk `_body` and stay right; `unwrap()` walks `_map` and does not. It reproduces for every scalar and array replacement value.
+
+This is against the README's own promise:
+
+> a parser that preserves all comments, indentations, whitespace and **internal element ordering**
+> — `README.md:18`
+
+and against the assumption `unwrap()` was written on when it moved to `_map` in #521:
+
+> `_map` iterates in the same insertion order as the old `self.items()`.
+> — `container.py:70-71`
+
+That sentence is true until the first replacement, which is why it held when #521 landed.
+
+## The change
+
+Take the order from the body index rather than from `_map` insertion order. The `_map` fast path that #521 added is kept — the point of that change was avoiding `__getitem__` rebuilding a `SingleKey` per key, and that still holds — and `dumps()` becomes the reference for order rather than a second, divergent source.
+
+I looked at the other `_map.items()` loops before choosing this over rewriting `_replace_at`: `container.py:542` and `:583` only adjust index values and do not care about order, so `unwrap()` is the sole order-sensitive consumer.
+
+## Not changed: replacements that genuinely move an element
+
+A bare key promoted to a table has to be emitted after the inline entries, and `dumps()` moves it:
+
+```python
+doc = parse(\"a = 1\\nb = 2\\n\")
+doc[\"a\"] = {\"x\": 1}
+dumps(doc)          # 'b = 2\\n\\n[a]\\nx = 1\\n'
+list(doc.unwrap())  # ['b', 'a']  -- correct, and unchanged by this PR
+```
+
+Ordering by the body index keeps this case as it was, since the body really did move. There is a test pinning it so the distinction cannot regress.
+
+## Tests
+
+Two added to `tests/test_toml_document.py`: one asserting the order is preserved on a scalar replacement, one pinning the table-promotion case above.
+
+Verified by reverting only `tomlkit/container.py` and keeping the tests — the first fails with `assert ['a', 'c', 'b'] == ['a', 'b', 'c']`, the second still passes, so the new coverage separates the bug from the behaviour that should not change.
+
+Full suite: 1052 passing before, 1054 after.
+
+## Agent Drafting Metadata
+
+- Agent: Claude Code
+- Model: Claude Opus 5
+- Notes: The reproduction, the red/green check and the suite runs above were executed against this branch. I reviewed and verified the change before opening the PR; happy to adjust anything on request.
+
+"""

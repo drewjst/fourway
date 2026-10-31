@@ -90,7 +90,14 @@ was fixed on 2026-10-31, before any generator ran on a mined pair:
 7. `fourway check-corpus --prune-mined` drops a pair that doesn't build,
    conflicts textually, or has an existing suite that isn't green on all four
    trees. Change B must apply to the base by itself, so a B written on top of
-   A drops out here.
+   A drops out here. The check ignores a test that ran and failed the same way
+   on all four trees, because it fails in fourway's environment, for example
+   on a newer Python, and says nothing about either change. A test file that
+   fails to import still drops the pair, because it hides every test in it,
+   and so does a suite in which no test passes on all four trees. This
+   exception was added on 2026-10-31, after the first checks and before any
+   generator ran on a mined pair. The v5 entry under [Versions](#versions)
+   names the pairs it admits.
 
 The base is the default branch just before A landed, so tree A is the one the
 project shipped. The merge equals the tree the project shipped after B only
@@ -196,6 +203,27 @@ Across all 24 pairs, the `runtime` tags find 12 where both sides change
 runtime code, and 9 of those 12 credit no AI assistant. Those 9 are the
 hardest clean pairs in v4.
 
+For v5, the corpus author read 10 of the 52 pairs that v5 adds, drawn the same
+way from their sorted ids. Every label holds.
+
+| Pair | Change A | Change B |
+|---|---|---|
+| `python-dotenv-714-x-669` | Expands `~` in `find_dotenv` | Consumes CRLF as one newline when the parser recovers from a bad line |
+| `python-semver-440-x-439` | Adds blank lines after module docstrings | Adds type hints and compiles a regex once in `_nat_cmp` |
+| `tenacity-393-x-392` | Adds two names to `__all__` | Corrects the `WaitBaseT` type alias |
+| `tomlkit-492-x-500` | Removes the parser's internal `TOMLChar` wrapper | Renders a dotted key inside an inline table correctly after a key is added |
+| `tomlkit-507-x-518` | Merges array-of-tables fragments in an out-of-order table | Scans multiline string bodies in bulk |
+| `tomlkit-525-x-526` | Renders inline tables in linear time | Fixes the output when a dotted key's value is replaced by a table |
+| `tomlkit-595-x-594` | Uses a `, ` separator when appending to a spaced inline table | Rejects trailing characters in `key_value()` |
+| `toolz-431-x-433` | Adds a documentation hint to `groupby` | Rewrites `update_in` to be faster |
+| `toolz-451-x-381` | Adds `compose_left` | Adds `peekn` |
+| `toolz-624-x-634` | Registers a `frozendict` signature for Python 3.15 | Exposes combined `__annotations__` on composed functions |
+
+The `tomlkit` pairs are the most substantive so far: three of them pair a
+parser or container change with a rendering change in the same subsystem.
+Five of the ten sampled pairs are in the corpus only because of the exception
+in rule 7, which ignores tests that fail alike on all four trees.
+
 ## Cases
 
 The following table lists the cases. A clean twin makes the same change A as a
@@ -230,7 +258,8 @@ two pull requests.
 
 1. A and B merge without a textual conflict.
 2. The existing test suite passes on base, A, B, and the merge, so ordinary CI
-   on the merge cannot see the problem.
+   on the merge cannot see the problem. A test that fails the same way on all
+   four trees is ignored, as rule 7 of the mining rule describes.
 3. The oracle produces the expected finding, and its verdict matches the
    label.
 4. Each description says what its change does and why, as its author would.
@@ -257,6 +286,25 @@ before run 2:
 
 Runs on different corpus versions are reported separately and never pooled.
 
+- **v5, 2026-10-31**: Adds 52 mined clean pairs, for 76 mined pairs and 82
+  clean pairs in all. The owner approved mining `tomlkit`, `python-semver`,
+  `toolz`, and `python-dotenv` on 2026-10-31. Mined pairs by repository:
+  `tomlkit` 28, `tenacity` 20, `toolz` 10, `tinydb` 9, `python-semver` 6, and
+  `python-dotenv` 3. Of 129 candidates from the six repositories, 53 dropped
+  out: 30 whose suites can't run in fourway's environment, 18 whose change B
+  doesn't apply to the base by itself, 4 `toolz` pairs whose commits mark
+  `_version.py` with `export-subst`, and 1 textual conflict. Rule 7's
+  exception for tests that fail alike on all four trees admits 18 pairs:
+  `python-dotenv-614-x-621`, `python-dotenv-640-x-638`,
+  `python-dotenv-714-x-669`, `tenacity-309-x-310`, `tenacity-315-x-302`,
+  `tenacity-351-x-342`, `tenacity-372-x-347`, `tenacity-393-x-392`,
+  `toolz-410-x-408`, `toolz-412-x-422`, `toolz-425-x-398`,
+  `toolz-428-x-411`, `toolz-431-x-433`, `toolz-437-x-432`,
+  `toolz-451-x-381`, `toolz-478-x-476`, `toolz-624-x-634`, and
+  `toolz-636-x-635`. Of the 76 pairs, 30 change the same file, 54 change
+  runtime code on both sides, 12 credit an AI assistant, and 47 both change
+  runtime code on both sides and credit none. fourway's dev environment adds
+  click. The seeded cases are unchanged.
 - **v4, 2026-10-31**: Adds 24 clean pairs mined from the pull request
   history of `tenacity` (15) and `tinydb` (9). Of 48 candidates, 24 dropped
   out in `check-corpus`: 7 changes B didn't apply to the base by themselves,
@@ -290,10 +338,11 @@ differential findings. None is emergent, and each twin's change B touches the
 same file as the conflict's change B. Recall on these cases is still an upper
 bound on recall against conflicts nobody seeded.
 
-Mined pairs fix the shared author for clean pairs, but they have limits of
-their own. History vouches for a clean label only as far as nobody noticed a
-problem. Tree B alone is a tree nobody shipped. The rule drops pairs whose
-suites need a dependency fourway doesn't install, pairs whose base trees
+Mined pairs reduce the shared-author problem for clean pairs, but they have
+limits of their own. History vouches for a clean label only as far as nobody
+noticed a problem. Tree B alone is a tree nobody shipped. The rule drops pairs
+whose suites need a dependency fourway doesn't install, pairs whose base trees
 exceed the generator's budget, and pairs from Python versions older than the
 one fourway runs on, so the mined pairs lean toward recent, small
-repositories.
+repositories. They come from six repositories, and `tomlkit` and `tenacity`
+supply 48 of the 76.

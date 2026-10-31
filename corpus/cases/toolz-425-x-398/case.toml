@@ -1,0 +1,46 @@
+base = { repo = "toolz", commit = "020161bd1d2820695ac9b56b9debe43b24cbe629" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Faster dissoc"
+pr = "https://github.com/pytoolz/toolz/pull/425"
+from = "020161bd1d2820695ac9b56b9debe43b24cbe629"
+to = "1b23ada481e9646521a9f6acd595c26e18dc3bde"
+body = """
+Dissoc was really fast when the keys to remove were relatively few
+compared to the size of the dictionary.  This version will pick the smaller
+container to iterate over, either building up a new dictionary or tearing
+down a copy.
+
+A small heuristic is used to decide if the overhead of building a set is
+worth the effort.  My rudimentry testing shows that if the number of keys is
+less than 60% the length of the dictionary, tearing down a copy is faster.
+If keys is very large, we calculate the difference between mapping and keys 
+and build a new dictionary out of that difference.
+
+This PR trys to change the signature of `dissoc` in a backwards compatible way by adding the `factory` keyword argument.  This makes the function consistent with the call signatures of all the other functions that mutate mappings.  This change was required  otherwise, we'd be unable to initialize a new empty mapping from a factory.  If this is undesirable, we can resort to using `d.__class__()` as the factory.
+
+Microbenchmarks coming soon...
+
+Do you have any feedback, @eriknw?
+"""
+
+[b]
+title = "Improvements to \"compose\" "
+pr = "https://github.com/pytoolz/toolz/pull/398"
+from = "1b23ada481e9646521a9f6acd595c26e18dc3bde"
+to = "c9d69b92b738eb4e549bc6b4a548e2d7a92aace4"
+body = """
+Implements #397 
+
+some remarks:
+- I've also implemented `__hash__`, under the assumption that `Compose` objects are not intended to be mutated. Perhaps it is best to make this explicit, or to remove `__hash__`.
+- I have extended the current test method for `compose`. Perhaps it is best to split the test function up, considering its length.
+- do there need to be any additions to the docs?
+- I've implemented `__signature__` for python3 only. Perhaps an elegant way of supporting python 2 is to import `Signature` from the `funcsigs` module, if it is installed. This way `funcsigs` is an optional dependency, keeping `toolz` itself lightweight and dependency-less.
+
+edit: formatting
+"""

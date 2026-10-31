@@ -1,0 +1,54 @@
+base = { repo = "tomlkit", commit = "c468c978b1c77528986c4e5eb9b27c92858ddeec" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "reject array-of-tables header missing its second closing bracket"
+pr = "https://github.com/python-poetry/tomlkit/pull/519"
+from = "c468c978b1c77528986c4e5eb9b27c92858ddeec"
+to = "9c126774d3f3481a4da3a433ad44cbe1f8bf1390"
+body = """
+## Summary
+
+When a table header is opened with `[[` for an array of tables, `_parse_table` skips the first closing bracket after checking it is `]`, but then consumes a second character as the matching close bracket without verifying it, behind a leftover `# TODO: Verify close bracket`. A header opened with `[[` and closed with a single `]` (or with trailing junk after one `]`, or that hits EOF) is silently accepted: inputs like `[[a]b`, `[[a]`, `[[a.b]x` and `[[a]x` parse as `[[a]]`, and round-tripping rewrites the malformed header to the valid form, so an out-of-spec document is accepted and its text changed under you. tomllib and the toml-test suite reject all of these. The fix mirrors the existing single-bracket check: confirm the second character is `]` (raising `UnexpectedCharError`, or `UnexpectedEofError` at end of input) before consuming it. Added regression tests for the missing-bracket forms.
+
+
+## Agent Drafting Metadata
+
+<!-- Fill this section if an AI agent helped draft this PR. -->
+- Agent:
+- Model:
+- Notes:
+
+"""
+
+[b]
+title = "Fix ParseError when a sub-table extends an array of tables out of order"
+pr = "https://github.com/python-poetry/tomlkit/pull/498"
+from = "c46482be9b036c935a193f553c258e4e6e8e3abe"
+to = "de68fd06eef61aab0d50d69fb589a43f00a046bf"
+body = """
+Fixes #261.
+
+`tomlkit` raises `ParseError: Key \"fruit\" already exists.` on valid TOML when a sub-table header extends an array of tables with an unrelated table in between:
+
+```toml
+[[fruit]]
+apple.color = \"red\"
+
+[potato]
+
+[fruit.apple.texture]
+smooth = true
+```
+
+The contiguous form (without `[potato]`) already parses, because `[fruit.apple.texture]` gets consumed while the array element is still being parsed. Once an unrelated table breaks that up, the header is rebuilt as a fresh super table named `fruit` and appended to the document, colliding with the existing array.
+
+A sub-table header naming an existing array of tables refers to the array's last element, so I merge its contents there instead of treating it as a redefinition. Defining a real table with an array's name (`[fruit]` after `[[fruit]]`) is still a genuine conflict and keeps raising.
+
+One caveat worth flagging: on the round trip the out-of-order sub-table is normalized into the array element rather than kept at its original position. Byte-for-byte preservation isn't reachable here the way it is for plain tables — those lean on `OutOfOrderTableProxy`, which is dict-shaped, whereas an array element has to round-trip back as a list. The data is correct and stable on re-dump; happy to dig into preserving the exact layout if you'd prefer.
+
+Added a regression test; full suite, ruff and mypy all pass.
+"""

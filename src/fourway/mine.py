@@ -247,7 +247,7 @@ def _tree_fits(case) -> list[str]:
     with tempfile.TemporaryDirectory(prefix="fourway-mine-") as tmp:
         try:
             render_tree(checkout_upstream(case.base, Path(tmp) / "tree"))
-        except TreeTooLarge as e:
+        except (TreeTooLarge, ValueError) as e:  # ValueError: export attributes would change the trees
             return [str(e)]
         except gitops.GitError as e:
             return [f"the case does not build: {e}"]

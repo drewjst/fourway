@@ -1,0 +1,43 @@
+base = { repo = "tenacity", commit = "de409a00c18b1d26a030292f7820ee26cdad2aa1" }
+label = "clean"
+class = "mined, other files"
+runtime = ["b"]
+assisted = []
+
+[a]
+title = "fix: docstring for wait_exponential_jitter"
+pr = "https://github.com/jd/tenacity/pull/372"
+from = "de409a00c18b1d26a030292f7820ee26cdad2aa1"
+to = "8b17b0028d7c54758448f1cb2aefd2af3bde42f2"
+body = """
+The jitter time should not be multiplied by the initial time.
+"""
+
+[b]
+title = "Explicitly export convenience symbols from tenacity/__init__.py"
+pr = "https://github.com/jd/tenacity/pull/347"
+from = "dc31a891e2c2a561113cfafc704664ad267c3ca4"
+to = "e1323a0e0ff9f7d867d3632c3ebf582f446b0a91"
+body = """
+Hello! This PR tweaks all of the convenience exports in `tenacity/__init__.py` to use the `import ... as ...` form. This lets type-checkers discover those symbols under the `tenacity` module, e.g.:
+
+**Before**
+```python
+import tenacity
+
+tenacity.wait_random_exponential()  # Pyright: \"wait_random_exponential\" is not a known member of module
+```
+
+**After**
+```python
+import tenacity
+
+tenacity.wait_random_exponential()  # Pyright: (class) wait_random_exponential
+```
+
+Pyright (and I _think_ mypy) will consider [imported symbols as private by default](https://github.com/microsoft/pyright/blob/main/docs/typed-libraries.md#library-interface) unless they:
+* use the `import X as X` or `from A import X as X` form, (a redundant alias) or,
+* include the name of the symbol in an `__all__` symbol
+
+The `from A import X as X` form was easier for me to do with a macro but happy to change it to the `__all__` form if you'd prefer. Just thought I'd kick off this PR as a place to discuss that.
+"""

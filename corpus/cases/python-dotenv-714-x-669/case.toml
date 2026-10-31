@@ -1,0 +1,48 @@
+base = { repo = "python-dotenv", commit = "791414804eff08a23f0b7970968e1717e3b28e66" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "fix: expand ~ in find_dotenv and the %dotenv magic"
+pr = "https://github.com/theskumar/python-dotenv/pull/714"
+from = "791414804eff08a23f0b7970968e1717e3b28e66"
+to = "0b2880591780a426b0551436f47a17e7a76d954f"
+body = """
+Follow-up to #615 (#525), which made `dotenv_path` and the CLI `--file` option expand a leading `~`. Two entry points still didn't:
+
+| `HOME/.env` exists | before | after |
+|---|---|---|
+| `find_dotenv(\"~/.env\")` | `''` | `'<home>/.env'` |
+| IPython `%dotenv ~/.env` | nothing loaded | loaded |
+
+**Why it's a separate PR:** `find_dotenv` searches upward for `filename`, so expanding `~` changes what a search function does with its argument. It already returns an absolute `filename` unchanged when it exists (`os.path.join(dir, \"/abs\")` is `\"/abs\"`), and this treats `~/...` the same way. The only behaviour change is that `find_dotenv(\"~/.env\")` no longer looks for a literal `~` directory in each parent, which seems very unlikely to be intended.
+
+**Change:** one line at the top of `find_dotenv`, plus a docstring note. The README's `%dotenv` section gets a `~/path/to/.env` example.
+
+**Tests:** `test_find_dotenv_expands_user` and `test_ipython_path_expands_user` both fail without the fix and pass with it. Both set `HOME` and `USERPROFILE` so they work on Windows. Locally: 288 passed, ruff and format are clean, and mypy passes on 3.10 and 3.14.
+
+"""
+
+[b]
+title = "Handle CRLF invalid lines in parser recovery"
+pr = "https://github.com/theskumar/python-dotenv/pull/669"
+from = "0b2880591780a426b0551436f47a17e7a76d954f"
+to = "bad5771ce54fd643538f177aab1465e4375e2039"
+body = """
+## What changed
+
+This updates the parser recovery regex for invalid lines so CRLF is consumed as one newline sequence, matching the parser's other newline handling.
+
+## Why
+
+When an invalid `.env` line used CRLF line endings, `_rest_of_line` matched `\\r` before `\\r\\n`. That left the `\\n` behind for the next parse iteration, so recovery could produce an extra blank binding before the following valid line.
+
+## Validation
+
+- `PYTHONPATH=src python -m pytest tests\\test_parser.py::test_parse_stream -q`
+- `PYTHONPATH=src python -m pytest tests\\test_parser.py -q`
+- `python -m ruff check src\\dotenv\\parser.py tests\\test_parser.py`
+- `git diff --check`
+"""

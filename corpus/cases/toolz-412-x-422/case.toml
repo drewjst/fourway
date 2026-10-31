@@ -1,0 +1,45 @@
+base = { repo = "toolz", commit = "68d8df846f2c2d0675aea81359d25049ea2b1915" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "More efficient assoc"
+pr = "https://github.com/pytoolz/toolz/pull/412"
+from = "68d8df846f2c2d0675aea81359d25049ea2b1915"
+to = "062786ab1b7371179c65cbf6c92bb5a862e5efa1"
+body = """
+Previously, assoc would call factory(), add a single key-value pair and then call merge.  Merge would then call factory() again and update the mapping with both the original mapping and the single element mapping.
+
+This version avoids calling merge for updating a single value in the mapping (with only a single call to factory()).
+
+```python
+# len(a) == 10
+In [6]: %timeit assoc(a, 'key', '42')
+1.71 µs ± 92.2 ns per loop (mean ± std. dev. of 7 runs, 1000000 loops each)
+In [7]: %timeit assoc1(a, 'key', '42')
+768 ns ± 12.1 ns per loop (mean ± std. dev. of 7 runs, 1000000 loops each)
+
+# len(b) == 1000
+In [8]: %timeit assoc(b, 'key', '42')
+25.6 µs ± 932 ns per loop (mean ± std. dev. of 7 runs, 10000 loops each)
+In [9]: %timeit assoc1(b, 'key', '42')
+24.4 µs ± 862 ns per loop (mean ± std. dev. of 7 runs, 10000 loops each)
+
+# len(c) == 10000
+In [10]: %timeit assoc(c, 'key', '42')
+269 µs ± 7.74 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)
+In [11]: %timeit assoc1(c, 'key', '42')
+265 µs ± 5.65 µs per loop (mean ± std. dev. of 7 runs, 1000 loops each)
+```
+"""
+
+[b]
+title = "Drop support for EOL Python 2.6 and 3.3"
+pr = "https://github.com/pytoolz/toolz/pull/422"
+from = "062786ab1b7371179c65cbf6c92bb5a862e5efa1"
+to = "663d57a89b3114cba2a868c512ae878246a0be6c"
+body = """
+Same as #417 but retains `%` formatting.
+"""

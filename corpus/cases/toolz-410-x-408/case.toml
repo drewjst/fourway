@@ -1,0 +1,50 @@
+base = { repo = "toolz", commit = "c789e3cff7887f64a259d1364c589e827f59a654" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Fix accumulate for Python 3.7"
+pr = "https://github.com/pytoolz/toolz/pull/410"
+from = "c789e3cff7887f64a259d1364c589e827f59a654"
+to = "2bf9e8b7a3ce9e0e9e376bee0795ca194c6fcf95"
+body = """
+StopIteration is converted to RuntimeError if it escapes the generator frame.
+Code updated to reflect recommendations made in PEP479.
+
+This resolves #409 
+"""
+
+[b]
+title = "Avoid islice overhead in itertoolz.second"
+pr = "https://github.com/pytoolz/toolz/pull/408"
+from = "2c1dabb9085fcc07f529e78f5cedbdf12addcafa"
+to = "68d8df846f2c2d0675aea81359d25049ea2b1915"
+body = """
+Using itertools.islice seems to be slower than simply calling next twice. In each case, calling next twice is faster.
+
+```python
+m0 = range(5)
+m1 = range(100)
+m2 = range(10000)
+
+In [17]: %timeit second(m0)
+298 ns ± 5.18 ns per loop (mean ± std. dev. of 7 runs, 1000000 loops each)
+
+In [18]: %timeit second(m1)
+296 ns ± 4.49 ns per loop (mean ± std. dev. of 7 runs, 1000000 loops each)
+
+In [19]: %timeit second(m2)
+290 ns ± 3.98 ns per loop (mean ± std. dev. of 7 runs, 1000000 loops each)
+===============================================
+In [21]: %timeit my_second(m0)
+263 ns ± 6.78 ns per loop (mean ± std. dev. of 7 runs, 1000000 loops each)
+
+In [22]: %timeit my_second(m1)
+257 ns ± 2.12 ns per loop (mean ± std. dev. of 7 runs, 1000000 loops each)
+
+In [23]: %timeit my_second(m3)
+263 ns ± 6.2 ns per loop (mean ± std. dev. of 7 runs, 1000000 loops each)
+```
+"""

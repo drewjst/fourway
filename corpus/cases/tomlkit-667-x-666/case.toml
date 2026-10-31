@@ -1,0 +1,176 @@
+base = { repo = "tomlkit", commit = "004fce630d2537542a03fa8d4d6d62dae418b422" }
+label = "clean"
+class = "mined, other files"
+runtime = ["b"]
+assisted = []
+
+[a]
+title = "Resolve remaining API documentation reference warnings"
+pr = "https://github.com/python-poetry/tomlkit/pull/667"
+from = "004fce630d2537542a03fa8d4d6d62dae418b422"
+to = "7ab0c794ddb4f7cfe837721365ba7302f769c6ab"
+body = """
+## Summary
+
+Fixes #192's remaining API documentation warnings after #624. Add a Container target, preserve the existing TOMLDocument members explicitly, render mapping docstrings as prose, and correct the register_encoder literal-block marker. Ignore only named private/internal bases and typing-only targets without API pages.
+
+Validation: fresh Sphinx 7.4.7 HTML and Read the Docs dirhtml builds pass with warnings treated as errors. All 20 existing TOMLDocument anchors remain and generated links resolve. Full suite: 1202 passed. Root repeated the strict HTML build successfully. No runtime behavior changes.
+
+## Agent Drafting Metadata
+
+- Agent: OpenAI Codex with implementation and independent review subagents.
+- Model: GPT-6 coordinator; GPT-6 Luna subagents.
+- Notes: Agents reproduced the warnings, prepared the documentation changes and PR text, reviewed API/link preservation, and ran validation. An initial inherited-member regression was corrected before submission.
+
+"""
+
+[b]
+title = "Speed up array appends"
+pr = "https://github.com/python-poetry/tomlkit/pull/666"
+from = "9e835438140b2f188205e77ece86d59a94ba9532"
+to = "d7def7dbcc59b3b2d11cc73114c31d1f616523a8"
+body = """
+## Summary
+
+Closes #665.
+
+Appending to an array currently rebuilds all its indexes, even though the existing values haven't moved.
+
+This keeps those indexes and adds the new one for normal tail appends. Middle inserts, special formatting items, and states where the value list and index map have different lengths still use the old rebuild. The value conversion and formatting code are unchanged.
+
+That makes the index work for N normal appends O(N) instead of O(N²). It reuses the existing map, so there isn't another cache to keep in memory.
+
+I checked comments, whitespace, trailing commas, generators, self-extension, edits after appending, and invalid inputs against the old code. All 550 comparisons matched, including 60 errors and the state left after them. The full suite passed: 1,214 tests. The correctness tests also pass with the old method; only the new no-rebuild check needs this change.
+
+Ruff passed. My local mypy 2.4.0 run reports 74 existing errors on both versions, with no new diagnostics. The repo pins an older mypy version, so I'm not counting this as a clean type-check run.
+
+These timings include converting the data and writing the TOML. The file lists use names from Django's source archive. The wheel case uses the 65 wheel records from NumPy 2.5.4, in the same sort of array-building workflow used by [PDM's array helper](https://github.com/pdm-project/pdm/blob/6b9365ea1f45a809ad54b558b2530f8ee2d64586/src/pdm/formats/base.py#L89) and [pylock export](https://github.com/pdm-project/pdm/blob/6b9365ea1f45a809ad54b558b2530f8ee2d64586/src/pdm/formats/pylock.py#L65). This is a constructed workflow, not a measurement of PDM itself.
+
+The larger flat arrays improve clearly. Small arrays and wheel records are mixed, so I wouldn't claim this speeds up every document. All the results are below, including the slower ones.
+
+The expanded run also covers generators, nested tables, edits to existing documents, and lots of separate small arrays. Middle/front inserts and parsing an unchanged document are included as controls.
+
+Measurements: Python 3.15.0, Windows, Intel Core i5-13420H. Each row is the median of five paired timing samples on that same CPU pair. Short calls are batched. Only one process runs, allowed on two physical cores at a time, with the pairs rotated. The masks are kept separate because this CPU has different core types. Run order alternates on successive visits to each pair.
+
+Peak figures are medians of five separate tracemalloc runs, not total process RAM. A separate memory run is shared by the 4 timing rows for a workload. Small timing differences on this laptop should not be treated as guaranteed gains or losses.
+
+Base commit: 19edc23b0244e1546abbf3b7890c3d8a0deeaf81. Fixture loading is outside the warm measurements. The Django archive is version 6.1.2, SHA-256 a1e92451ccb8b514e91bbb3b6d186d20b4030558f116b5d9de6535455ff210b7.
+
+All 26 workloads and 104 table rows are included, including slower results.
+
+<!-- complete: 26/26 workloads -->
+Full [benchmark scripts, fixture details and raw samples](https://gist.github.com/harshitgupta31415/bda64cbad1eb7eef9b0db99be8f0ddbf) are available here.
+
+<details>
+<summary>All complete TOML-writing benchmarks</summary>
+
+| Case | Core mask | Base time | PR time | Speed | Base peak | PR peak | Memory |
+|---|---|---:|---:|---|---:|---:|---|
+| write 0 manifest paths | 0xf | 0.036 ms | 0.032 ms | 1.118x faster | 4.500 KiB | 4.500 KiB | same to 3 decimals |
+| write 0 manifest paths | 0xf0 | 0.027 ms | 0.031 ms | 1.128x slower | 4.500 KiB | 4.500 KiB | same to 3 decimals |
+| write 0 manifest paths | 0x300 | 0.084 ms | 0.084 ms | 1.000x faster | 4.500 KiB | 4.500 KiB | same to 3 decimals |
+| write 0 manifest paths | 0xc00 | 0.084 ms | 0.084 ms | 1.001x faster | 4.500 KiB | 4.500 KiB | same to 3 decimals |
+| write 1 manifest paths | 0xf | 0.053 ms | 0.052 ms | 1.018x faster | 11.969 KiB | 11.969 KiB | same to 3 decimals |
+| write 1 manifest paths | 0xf0 | 0.073 ms | 0.067 ms | 1.096x faster | 11.969 KiB | 11.969 KiB | same to 3 decimals |
+| write 1 manifest paths | 0x300 | 0.158 ms | 0.164 ms | 1.041x slower | 11.969 KiB | 11.969 KiB | same to 3 decimals |
+| write 1 manifest paths | 0xc00 | 0.158 ms | 0.154 ms | 1.027x faster | 11.969 KiB | 11.969 KiB | same to 3 decimals |
+| write 2 manifest paths | 0xf | 0.098 ms | 0.073 ms | 1.350x faster | 12.630 KiB | 12.630 KiB | same to 3 decimals |
+| write 2 manifest paths | 0xf0 | 0.076 ms | 0.099 ms | 1.308x slower | 12.630 KiB | 12.630 KiB | same to 3 decimals |
+| write 2 manifest paths | 0x300 | 0.223 ms | 0.214 ms | 1.042x faster | 12.630 KiB | 12.630 KiB | same to 3 decimals |
+| write 2 manifest paths | 0xc00 | 0.220 ms | 0.221 ms | 1.004x slower | 12.630 KiB | 12.630 KiB | same to 3 decimals |
+| write 10 manifest paths | 0xf | 0.263 ms | 0.286 ms | 1.089x slower | 16.462 KiB | 16.462 KiB | same to 3 decimals |
+| write 10 manifest paths | 0xf0 | 0.248 ms | 0.231 ms | 1.073x faster | 16.462 KiB | 16.462 KiB | same to 3 decimals |
+| write 10 manifest paths | 0x300 | 0.710 ms | 0.706 ms | 1.006x faster | 16.462 KiB | 16.462 KiB | same to 3 decimals |
+| write 10 manifest paths | 0xc00 | 0.710 ms | 0.682 ms | 1.040x faster | 16.462 KiB | 16.462 KiB | same to 3 decimals |
+| write 25 manifest paths | 0xf | 0.526 ms | 0.499 ms | 1.054x faster | 23.737 KiB | 23.737 KiB | same to 3 decimals |
+| write 25 manifest paths | 0xf0 | 0.557 ms | 0.486 ms | 1.145x faster | 23.737 KiB | 23.737 KiB | same to 3 decimals |
+| write 25 manifest paths | 0x300 | 1.732 ms | 1.547 ms | 1.120x faster | 23.737 KiB | 23.737 KiB | same to 3 decimals |
+| write 25 manifest paths | 0xc00 | 1.725 ms | 1.611 ms | 1.071x faster | 23.737 KiB | 23.737 KiB | same to 3 decimals |
+| write 100 manifest paths | 0xf | 3.173 ms | 2.007 ms | 1.581x faster | 72.508 KiB | 72.508 KiB | same to 3 decimals |
+| write 100 manifest paths | 0xf0 | 2.858 ms | 1.853 ms | 1.543x faster | 72.508 KiB | 72.508 KiB | same to 3 decimals |
+| write 100 manifest paths | 0x300 | 7.759 ms | 5.958 ms | 1.302x faster | 72.508 KiB | 72.508 KiB | same to 3 decimals |
+| write 100 manifest paths | 0xc00 | 7.845 ms | 6.542 ms | 1.199x faster | 72.508 KiB | 72.508 KiB | same to 3 decimals |
+| write 250 manifest paths | 0xf | 7.818 ms | 4.729 ms | 1.653x faster | 174.785 KiB | 174.785 KiB | same to 3 decimals |
+| write 250 manifest paths | 0xf0 | 9.134 ms | 4.773 ms | 1.913x faster | 174.785 KiB | 174.785 KiB | same to 3 decimals |
+| write 250 manifest paths | 0x300 | 26.124 ms | 14.409 ms | 1.813x faster | 174.785 KiB | 174.785 KiB | same to 3 decimals |
+| write 250 manifest paths | 0xc00 | 23.662 ms | 14.595 ms | 1.621x faster | 174.785 KiB | 174.785 KiB | same to 3 decimals |
+| write 500 manifest paths | 0xf | 25.018 ms | 9.818 ms | 2.548x faster | 351.429 KiB | 351.429 KiB | same to 3 decimals |
+| write 500 manifest paths | 0xf0 | 29.767 ms | 9.593 ms | 3.103x faster | 351.429 KiB | 351.429 KiB | same to 3 decimals |
+| write 500 manifest paths | 0x300 | 69.236 ms | 31.138 ms | 2.224x faster | 351.429 KiB | 351.429 KiB | same to 3 decimals |
+| write 500 manifest paths | 0xc00 | 71.301 ms | 29.885 ms | 2.386x faster | 351.429 KiB | 351.429 KiB | same to 3 decimals |
+| write 1000 manifest paths | 0xf | 73.288 ms | 22.478 ms | 3.260x faster | 722.788 KiB | 722.788 KiB | same to 3 decimals |
+| write 1000 manifest paths | 0xf0 | 66.965 ms | 19.303 ms | 3.469x faster | 722.788 KiB | 722.788 KiB | same to 3 decimals |
+| write 1000 manifest paths | 0x300 | 212.781 ms | 60.492 ms | 3.518x faster | 722.788 KiB | 722.788 KiB | same to 3 decimals |
+| write 1000 manifest paths | 0xc00 | 207.338 ms | 59.348 ms | 3.494x faster | 722.788 KiB | 722.788 KiB | same to 3 decimals |
+| write 2000 manifest paths | 0xf | 257.146 ms | 41.671 ms | 6.171x faster | 1518.357 KiB | 1518.295 KiB | same to 3 decimals |
+| write 2000 manifest paths | 0xf0 | 263.229 ms | 39.948 ms | 6.589x faster | 1518.357 KiB | 1518.295 KiB | same to 3 decimals |
+| write 2000 manifest paths | 0x300 | 761.558 ms | 130.852 ms | 5.820x faster | 1518.357 KiB | 1518.295 KiB | same to 3 decimals |
+| write 2000 manifest paths | 0xc00 | 731.303 ms | 125.769 ms | 5.815x faster | 1518.357 KiB | 1518.295 KiB | same to 3 decimals |
+| write 3000 manifest paths | 0xf | 563.811 ms | 67.644 ms | 8.335x faster | 2347.630 KiB | 2347.567 KiB | same to 3 decimals |
+| write 3000 manifest paths | 0xf0 | 566.297 ms | 59.548 ms | 9.510x faster | 2347.630 KiB | 2347.567 KiB | same to 3 decimals |
+| write 3000 manifest paths | 0x300 | 1672.554 ms | 213.157 ms | 7.847x faster | 2347.630 KiB | 2347.567 KiB | same to 3 decimals |
+| write 3000 manifest paths | 0xc00 | 1693.887 ms | 189.978 ms | 8.916x faster | 2347.630 KiB | 2347.567 KiB | same to 3 decimals |
+| write 1 NumPy wheel records | 0xf | 0.487 ms | 0.428 ms | 1.139x faster | 15.204 KiB | 15.204 KiB | same to 3 decimals |
+| write 1 NumPy wheel records | 0xf0 | 0.447 ms | 0.478 ms | 1.070x slower | 15.204 KiB | 15.204 KiB | same to 3 decimals |
+| write 1 NumPy wheel records | 0x300 | 1.067 ms | 0.767 ms | 1.390x faster | 15.204 KiB | 15.204 KiB | same to 3 decimals |
+| write 1 NumPy wheel records | 0xc00 | 0.765 ms | 0.854 ms | 1.117x slower | 15.204 KiB | 15.204 KiB | same to 3 decimals |
+| write 10 NumPy wheel records | 0xf | 3.366 ms | 3.138 ms | 1.073x faster | 76.193 KiB | 76.193 KiB | same to 3 decimals |
+| write 10 NumPy wheel records | 0xf0 | 2.935 ms | 3.017 ms | 1.028x slower | 76.193 KiB | 76.193 KiB | same to 3 decimals |
+| write 10 NumPy wheel records | 0x300 | 6.201 ms | 6.010 ms | 1.032x faster | 76.193 KiB | 76.193 KiB | same to 3 decimals |
+| write 10 NumPy wheel records | 0xc00 | 6.462 ms | 5.980 ms | 1.081x faster | 76.193 KiB | 76.193 KiB | same to 3 decimals |
+| write 65 NumPy wheel records | 0xf | 23.189 ms | 19.383 ms | 1.196x faster | 408.366 KiB | 408.366 KiB | same to 3 decimals |
+| write 65 NumPy wheel records | 0xf0 | 21.923 ms | 20.176 ms | 1.087x faster | 408.366 KiB | 408.366 KiB | same to 3 decimals |
+| write 65 NumPy wheel records | 0x300 | 42.335 ms | 37.756 ms | 1.121x faster | 408.366 KiB | 408.366 KiB | same to 3 decimals |
+| write 65 NumPy wheel records | 0xc00 | 42.272 ms | 45.111 ms | 1.067x slower | 408.366 KiB | 408.366 KiB | same to 3 decimals |
+| append 10 paths to commented array | 0xf | 0.687 ms | 0.656 ms | 1.047x faster | 19.394 KiB | 19.394 KiB | same to 3 decimals |
+| append 10 paths to commented array | 0xf0 | 0.636 ms | 0.694 ms | 1.091x slower | 19.394 KiB | 19.394 KiB | same to 3 decimals |
+| append 10 paths to commented array | 0x300 | 1.263 ms | 1.229 ms | 1.028x faster | 19.394 KiB | 19.394 KiB | same to 3 decimals |
+| append 10 paths to commented array | 0xc00 | 1.204 ms | 1.228 ms | 1.020x slower | 19.394 KiB | 19.394 KiB | same to 3 decimals |
+| append 100 paths to commented array | 0xf | 6.307 ms | 5.327 ms | 1.184x faster | 87.375 KiB | 87.375 KiB | same to 3 decimals |
+| append 100 paths to commented array | 0xf0 | 6.140 ms | 4.641 ms | 1.323x faster | 87.375 KiB | 87.375 KiB | same to 3 decimals |
+| append 100 paths to commented array | 0x300 | 12.495 ms | 9.504 ms | 1.315x faster | 87.375 KiB | 87.375 KiB | same to 3 decimals |
+| append 100 paths to commented array | 0xc00 | 11.707 ms | 10.419 ms | 1.124x faster | 87.375 KiB | 87.375 KiB | same to 3 decimals |
+| append 1000 paths to commented array | 0xf | 148.266 ms | 45.910 ms | 3.229x faster | 681.976 KiB | 681.976 KiB | same to 3 decimals |
+| append 1000 paths to commented array | 0xf0 | 149.093 ms | 48.393 ms | 3.081x faster | 681.976 KiB | 681.976 KiB | same to 3 decimals |
+| append 1000 paths to commented array | 0x300 | 320.367 ms | 105.715 ms | 3.030x faster | 681.976 KiB | 681.976 KiB | same to 3 decimals |
+| append 1000 paths to commented array | 0xc00 | 283.171 ms | 108.237 ms | 2.616x faster | 681.976 KiB | 681.976 KiB | same to 3 decimals |
+| extend commented array with 1000-path generator | 0xf | 133.066 ms | 36.651 ms | 3.631x faster | 638.565 KiB | 638.565 KiB | same to 3 decimals |
+| extend commented array with 1000-path generator | 0xf0 | 140.143 ms | 39.084 ms | 3.586x faster | 638.565 KiB | 638.565 KiB | same to 3 decimals |
+| extend commented array with 1000-path generator | 0x300 | 272.246 ms | 79.868 ms | 3.409x faster | 638.565 KiB | 638.565 KiB | same to 3 decimals |
+| extend commented array with 1000-path generator | 0xc00 | 258.243 ms | 79.667 ms | 3.242x faster | 638.565 KiB | 638.565 KiB | same to 3 decimals |
+| add 100 paths to existing 1000-path document | 0xf | 34.562 ms | 18.863 ms | 1.832x faster | 1045.595 KiB | 1045.532 KiB | same to 3 decimals |
+| add 100 paths to existing 1000-path document | 0xf0 | 61.766 ms | 33.252 ms | 1.858x faster | 1045.595 KiB | 1045.532 KiB | same to 3 decimals |
+| add 100 paths to existing 1000-path document | 0x300 | 114.952 ms | 68.891 ms | 1.669x faster | 1045.595 KiB | 1045.532 KiB | same to 3 decimals |
+| add 100 paths to existing 1000-path document | 0xc00 | 85.196 ms | 58.987 ms | 1.444x faster | 1045.595 KiB | 1045.532 KiB | same to 3 decimals |
+| add 1 path to existing 3000-path document | 0xf | 145.270 ms | 84.893 ms | 1.711x faster | 3115.318 KiB | 3115.256 KiB | same to 3 decimals |
+| add 1 path to existing 3000-path document | 0xf0 | 107.174 ms | 95.458 ms | 1.123x faster | 3115.318 KiB | 3115.256 KiB | same to 3 decimals |
+| add 1 path to existing 3000-path document | 0x300 | 219.410 ms | 229.759 ms | 1.047x slower | 3115.318 KiB | 3115.256 KiB | same to 3 decimals |
+| add 1 path to existing 3000-path document | 0xc00 | 224.398 ms | 248.982 ms | 1.110x slower | 3115.318 KiB | 3115.256 KiB | same to 3 decimals |
+| write nested table with 100 paths | 0xf | 9.048 ms | 5.232 ms | 1.729x faster | 79.975 KiB | 79.975 KiB | same to 3 decimals |
+| write nested table with 100 paths | 0xf0 | 8.492 ms | 4.980 ms | 1.705x faster | 79.975 KiB | 79.975 KiB | same to 3 decimals |
+| write nested table with 100 paths | 0x300 | 16.793 ms | 8.600 ms | 1.953x faster | 79.975 KiB | 79.975 KiB | same to 3 decimals |
+| write nested table with 100 paths | 0xc00 | 13.581 ms | 8.893 ms | 1.527x faster | 79.975 KiB | 79.975 KiB | same to 3 decimals |
+| write nested table with 1000 paths | 0xf | 290.210 ms | 47.474 ms | 6.113x faster | 730.255 KiB | 730.255 KiB | same to 3 decimals |
+| write nested table with 1000 paths | 0xf0 | 314.502 ms | 45.687 ms | 6.884x faster | 730.255 KiB | 730.255 KiB | same to 3 decimals |
+| write nested table with 1000 paths | 0x300 | 585.917 ms | 90.791 ms | 6.453x faster | 730.255 KiB | 730.255 KiB | same to 3 decimals |
+| write nested table with 1000 paths | 0xc00 | 721.954 ms | 89.098 ms | 8.103x faster | 730.255 KiB | 730.255 KiB | same to 3 decimals |
+| write 50 separate 10-path arrays | 0xf | 25.279 ms | 21.796 ms | 1.160x faster | 342.901 KiB | 342.901 KiB | same to 3 decimals |
+| write 50 separate 10-path arrays | 0xf0 | 26.198 ms | 23.660 ms | 1.107x faster | 342.901 KiB | 342.901 KiB | same to 3 decimals |
+| write 50 separate 10-path arrays | 0x300 | 48.052 ms | 45.763 ms | 1.050x faster | 342.901 KiB | 342.901 KiB | same to 3 decimals |
+| write 50 separate 10-path arrays | 0xc00 | 50.064 ms | 47.269 ms | 1.059x faster | 342.901 KiB | 342.901 KiB | same to 3 decimals |
+| insert 100 paths in middle (control) | 0xf | 8.506 ms | 7.750 ms | 1.097x faster | 95.969 KiB | 95.969 KiB | same to 3 decimals |
+| insert 100 paths in middle (control) | 0xf0 | 8.026 ms | 8.602 ms | 1.072x slower | 95.969 KiB | 95.969 KiB | same to 3 decimals |
+| insert 100 paths in middle (control) | 0x300 | 16.686 ms | 16.040 ms | 1.040x faster | 95.969 KiB | 95.969 KiB | same to 3 decimals |
+| insert 100 paths in middle (control) | 0xc00 | 16.859 ms | 18.088 ms | 1.073x slower | 95.969 KiB | 95.969 KiB | same to 3 decimals |
+| insert 100 paths at front (control) | 0xf | 8.446 ms | 7.431 ms | 1.137x faster | 94.586 KiB | 94.586 KiB | same to 3 decimals |
+| insert 100 paths at front (control) | 0xf0 | 7.875 ms | 8.029 ms | 1.019x slower | 94.586 KiB | 94.586 KiB | same to 3 decimals |
+| insert 100 paths at front (control) | 0x300 | 15.925 ms | 15.018 ms | 1.060x faster | 94.586 KiB | 94.586 KiB | same to 3 decimals |
+| insert 100 paths at front (control) | 0xc00 | 14.617 ms | 14.647 ms | 1.002x slower | 94.586 KiB | 94.586 KiB | same to 3 decimals |
+| parse/rewrite 1000-path document (control) | 0xf | 33.245 ms | 30.098 ms | 1.105x faster | 969.526 KiB | 969.526 KiB | same to 3 decimals |
+| parse/rewrite 1000-path document (control) | 0xf0 | 34.099 ms | 27.996 ms | 1.218x faster | 969.526 KiB | 969.526 KiB | same to 3 decimals |
+| parse/rewrite 1000-path document (control) | 0x300 | 53.572 ms | 64.450 ms | 1.203x slower | 969.526 KiB | 969.526 KiB | same to 3 decimals |
+| parse/rewrite 1000-path document (control) | 0xc00 | 56.627 ms | 57.073 ms | 1.008x slower | 969.526 KiB | 969.526 KiB | same to 3 decimals |
+
+</details>
+
+"""

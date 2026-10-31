@@ -1,0 +1,49 @@
+base = { repo = "tomlkit", commit = "2279e18aacb8504a3d153ea623ad6f3edcf15cfe" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "test: add coverage for tomlkit._types wrapper operators"
+pr = "https://github.com/python-poetry/tomlkit/pull/570"
+from = "2279e18aacb8504a3d153ea623ad6f3edcf15cfe"
+to = "5fe4329fee7943d2376104e5977f3e3baa6d6abd"
+body = """
+## Summary
+
+`tomlkit/_types.py` was sitting at 60% coverage. The uncovered part is `_CustomList.__add__`/`__iadd__`, `_CustomDict.__or__`/`__ior__`, and the `wrap_method` helper — the machinery every `Array` and table type relies on to get list/dict operator support. None of it had a direct test.
+
+While writing these I noticed something worth calling out: `Array + [...]` returns a plain `list`, not an `Array` (the `.copy()` in `__add__` doesn't preserve the subclass), whereas `Table | {...}` does come back as a `Table`. That's existing behavior, not something I changed — I just added a test that pins it down instead of leaving it implicit. Worth a look if that asymmetry wasn't intentional, but out of scope for a coverage PR.
+
+`wrap_method` isn't called anywhere in the current codebase but is exported in `__all__`, so I tested it directly against a small stand-in class.
+
+`_types.py` coverage: 60% → 100%. Full suite (1057 tests) still green, ruff and mypy --strict both clean.
+
+## Agent Drafting Metadata
+
+- Agent: Claude Code
+- Model: claude-sonnet-5
+- Notes: I used Claude Code to find the coverage gap and draft these tests. Ran the full test suite, ruff, and mypy myself before pushing, and read through the diff.
+"""
+
+[b]
+title = "escape or reject a bare carriage return in multiline strings"
+pr = "https://github.com/python-poetry/tomlkit/pull/539"
+from = "5fe4329fee7943d2376104e5977f3e3baa6d6abd"
+to = "096148f8947adbfbae7b36bce356a3da7fc1dbf1"
+body = """
+## Summary
+
+1. `String.from_raw` builds a multiline basic string by escaping every control character except a line feed and a carriage return, so a lone CR (one that is not the CR of a CRLF pair) is written out raw.
+2. The multiline literal path drops that same CR from `invalid_sequences`, so a lone CR there is neither escaped nor rejected.
+3. Either way `tomlkit.string(value, multiline=True)` and its literal variant emit a document with a raw lone CR, which the tomlkit parser and the stdlib `tomllib` both reject as a control character, so the value stops round-tripping.
+4. Escape a lone CR as `\\r` for multiline basic strings, and raise `InvalidStringError` for multiline literal strings; LF and CRLF line endings are left untouched.
+
+## Agent Drafting Metadata
+
+- Agent: Claude Code
+- Model: Claude (Anthropic)
+- Notes: AI tooling helped find the bug and draft the fix and tests. The root cause, the change, and the tests were reviewed and validated by the author before submission (the new cases fail on the unpatched tree, and the full suite passes with the patch), and the author is responsible for what is submitted.
+
+"""

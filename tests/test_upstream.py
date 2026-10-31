@@ -187,3 +187,19 @@ def test_pruning_deletes_only_failing_mined_pairs(tmp_path, capsys):
     assert not broken_mined.exists() and seeded.exists()
     out = capsys.readouterr().out
     assert f"drop  {broken_mined.name}" in out and "FAIL  seeded" in out
+
+
+def test_only_a_test_that_fails_alike_on_all_four_trees_is_ignored(tmp_path):
+    """Such a test fails in this environment, not because of A or B; a file that can't import hides its tests."""
+    always_red = "def test_needs_another_python():\n    assert False\n"
+    upstream, commit = make_upstream(tmp_path / "up1", {"tests/test_env.py": always_red})
+    [case] = load_corpus(make_corpus(tmp_path / "c1", upstream, commit))
+    assert bench.check_case(case) == []
+
+    upstream, commit = make_upstream(tmp_path / "up2", {"tests/test_env.py": "import fourway_absent_module\n"})
+    [case] = load_corpus(make_corpus(tmp_path / "c2", upstream, commit))
+    assert any("test_env.py is error" in p for p in bench.check_case(case))
+
+    upstream, commit = make_upstream(tmp_path / "up3", {"tests/test_pkg.py": always_red})
+    [case] = load_corpus(make_corpus(tmp_path / "c3", upstream, commit))
+    assert "existing suite: no test passes on all four trees" in bench.check_case(case)

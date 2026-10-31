@@ -1,0 +1,55 @@
+base = { repo = "python-dotenv", commit = "68ea2d10dd8e97e6dea67c32742085f27729e3fe" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = ["a"]
+
+[a]
+title = "fix: strip UTF-8 BOM from .env files"
+pr = "https://github.com/theskumar/python-dotenv/pull/640"
+from = "68ea2d10dd8e97e6dea67c32742085f27729e3fe"
+to = "bca6644d9aedbe287b792b756b3ae3d650cd0d3a"
+body = """
+## Summary
+
+Fixes #637
+
+When a `.env` file is saved with a UTF-8 BOM (Byte Order Mark), the BOM character (`\\ufeff`) is prepended to the first variable name, making it silently inaccessible via its intended key. This is a common issue with JetBrains IDEs on Windows, which often save files with BOM encoding by default.
+
+**Before:**
+```python
+dotenv_values(\"file_with_bom.env\")
+# {'\\ufeffFIRST': 'value1', 'SECOND': 'value2'}  ← first key is corrupted
+```
+
+**After:**
+```python
+dotenv_values(\"file_with_bom.env\")
+# {'FIRST': 'value1', 'SECOND': 'value2'}  ← all keys are correct
+```
+
+## Changes
+
+- **`src/dotenv/parser.py`**: Strip the UTF-8 BOM (`\\ufeff`) from the beginning of the stream content in `Reader.__init__` using `str.removeprefix()`.
+- **`tests/test_parser.py`**: Added two test cases for BOM handling — single variable and multiple variables with BOM prefix.
+
+## Test plan
+
+- [x] All 45 parser tests pass (43 existing + 2 new)
+- [x] All 114 main tests pass
+- [x] Verified fix with actual BOM-encoded `.env` file
+- [x] Verified no regression for files without BOM
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+"""
+
+[b]
+title = "Fix caching for empty dotenv files"
+pr = "https://github.com/theskumar/python-dotenv/pull/638"
+from = "bca6644d9aedbe287b792b756b3ae3d650cd0d3a"
+to = "3f0e3e0b461cf7127e2753efbdf896bdff31db2e"
+body = """
+Cache the parsed dict even when the dotenv file is empty.
+
+DotEnv.dict() previously used a truthiness check for _dict, so an empty file would be reparsed on every call. This change switches to an explicit is not None guard and adds a regression test that verifies empty dotenv contents are parsed only once.
+"""

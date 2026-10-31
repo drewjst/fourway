@@ -1,0 +1,51 @@
+base = { repo = "tomlkit", commit = "231370c1a98739d57a9ca36d710a26f19ac83570" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "reject surrogate code points in \\U unicode escapes"
+pr = "https://github.com/python-poetry/tomlkit/pull/493"
+from = "231370c1a98739d57a9ca36d710a26f19ac83570"
+to = "b1399c30804f599ddecceb904dc57bd71bd10b3b"
+body = """
+1. `_peek_unicode` detects surrogates from the first two hex digits, which only matches the 4-digit `\\u` form.
+2. The 8-digit `\\U` form reaches the surrogate range with leading zeros (`\\U0000D800`), so the check is skipped and the escape is accepted as a lone surrogate that fails UTF-8 encoding.
+3. Test the decoded code point against U+D800..U+DFFF instead, so both forms are rejected with `InvalidUnicodeValueError`.
+
+Valid boundaries (U+D7FF, U+E000) and astral code points still parse; added a regression test.
+"""
+
+[b]
+title = "Scan character runs in bulk while parsing"
+pr = "https://github.com/python-poetry/tomlkit/pull/490"
+from = "5ceae3e5535311671e8cf1b3edb6ccc83771e98f"
+to = "ce58a1dbf8692c631bd64826e60f09c45fa7fb25"
+body = """
+> **Stacked on #489** — the first commit here is #489 (index-based `Source`). Best reviewed/merged after #489; GitHub will collapse this to just the bulk-scan commit once #489 lands. Happy to rebase on request.
+
+## What
+
+The parser advances one character at a time through runs of whitespace, bare-key and number characters, paying a `Source.inc()` call (attribute lookups + a `TOMLChar` build + bounds check) for **every** character of the run.
+
+This adds `Source.advance_while(charset)` / `advance_until(stopset)`, which scan the underlying string in a single pass and update the index + current character only once, and uses them for the leading-whitespace, bare-key and number/date runs. They keep the exact value contract of the `while ... and self.inc()` loops they replace (on return `current` is the first character outside / inside the set, or EOF).
+
+## Benchmarks
+
+Parsing speedup across document sizes/shapes (median, interleaved A/B vs `master`, includes #489):
+
+| document | speedup |
+|---|---|
+| typical mixed (~4 KB) | 1.32× |
+| poetry.lock-like (~64 KB) | 1.26× |
+| pyproject.toml | 1.17× |
+| array-heavy | 1.16× |
+| large flat (~90 KB) | 1.15× |
+
+No regression on any shape.
+
+## Tests
+
+Full suite passes (972 tests, incl. the toml-test conformance submodule). No public API or behaviour change — round-trip output is byte-identical to `master` on a varied corpus.
+"""

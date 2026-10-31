@@ -1,0 +1,4 @@
+url = "https://github.com/pytoolz/toolz"
+license = "BSD-3-Clause"
+tests = "toolz/tests"
+packages = ["toolz/", "tlz/"]

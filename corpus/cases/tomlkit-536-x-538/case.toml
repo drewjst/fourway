@@ -1,0 +1,50 @@
+base = { repo = "tomlkit", commit = "76bb47aec93e8928b894f59d062be3adf6bdb36e" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Represent out-of-order table proxies with merged values"
+pr = "https://github.com/python-poetry/tomlkit/pull/536"
+from = "76bb47aec93e8928b894f59d062be3adf6bdb36e"
+to = "cc05afa962244b3d1c781a7fc54f66b7f29ef8b7"
+body = """
+Fixes https://github.com/python-poetry/tomlkit/issues/439.
+
+## Summary
+- make OutOfOrderTableProxy string/repr output use the merged internal container value
+- add a regression test for two dotted-key fragments under the same out-of-order proxy
+
+## Verification
+- uv run --no-project --with pytest --with pyyaml python -m pytest tests/test_toml_document.py::test_repr_out_of_order_table_proxy tests/test_toml_document.py::test_repr tests/test_toml_document.py::test_out_of_order_tables_are_still_dicts -q
+- uv run --no-project --with pytest --with pyyaml python -m pytest -q
+- uv run --no-project --with ruff ruff check tomlkit/container.py tests/test_toml_document.py
+- uv run --no-project --with ruff ruff format --check tomlkit/container.py tests/test_toml_document.py
+- python -m compileall tomlkit/container.py tests/test_toml_document.py
+- git diff --check
+"""
+
+[b]
+title = "reject overlong decimal integer instead of coercing to inf"
+pr = "https://github.com/python-poetry/tomlkit/pull/538"
+from = "cc05afa962244b3d1c781a7fc54f66b7f29ef8b7"
+to = "b48c094775fba4cb3c16dea4c302ae5e371ac4e9"
+body = """
+## Summary
+
+1. `_parse_number` runs `int(sign + clean, base)` inside a `try/except ValueError` that, on failure, falls back to `float(sign + clean)`.
+2. A decimal integer literal with more digits than Python's int-from-string limit (4300 by default) makes `int()` raise `ValueError`, so the literal is parsed as a float instead. A long run of digits ends up as `inf`, so `a = 9999...` (4301+ digits) silently returns a float `inf` rather than being rejected as an out-of-range integer.
+3. Restrict the float fallback to literals that are actually float-shaped (a fractional dot, a base-10 exponent, or inf/nan). An integer that `int()` cannot parse now returns `None`, so the parser raises `InvalidNumberError`. Hex/oct/bin literals (no digit limit) and all valid float literals are unaffected.
+
+Repro: `tomlkit.parse(\"a = \" + \"9\" * 4301)[\"a\"]` returns float `inf` before the change; it raises `InvalidNumberError` after. The 4300-digit value still parses as an `Integer`.
+
+
+## Agent Drafting Metadata
+
+<!-- Fill this section if an AI agent helped draft this PR. -->
+- Agent:
+- Model:
+- Notes:
+
+"""

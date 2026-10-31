@@ -24,6 +24,8 @@ norecursedirs = ["corpus"]
 [dependency-groups]
 dev = [
     # Upstream test dependencies, so corpus repositories' own suites run. tenacity's
-    # tests import typeguard at every commit from 2017 until 2026-08 (jd/tenacity#673).
+    # tests import typeguard at every commit from 2017 until 2026-08 (jd/tenacity#673),
+    # and python-dotenv's conftest imports click.
+    "click>=8.5.0",
     "typeguard>=4.6.0",
 ]

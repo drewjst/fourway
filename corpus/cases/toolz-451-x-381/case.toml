@@ -1,0 +1,27 @@
+base = { repo = "toolz", commit = "639043e5ead3c78ade96890336ffe33f9a8d6bb6" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Add pipeline() function"
+pr = "https://github.com/pytoolz/toolz/pull/451"
+from = "639043e5ead3c78ade96890336ffe33f9a8d6bb6"
+to = "e8989cfa715c0c673d3748534a768adf4a79dea4"
+body = """
+Fulfils https://github.com/pytoolz/toolz/issues/369.
+
+- [x] Create `pipeline()` function, which is equivalent to `compose()`, but with the functions composed left-to-right.
+- [x] Write tests for `pipeline()` function.
+- [x] Refactor of the tests for `compose()`, so that we can programmatically ensure that `compose()` and `pipeline()` have equivalent tests.
+"""
+
+[b]
+title = "Added peekn"
+pr = "https://github.com/pytoolz/toolz/pull/381"
+from = "e8989cfa715c0c673d3748534a768adf4a79dea4"
+to = "020161bd1d2820695ac9b56b9debe43b24cbe629"
+body = """
+This function is like `toolz.itertoolz.peek`, but for multiple items.
+"""

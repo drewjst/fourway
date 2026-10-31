@@ -1,0 +1,25 @@
+base = { repo = "toolz", commit = "28945526c46d7e1a0dcd6599aa77709fd6d6ed0d" }
+label = "clean"
+class = "mined, other files"
+runtime = ["b"]
+assisted = []
+
+[a]
+title = "Fix simple typo: sequencies -> sequences"
+pr = "https://github.com/pytoolz/toolz/pull/478"
+from = "28945526c46d7e1a0dcd6599aa77709fd6d6ed0d"
+to = "4cb8fb34ef725287050695a8d6e140d505ad87ef"
+body = """
+Closes #477
+
+
+"""
+
+[b]
+title = "Ignore missing __file__"
+pr = "https://github.com/pytoolz/toolz/pull/476"
+from = "4cb8fb34ef725287050695a8d6e140d505ad87ef"
+to = "afef2c1d2040aa7b59195db8a42587e10ab7656e"
+body = """
+
+"""

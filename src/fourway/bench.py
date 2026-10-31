@@ -75,7 +75,15 @@ def check_case(case: Case) -> list[str]:
         suite = runner.run_four_way(trees, case.suite.tests, work / "suite-reports", suite=case.suite)
         if not suite:
             problems.append(f"existing suite: no tests ran from {case.suite.tests!r}")
+        elif not any(set(by_variant.values()) == {"passed"} for by_variant in suite.values()):
+            problems.append("existing suite: no test passes on all four trees")
         for test, by_variant in suite.items():
+            # A test that ran and failed the same way on all four trees fails in
+            # this environment, for example on a newer Python, and says nothing
+            # about A, B, or the merge. A file that fails to import still counts,
+            # because it hides every test in it.
+            if "::" in test and set(by_variant.values()) == {"failed"}:
+                continue
             for variant, outcome in by_variant.items():
                 # "missing" means the tree does not have the test, for example
                 # because one side deleted it, and a real repository skips tests
