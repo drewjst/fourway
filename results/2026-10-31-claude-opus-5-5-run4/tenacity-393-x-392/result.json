@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 56696,
+    "output_tokens": 2439,
+    "scenarios": {
+      "test_star_import_exports.py": {
+        "kind": "intent_a",
+        "rationale": "Change A adds retry_if_exception_cause_type and wait_exponential_jitter to __all__. A star import must expose them and they must be usable together in a Retrying run. Change B edits wait.py, where wait_exponential_jitter lives, so this checks the export still works alongside B's wait typing edit."
+      },
+      "test_wait_base_type_annotation.py": {
+        "kind": "intent_b",
+        "rationale": "Change B re-annotates WaitBaseT so its callable variant returns Union[float, int] instead of bool. The test inspects the alias at runtime and checks that the callable's return type is numeric."
+      },
+      "test_exports_and_custom_wait_invariants.py": {
+        "kind": "invariant",
+        "rationale": "Every tree must keep each name in __all__ resolvable on the package. Every tree must also keep plain callables that return float or int seconds working as wait strategies. A changed the export list and B changed the wait callable typing, so the merge must preserve both."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:2e85b34fa9bd22b10709144c491e9305ff42ce43d5c6f5675e06bdea1b269988",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "dd957442f71fdfaf990e1639e3250cb5d4afc5ce",
+      "a": "3fcf163b027e45c79ac6acd61f75b65d8831fbfd",
+      "b": "79061d86513a38ffff9c3a7c3926bac3df2fbe38",
+      "ab": "3e13b23f6fc5b54e273a724c9153f0a04c45aa90",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:bdaa0a9c3d927b0d44dc2b5e4a7b9c3949e8dc40ac5b20431da6467c1bffef2a"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_exports_and_custom_wait_invariants.py::test_callable_wait_returning_numbers_drives_sleep": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_exports_and_custom_wait_invariants.py::test_every_all_name_resolves": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_star_import_exports.py::test_all_lists_new_names": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_star_import_exports.py::test_star_import_exposes_and_works": {
+        "base": "failed",
+        "a": "failed",
+        "b": "failed",
+        "ab": "failed",
+        "finding": "inconclusive"
+      },
+      "fourway_scenarios/test_wait_base_type_annotation.py::test_wait_base_t_callable_returns_numeric": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_wait_base_type_annotation.py::test_wait_base_t_still_reachable_from_package": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:29:50.648780+00:00"
+  }
+}

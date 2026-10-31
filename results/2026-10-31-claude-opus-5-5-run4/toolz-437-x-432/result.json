@@ -1,0 +1,106 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 88752,
+    "output_tokens": 3256,
+    "scenarios": {
+      "test_signature_or_spec_none.py": {
+        "kind": "intent_a",
+        "rationale": "Change A makes signature_or_spec return None instead of the caught exception object, so the traceback and its frames are not kept alive. On base the function returns a TypeError instance for non-callables. This should still hold after B's sandbox docstring edit is merged."
+      },
+      "test_curry_introspection_still_works.py": {
+        "kind": "invariant",
+        "rationale": "Changing signature_or_spec's failure return value must not break curry's partial application, builtin-registry fallbacks, or curried namespaces, on any tree."
+      },
+      "test_unzip_docstring.py": {
+        "kind": "intent_b",
+        "rationale": "Change B rewrites the unzip docstring: it now says unzip handles an infinite outer seq and that the inner sequences cannot be infinite. The new wording must survive the merge with A."
+      },
+      "test_unzip_behavior.py": {
+        "kind": "invariant",
+        "rationale": "unzip's behavior and its doctests should stay correct on every tree. That includes lazily handling an infinite outer sequence, which is the behavior B's doc now claims."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:6ce0db8919d3aea337a0fb77b7fa514b4f7e74ba3ae46e43982cd2b6be0230f8",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "c97125a934a59c44605945f5b775f2d53564aa33",
+      "a": "240f5e6e9ef18401979f1ff1fdeb120533da1c88",
+      "b": "cd7debee3e53ad02652aafe55358e3cb66d89ab1",
+      "ab": "61970c61e8b27536c14aebcf490f334c73dc2c2c",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:294754c25e835144fc2ad0b538041b1bdc61adb0c1c4b732f860f3a255dd29ab"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_curry_introspection_still_works.py::test_curry_builtins_and_curried_namespace": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_curry_introspection_still_works.py::test_curry_partial_application_repeated": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_signature_or_spec_none.py::test_curry_does_not_cache_exception_objects": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_signature_or_spec_none.py::test_signature_or_spec_returns_none_for_uninspectable": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unzip_behavior.py::test_sandbox_core_doctests_pass": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unzip_behavior.py::test_unzip_infinite_outer_sequence_is_lazy": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unzip_docstring.py::test_unzip_docstring_describes_infinite_outer_sequence": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:19:14.969401+00:00"
+  }
+}

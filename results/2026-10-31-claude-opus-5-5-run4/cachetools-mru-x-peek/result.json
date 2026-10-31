@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": "ok",
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 83325,
+    "output_tokens": 4296,
+    "scenarios": {
+      "test_mru_peek.py": {
+        "kind": "intent_b",
+        "rationale": "Change B promises that peek() never counts as a use in caches that track use. MRUCache from change A tracks use and evicts the most recently used item. After the merge, peek() on an MRUCache must not change which item it evicts, must not call __missing__, and must not store anything. These tests fail on trees without peek(). They skip on the B-only tree, where MRUCache does not exist."
+      },
+      "test_mru_eviction_with_peek.py": {
+        "kind": "intent_a",
+        "rationale": "Change A promises that MRUCache evicts the most recently used item, tracking use the way LRUCache does. Change B adds peek(), which reads values without counting as a use. These tests mix plain reads, peeks and size-weighted inserts on an MRUCache. Eviction and popitem order must follow only the real uses. The tests fail on trees without MRUCache. They skip on the A-only tree, where peek() does not exist."
+      },
+      "test_cache_classes_invariants.py": {
+        "kind": "invariant",
+        "rationale": "Every tree must keep the exported API resolvable, and ordinary get() must still count as a use in every use-tracking cache that exists. Change A adds an export and change B adds a method next to get(). Neither may break the existing semantics after the merge. Both tests pass on the base."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:31a799f8b476f079e65eebd0930263d54a9b5215d526c3aaf8c22e936ec64f0e",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "2ab68ed14f6f23ad1f0acdeffb0dd12723580114",
+      "a": "b180b491e508957dc1933be8a3b8d41e917f5688",
+      "b": "a2e1674aefa66ee76a9913b4c10ac5fa3c53d0ac",
+      "ab": "65efdd1c9b6d8ee4c10618ecba39e2a5fb0b20e9",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:5b227811b1b7aeb287781bf4bc28d21302c12541bd84c8a803ef138f1727fe2e"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_cache_classes_invariants.py::test_all_exports_resolve": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_cache_classes_invariants.py::test_get_still_counts_as_use": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_mru_eviction_with_peek.py::test_mru_getsizeof_eviction_with_peek": {
+        "base": "failed",
+        "a": "skipped",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_mru_eviction_with_peek.py::test_mru_popitem_order_unaffected_by_peek": {
+        "base": "failed",
+        "a": "skipped",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_mru_peek.py::test_peek_does_not_count_as_use_in_mru": {
+        "base": "failed",
+        "a": "failed",
+        "b": "skipped",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_mru_peek.py::test_peek_missing_in_mru_subclass_does_not_store": {
+        "base": "failed",
+        "a": "failed",
+        "b": "skipped",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:20:26.367767+00:00"
+  }
+}

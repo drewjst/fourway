@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 57179,
+    "output_tokens": 4500,
+    "scenarios": {
+      "test_lru_none_values.py": {
+        "kind": "intent_a",
+        "rationale": "Change A makes LRUCache treat a stored None as present: __getitem__ returns it without raising KeyError, get() returns None rather than the default, and accessing the entry moves it to the MRU end. LRUCache is also the class behind the table query cache that change B's insert_multiple invalidates. These tests fail on trees without A."
+      },
+      "test_insert_multiple_mixed_ids.py": {
+        "kind": "intent_b",
+        "rationale": "Change B stops insert_multiple from reusing an explicit Document ID for an auto-assigned document in the same batch. The first test warms the LRUCache-backed query cache, which change A modifies, then checks that searches after the batch see both documents with distinct IDs. The second test starts with a primed _next_id on JSON storage and checks that later inserts continue past the batch. Both fail on trees without B."
+      },
+      "test_cache_invalidation_batch.py": {
+        "kind": "invariant",
+        "rationale": "These properties should hold on every tree. After any insert_multiple batch, including one that mixes explicit and auto IDs, cached query results must reflect the new documents and no existing document may be overwritten. The batch is chosen so no tree, base included, overwrites a document. LRUCache must also respect its capacity even when it stores None values, which is the code path change A rewrites."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:e7cfc220f3ee5a546ce8f8aaabe5ce2ca5e23a3a661e7f944af7242cf04b5d83",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "3b07bf2c554ee3aa5a87cb10b6a1185d90dc94ed",
+      "a": "353b055cde583fad3b58bbc640f85095c11c967a",
+      "b": "e457c876ea2f81ad2e7eca48ed671b23c37b4df2",
+      "ab": "462cf2534b775a797985ac44ceb1d2e44deec9e0",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:86b9f786fb45e25f5ed666baf21afbd14b7ab199ed6de2123582e382db23d3eb"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_cache_invalidation_batch.py::test_lru_capacity_respected_with_none_values": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_cache_invalidation_batch.py::test_query_cache_refreshed_after_mixed_batch": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_insert_multiple_mixed_ids.py::test_mixed_batch_after_primed_next_id_json": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_insert_multiple_mixed_ids.py::test_mixed_batch_with_warm_query_cache": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_lru_none_values.py::test_none_value_is_present_and_readable": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_lru_none_values.py::test_none_value_participates_in_lru_ordering": {
+        "base": "failed",
+        "a": "failed",
+        "b": "failed",
+        "ab": "failed",
+        "finding": "inconclusive"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:46:06.626277+00:00"
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 94342,
+    "output_tokens": 7077,
+    "scenarios": {
+      "test_frozendict_signature.py": {
+        "kind": "intent_a",
+        "rationale": "Change A registers frozendict in the builtins signature registry with dict-like call shapes. These tests check that the entry exists and gives dict semantics: no arguments, a single mapping, or keywords are valid, and two positional arguments are not. They also drive a signature-less callable through the public introspection helpers and curry, so the registry spec is checked on any Python version, not only 3.15."
+      },
+      "test_compose_annotations.py": {
+        "kind": "intent_b",
+        "rationale": "Change B exposes combined __annotations__ on Compose, built the same way as __signature__. These tests check the combined view when builtins and curried functions sit at either end of the composition. Those callables are introspected through the signature registry that change A extends, and the annotations must stay consistent with inspect.signature and typing.get_type_hints."
+      },
+      "test_introspection_invariants.py": {
+        "kind": "invariant",
+        "rationale": "Both changes touch the introspection machinery. A extends the builtin signature registry, and B adds class-level attributes and an optional annotationlib import to toolz.functoolz. Every public callable in toolz.functoolz must stay introspectable, and the registry-based introspection of Compose and composed callables must keep working on every tree."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:577866247e01176775e8f8d15565a0e2538237dd8b7b9b02603fc1107f8de4be",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "4aed7c94a53a9e1a1c42ba96317936b6cf3528cc",
+      "a": "be30fbb4712f1001b93b6800edec445ee3b39583",
+      "b": "8f219a3c45dfdbbb446887de5140105ac746e6c2",
+      "ab": "bf45a9a1cf47523cdc3461ff7ebfa6e3c77db2d3",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:5c047597b34d624c6e03eb50fca9d526197195ecba5f2cdd6b8fd93749e32222"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_compose_annotations.py::test_compose_annotations_basic_and_curried": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_compose_annotations.py::test_compose_annotations_with_builtin_mapping_constructors": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_frozendict_signature.py::test_frozendict_registry_entry_has_dict_semantics": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_frozendict_signature.py::test_frozendict_specs_drive_introspection_and_curry": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_introspection_invariants.py::test_compose_signature_and_registry_unchanged": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_introspection_invariants.py::test_functoolz_public_callables_remain_introspectable": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:21:08.467058+00:00"
+  }
+}

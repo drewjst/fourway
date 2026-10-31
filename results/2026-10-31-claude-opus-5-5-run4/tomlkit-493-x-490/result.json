@@ -1,0 +1,189 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 107098,
+    "output_tokens": 4484,
+    "scenarios": {
+      "test_surrogate_escapes_in_scanned_contexts.py": {
+        "kind": "intent_a",
+        "rationale": "Change A rejects 8-digit \\U escapes that land in the surrogate range. Change B rewrites how the parser moves through whitespace runs around keys, quoted keys, table headers and number/date values. These tests place surrogate \\U escapes in exactly those positions: indented keys, quoted keys followed by spaces, dotted keys, table headers, inline tables, arrays, multiline strings and lines after dates. They check that A's rejection still fires, with the correct line number, once B's bulk scanning is in place."
+      },
+      "test_unicode_escape_scanning_invariants.py": {
+        "kind": "invariant",
+        "rationale": "Every tree must keep parsing valid \\U escapes, including the boundaries U+D7FF and U+E000 and astral code points, inside contexts that B now scans in bulk. Those contexts are quoted keys with surrounding spaces, table headers, and numbers and dates on the following lines. Values must come out correctly and documents must round-trip byte for byte. Invalid hex digits and 4-digit surrogates must keep raising InvalidUnicodeValueError. All of this already holds on the base."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:fa52ebfb950bbdf281ec1ac1e3732e1ec369033b0bc4620f0b4085086bf39541",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "a69148f98c115ae7722b323d29da23bae4d7777c",
+      "a": "81583faa669f05817a8652bee6e80cb0f74cb3eb",
+      "b": "574b868817473a660b2d01d967c119a5e553ce57",
+      "ab": "401ce39c217268817595a5eb4c6d4d029213cfe4",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:5e86fe19cbf9e92c8ae08c0da7758ce0be7966bef479afa42b701224aa2ee735"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_error_reports_correct_line": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_rejected_in_keys[   \"\\\\U0000DFFF\"   =   1]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_rejected_in_keys[\"\\\\U0000D800\" = 1]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_rejected_in_keys[[\"\\\\U0000D800\"]\\nx = 1\\n]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_rejected_in_keys[[tbl]\\n  \"\\\\U0000DC00\"   = 2\\n]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_rejected_in_keys[a.\"\\\\U0000D800\".b = 1]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_rejected_in_keys[n = 1_000\\n\"\\\\U0000DBFF\"  = 3\\n]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_rejected_in_values[   a   =   \"\\\\U0000D800\"   # c]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_rejected_in_values[arr = [ 1, \"\\\\U0000DFFF\" ]]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_rejected_in_values[d = 1979-05-27\\ns = \"\\\\U0000D800\"\\n]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_rejected_in_values[dt = 1979-05-27 07:32:00Z\\n  s  =  \"\\\\U0000DFFF\"\\n]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_rejected_in_values[m = \"\"\"\\n\\\\U0000D800\"\"\"\\n]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_rejected_in_values[t = { k = \"\\\\U0000DC00\" }]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unicode_escape_scanning_invariants.py::test_astral_big_u_escape_in_table_header_and_following_values": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unicode_escape_scanning_invariants.py::test_boundary_big_u_escapes_parse_and_round_trip": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unicode_escape_scanning_invariants.py::test_invalid_and_short_surrogate_escapes_still_rejected[   a  =  \"\\\\uDFFF\"   # c]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unicode_escape_scanning_invariants.py::test_invalid_and_short_surrogate_escapes_still_rejected[  \"\\\\U0000ZZ00\"  = 1]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unicode_escape_scanning_invariants.py::test_invalid_and_short_surrogate_escapes_still_rejected[\"\\\\uD800\" = 1]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unicode_escape_scanning_invariants.py::test_invalid_and_short_surrogate_escapes_still_rejected[a = \"\\\\U0000GGGG\"]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unicode_escape_scanning_invariants.py::test_invalid_and_short_surrogate_escapes_still_rejected[t = { k = \"\\\\uDC00\" }]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:52:12.537645+00:00"
+  }
+}

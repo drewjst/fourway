@@ -1,0 +1,102 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 125549,
+    "output_tokens": 3090,
+    "scenarios": {
+      "test_string_add_escape_in_doc.py": {
+        "kind": "intent_a",
+        "rationale": "Change A escapes plain text appended to a String. This checks that appending a quote or backslash to string values in a document that also holds Time values (the items change B touches) still produces TOML that re-parses to the same values."
+      },
+      "test_time_local_render_in_doc.py": {
+        "kind": "intent_b",
+        "rationale": "Change B renders tz-aware times without their offset. This checks that a tz-aware time placed in a document next to an extended string (the item change A touches) serializes to valid TOML, including after replace() and when there is a fractional second."
+      },
+      "test_string_time_invariants.py": {
+        "kind": "invariant",
+        "rationale": "Both changes edit items.py rendering. Naive times must keep their exact rendering, String + String must still splice the operand's raw form, and plain-text appends must stay verbatim. These hold on every tree, including the merge."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:d5bfb9d4b1f4c7b4ed1eb14648d413982fca83ef01dbb5ea42fb06c58ad1b554",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "afd9fe3a559d80c05802a90e6fbdf52ce7bfa38f",
+      "a": "1b4a0435cc87b247e51e6a21e9098124e9c0754d",
+      "b": "c6ae5e7071a6b0f15552654bab166ba58c6bfb23",
+      "ab": "6e6bdbc98ecd9a304aa38b9194eea9549e794e3e",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:28c640549ba0760b9a7eb5c37800d87f149dd2e70233ef99fa4ddaadac990894"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_string_add_escape_in_doc.py::test_appending_quote_and_backslash_round_trips_in_document": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_string_add_escape_in_doc.py::test_appending_to_multiline_basic_string_escapes_backslash": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_string_time_invariants.py::test_document_with_naive_time_and_extended_string_round_trips": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_string_time_invariants.py::test_naive_time_rendering_unchanged": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_string_time_invariants.py::test_string_plus_string_and_plain_text_preserved": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_time_local_render_in_doc.py::test_tz_aware_time_in_document_round_trips": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_time_local_render_in_doc.py::test_tz_aware_time_replace_renders_local": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:10:31.508682+00:00"
+  }
+}

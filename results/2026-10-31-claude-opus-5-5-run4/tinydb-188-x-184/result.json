@@ -1,0 +1,91 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 47121,
+    "output_tokens": 2631,
+    "scenarios": {
+      "test_write_back_interaction.py": {
+        "kind": "intent_b",
+        "rationale": "Change B adds Table.write_back. These tests check the behaviour B promises in the surrounding paths. The query cache must be invalidated after write_back. A named table must be targeted correctly with explicit doc_ids, and the IDs given out afterwards must stay consistent. The deprecated eids shim must still apply. Change A only modernises syntax around queries and tables, so write_back must still work on the merged tree."
+      },
+      "test_query_repr_invariant.py": {
+        "kind": "invariant",
+        "rationale": "Change A rewrote QueryImpl.__repr__ from '{0}' to '{}' format. The repr text, hashing, and query-cache identity must stay the same on every tree. That includes queries used together with B's write_back path, which relies on search results and cache clearing."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:39f91726d2aa3ab17bf0b8121b7eaaf3a4c80c829cadcee6a9feea4888742bc5",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "a80afe5886f628f8746ecfefdb04d57d04b8c141",
+      "a": "39fede35fd39b802f36ab4768d2127e87ad57338",
+      "b": "2c2ab7f55e815b7c1fbd93cbba7304bf5d743d7b",
+      "ab": "5e2aa36c584119b0406ea84bd11ae9453139f7d0",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:d11145a42ca56a54178a8da41fb3f4b929946d7b94caa58b54004dc694711746"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_query_repr_invariant.py::test_query_cache_visible_after_update": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_query_repr_invariant.py::test_query_repr_stable": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_write_back_interaction.py::test_write_back_deprecated_eids": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_write_back_interaction.py::test_write_back_invalidates_query_cache": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_write_back_interaction.py::test_write_back_length_mismatch_does_not_modify": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_write_back_interaction.py::test_write_back_named_table_with_ids": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:42:29.678287+00:00"
+  }
+}

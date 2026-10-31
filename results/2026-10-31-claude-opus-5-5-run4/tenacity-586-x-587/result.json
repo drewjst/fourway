@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 71758,
+    "output_tokens": 3281,
+    "scenarios": {
+      "test_logger_protocol_signature.py": {
+        "kind": "intent_a",
+        "rationale": "Change A drops the positional-only marker from LoggerProtocol.log, so 'msg' may be passed by keyword, as logging.Logger.log allows. Change B rewrites IterState in the same package, and this checks the new signature survives the merge. The test fails on trees without A, where msg is still positional-only."
+      },
+      "test_iterstate_field_removed.py": {
+        "kind": "intent_b",
+        "rationale": "Change B removes the unused IterState.delay_since_first_attempt field. The test checks that the field is gone from the slotted dataclass. It also runs a real Retrying loop to confirm that delay tracking still lives in statistics and not on iter_state. The test fails on trees without B."
+      },
+      "test_logging_callbacks_with_retry_loop.py": {
+        "kind": "invariant",
+        "rationale": "On every tree, a real logging.Logger must work with the logging helpers typed against LoggerProtocol (before_log, after_log, before_sleep_log) during sync and async retry loops. Those loops run through the IterState and statistics machinery that change B touches. Each attempt must log exactly once, and delay statistics must be recorded."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:28a7476e71c45de746a2924bd18f30a8f3c4afb755fa47ab76c8b26b05aba5f5",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "03f53971a9be66514fac1be28ffa151a615dccb1",
+      "a": "18537b76e8e8cf4c51c6c48013f98f9448e6803b",
+      "b": "077ea1baa0abd6ba3ee25735e15823f15454893d",
+      "ab": "701af728ff15a2e9de117f702f3f8bcc5269e917",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:2fd20e71f718b1a07754584c4862033ced2c0d55ef35ac39ede122d7f1479d57"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_iterstate_field_removed.py::test_iter_state_after_run_lacks_field_but_stats_have_delay": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_iterstate_field_removed.py::test_iterstate_has_no_delay_field": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_logger_protocol_signature.py::test_logger_protocol_matches_logging_logger_msg_kind": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_logger_protocol_signature.py::test_logger_protocol_msg_is_not_positional_only": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_logging_callbacks_with_retry_loop.py::test_async_retry_logs_and_records_delay_with_real_logger": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_logging_callbacks_with_retry_loop.py::test_sync_retry_logs_each_attempt_once_with_real_logger": {
+        "base": "failed",
+        "a": "failed",
+        "b": "failed",
+        "ab": "failed",
+        "finding": "inconclusive"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:34:59.400529+00:00"
+  }
+}

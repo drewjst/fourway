@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 102086,
+    "output_tokens": 6344,
+    "scenarios": {
+      "test_sorted_dump_multiline.py": {
+        "kind": "intent_a",
+        "rationale": "Change A makes dumps(sort_keys=True) sort parsed TOMLDocuments. Change B rewrites how multiline strings are scanned during parsing. These tests check that sorting a parsed document reorders multiline basic and literal strings and still emits them verbatim. The inputs use only LF, so they cannot hang on trees without B."
+      },
+      "test_crlf_multiline_sorted_dump.py": {
+        "kind": "intent_b",
+        "rationale": "Change B lets multiline strings containing CRLF be parsed without hanging. These tests parse such documents, then dump them with sort_keys=True, which on the merged tree goes through A's rebuild path. The CRLF content must survive the dump and parse back to the same values. The assertions don't depend on key order, so they hold on B alone. Parsing is bounded by counting Source.inc calls, so trees without B fail deterministically instead of hanging."
+      },
+      "test_dump_value_roundtrip.py": {
+        "kind": "invariant",
+        "rationale": "Every tree should keep two properties for parsed documents with multiline strings. A plain dumps() must reproduce the source exactly, which is A's fast path over B's string parsing. A dumps(sort_keys=True) must never change values, whether the keys are sorted (A) or not (base). The inputs use only LF, so the file is safe on the base tree."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:ddd4782d3a99b256e894a806a56a14b9844b1c13e60fe22d2aa6d15ad7803ba4",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "d45a078674c28bc7b42b698375ad8162f876ea57",
+      "a": "b1751ca2c729f64501a6987f44becbecb3f201f3",
+      "b": "4bf610649bbcc92e7dc827fd13744f6775a8fb31",
+      "ab": "f514e200fd36e9428d3701a2be5238d29c6af84f",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:fb6edb3e66a10dcbbcd7d53569c4a7e2422c84c24c653752c6fec83d39c5cf79"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_crlf_multiline_sorted_dump.py::test_crlf_multiline_basic_string_survives_sorted_dump": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_crlf_multiline_sorted_dump.py::test_crlf_multiline_literal_string_survives_sorted_dump": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_dump_value_roundtrip.py::test_plain_dump_roundtrips_exactly": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_dump_value_roundtrip.py::test_sorted_dump_preserves_values": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_sorted_dump_multiline.py::test_sorted_dump_of_parsed_doc_with_multiline_basic_string": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_sorted_dump_multiline.py::test_sorted_dump_of_parsed_doc_with_multiline_literal_string": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:50:03.717777+00:00"
+  }
+}

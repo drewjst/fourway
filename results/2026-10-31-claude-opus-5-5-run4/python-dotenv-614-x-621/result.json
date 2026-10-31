@@ -1,0 +1,99 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 40399,
+    "output_tokens": 2136,
+    "scenarios": {
+      "test_load_dotenv_docstring.py": {
+        "kind": "intent_a",
+        "rationale": "Change A documents the `interpolate` parameter in the load_dotenv docstring. Change B edits the prose paragraph a few lines below in the same docstring. The merged docstring must still list `interpolate` exactly once, between `override` and `encoding` in the Parameters block."
+      },
+      "test_dotenv_values_docstring.py": {
+        "kind": "intent_a",
+        "rationale": "Change A also documents `interpolate` in the dotenv_values docstring, between `verbose` and `encoding`. This checks that the addition is still present and correctly placed after merging with B's nearby docstring edit."
+      },
+      "test_load_dotenv_docstring_typo.py": {
+        "kind": "intent_b",
+        "rationale": "Change B fixes \"it's\" to \"its\" in the find_dotenv paragraph of the load_dotenv docstring. This checks that the corrected wording survives the merge with A's insertion in the Parameters block above it, and that the paragraph is not duplicated or lost."
+      },
+      "test_interpolate_behavior.py": {
+        "kind": "invariant",
+        "rationale": "Both changes edit load_dotenv and dotenv_values, so the documented `interpolate` behavior must be unchanged on every tree. With interpolate=False the raw `${...}` text is kept. With interpolate=True the variable is expanded."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:cc9f69ac8f440b6e94d6fababafb315e6f1bb031f15c85f6bb01746c3a1f310b",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "a284f095ce575a6cc22703452bf72e2b97ecfb39",
+      "a": "ee035f574fd3d050022cc2ca07cc9a0d98213307",
+      "b": "3035279a1faaf2d7e8e204f4226cfe3181c57102",
+      "ab": "e51a0278b14515fb539bba4226e6323a629ba9a1",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:af1b0196814803002d050fb6493e981ae6e5d895cb9c38fc18d92356cba3455a"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_dotenv_values_docstring.py::test_dotenv_values_documents_interpolate": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_interpolate_behavior.py::test_dotenv_values_interpolate_flag": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_interpolate_behavior.py::test_load_dotenv_interpolate_false_keeps_raw": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_load_dotenv_docstring.py::test_load_dotenv_documents_interpolate_once_in_parameters": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_load_dotenv_docstring.py::test_load_dotenv_interpolate_between_override_and_encoding": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_load_dotenv_docstring_typo.py::test_load_dotenv_docstring_uses_its": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:21:13.629155+00:00"
+  }
+}

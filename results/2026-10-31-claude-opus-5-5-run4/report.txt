@@ -1,0 +1,101 @@
+case                                   label     expect          verdict   findings                                  secs
+cache-x-quote                          clean     ok              clean     ok (5)                                    23.4
+cache-x-set-price                      conflict  differential_b  conflict  differential_b (2), emergent (1), ok (2)  23.1
+cachetools-mru-x-fast-get              conflict  differential_a  conflict  differential_a (4), ok (2)                24.2
+cachetools-mru-x-peek                  clean     ok              clean     ok (6)                                    38.7
+free-order-skip-x-money-format         clean     regression_a    conflict  differential_b (2), ok (4)                27.7
+python-dotenv-614-x-621                clean     -               clean     ok (6)                                    19.6
+python-dotenv-640-x-638                clean     -               clean     ok (6)                                    35.1
+python-dotenv-714-x-669                clean     -               clean     ok (9)                                    59.0
+python-semver-396-x-365                clean     -               clean     ok (6)                                    23.0
+python-semver-440-x-439                clean     -               clean     ok (5)                                    18.9
+python-semver-464-x-462                clean     -               clean     ok (11)                                   36.7
+python-semver-471-x-469                clean     -               clean     ok (7)                                    27.8
+python-semver-480-x-479                clean     -               clean     ok (6)                                    31.4
+python-semver-495-x-498                clean     -               clean     ok (18)                                   30.5
+receipt-x-event-rename                 conflict  differential_a  conflict  differential_a (2), emergent (2), ok (1)  23.7
+retry-x-currency-key                   clean     ok              clean     ok (7)                                    33.9
+retry-x-nonce-key                      conflict  emergent        conflict  differential_a (2), emergent (3), ok (2)  30.7
+tenacity-309-x-310                     clean     -               clean     ok (12)                                   27.4
+tenacity-315-x-302                     clean     -               clean     ok (4)                                    27.7
+tenacity-351-x-342                     clean     -               conflict  differential_b (2), ok (4)                62.5
+tenacity-372-x-347                     clean     -               clean     ok (6)                                    23.9
+tenacity-393-x-392                     clean     -               clean     inconclusive (1), ok (5)                  25.0
+tenacity-400-x-406                     clean     -               clean     ok (6)                                    31.2
+tenacity-424-x-423                     clean     -               clean     ok (7)                                    43.7
+tenacity-435-x-434                     clean     -               clean     ok (7)                                    58.1
+tenacity-484-x-425                     clean     -               clean     ok (6)                                    52.0
+tenacity-518-x-497                     clean     -               clean     ok (6)                                    39.7
+tenacity-576-x-577                     clean     -               clean     inconclusive (1), ok (4)                  54.2
+tenacity-586-x-587                     clean     -               clean     inconclusive (1), ok (5)                  30.0
+tenacity-588-x-589                     clean     -               clean     ok (6)                                    24.2
+tenacity-590-x-591                     clean     -               clean     ok (4)                                    23.6
+tenacity-606-x-605                     clean     -               clean     ok (6)                                    38.4
+tenacity-615-x-614                     clean     -               clean     ok (6)                                    51.8
+tenacity-616-x-617                     clean     -               clean     ok (5)                                    21.9
+tenacity-654-x-651                     clean     -               clean     inconclusive (1), ok (5)                  54.3
+tenacity-670-x-664                     clean     -               clean     ok (7)                                    39.0
+tenacity-696-x-645                     clean     -               clean     ok (5)                                    34.8
+tenacity-idle-budget-x-sleep-override  clean     ok              clean     ok (8)                                    79.0
+tenacity-idle-budget-x-stop-first      conflict  differential_a  conflict  differential_a (4)                        56.3
+tinydb-188-x-184                       clean     -               clean     ok (6)                                    27.1
+tinydb-337-x-340                       clean     -               clean     ok (6)                                    29.6
+tinydb-449-x-445                       clean     -               clean     ok (8)                                    34.6
+tinydb-606-x-616                       clean     -               clean     ok (10)                                   36.1
+tinydb-618-x-617                       clean     -               clean     ok (7)                                    39.4
+tinydb-619-x-621                       clean     -               clean     ok (6)                                    32.9
+tinydb-635-x-633                       clean     -               clean     inconclusive (1), ok (5)                  44.4
+tinydb-640-x-642                       clean     -               clean     ok (6)                                    40.5
+tinydb-644-x-641                       clean     -               clean     ok (6)                                    31.5
+tinydb-warm-cache-x-cached-count       clean     ok              clean     ok (8)                                    76.4
+tinydb-warm-cache-x-ordered-search     conflict  differential_b  conflict  differential_b (2), emergent (1), ok (3)  24.9
+tomlkit-471-x-470                      clean     -               clean     ok (6)                                    63.8
+tomlkit-492-x-500                      clean     -               clean     ok (14)                                   82.9
+tomlkit-493-x-490                      clean     -               clean     ok (20)                                   45.9
+tomlkit-499-x-497                      clean     -               clean     ok (6)                                    58.2
+tomlkit-501-x-491                      clean     -               clean     ok (14)                                   44.7
+tomlkit-507-x-518                      clean     -               clean     ok (11)                                   65.8
+tomlkit-515-x-514                      clean     -               clean     ok (5)                                    66.4
+tomlkit-516-x-517                      clean     -               clean     ok (9)                                    46.1
+tomlkit-519-x-498                      clean     -               clean     ok (12)                                   73.3
+tomlkit-520-x-521                      clean     -               clean     ok (6)                                    66.1
+tomlkit-525-x-526                      clean     -               clean     ok (6)                                    90.8
+tomlkit-530-x-533                      clean     -               clean     ok (6)                                    90.4
+tomlkit-532-x-527                      clean     -               clean     ok (11)                                   78.6
+tomlkit-536-x-538                      clean     -               clean     ok (6)                                    33.6
+tomlkit-551-x-544                      clean     -               clean     ok (6)                                    34.4
+tomlkit-565-x-567                      clean     -               conflict  differential_a (1), ok (4)                128.4
+tomlkit-570-x-539                      clean     -               clean     ok (8)                                    29.4
+tomlkit-581-x-599                      clean     -               clean     ok (6)                                    66.5
+tomlkit-595-x-594                      clean     -               clean     ok (11)                                   96.1
+tomlkit-612-x-613                      clean     -               clean     ok (7)                                    30.2
+tomlkit-620-x-591                      clean     -               clean     ok (6)                                    45.5
+tomlkit-623-x-610                      clean     -               clean     ok (7)                                    34.8
+tomlkit-628-x-552                      clean     -               clean     ok (8)                                    29.4
+tomlkit-641-x-629                      clean     -               clean     ok (6)                                    31.2
+tomlkit-642-x-626                      clean     -               clean     ok (6)                                    32.9
+tomlkit-667-x-666                      clean     -               clean     ok (6)                                    42.2
+tomlkit-668-x-658                      clean     -               clean     ok (5)                                    32.0
+tomlkit-683-x-673                      clean     -               clean     ok (8)                                    29.0
+toolz-410-x-408                        clean     -               clean     ok (6)                                    26.6
+toolz-412-x-422                        clean     -               clean     ok (7)                                    44.3
+toolz-425-x-398                        clean     -               clean     ok (7)                                    73.5
+toolz-428-x-411                        clean     -               clean     ok (7)                                    37.7
+toolz-431-x-433                        clean     -               clean     ok (7)                                    29.1
+toolz-437-x-432                        clean     -               clean     ok (7)                                    35.2
+toolz-451-x-381                        clean     -               clean     ok (6)                                    25.7
+toolz-478-x-476                        clean     -               clean     ok (5)                                    22.5
+toolz-624-x-634                        clean     -               clean     ok (6)                                    65.3
+toolz-636-x-635                        clean     -               clean     ok (6)                                    16.8
+
+generator        claude claude-opus-5-5
+recall           6/6  (95% CI 61% to 100%)
+false positives  3/82  (95% CI 1% to 10%)
+  seeded twins                   1/6  (95% CI 3% to 56%)
+  mined, same file               2/30  (95% CI 2% to 21%)
+  mined, other files             0/46  (95% CI 0% to 8%)
+  mined, both sides change code  2/54  (95% CI 1% to 13%)
+  mined, no side AI-credited     1/64  (95% CI 0% to 8%)
+unverified       0/88
+generator errors 0/88
+cost             $36.97 total, $0.42 per pair

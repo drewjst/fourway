@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 44166,
+    "output_tokens": 2332,
+    "scenarios": {
+      "test_parse_return_typevar.py": {
+        "kind": "intent_a",
+        "rationale": "Change A makes Version.parse generic: its return annotation becomes a TypeVar bound to Version, so a subclass's parse is typed as returning the subclass. This file checks that annotation. It also checks that a subclass parsed this way still keeps its type, and B's empty-token bump behavior, through the prerelease and build bumps that change B rewrote."
+      },
+      "test_bump_empty_token_subclass.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes an empty-string token produce a bare numeric prerelease or build part. This file checks that behavior on instances made by a subclass's parse, the classmethod change A retypes. It confirms the subclass type and its custom __str__ are kept."
+      },
+      "test_subclass_parse_bump_invariant.py": {
+        "kind": "invariant",
+        "rationale": "Every tree must keep two properties: parse on a subclass returns that subclass, and the default bumps of a parsed version stay correct. Existing prerelease and build parts must be incremented exactly once, not twice, which guards against B's duplicated build-computation block."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:ba8cbb859eeec72bfed9ce845d840247bad12d78a41eb7fa119a6f9ebb0c8598",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "59b56ef40f1033eb571276d116ee10b5783d4f1f",
+      "a": "69662cb3d8b67b45651fa24ac79ee5c313b9ac18",
+      "b": "d832d922cd35de0879d6efa65d6c2ed4ace1081f",
+      "ab": "6e1cfeaeede882eac550220888ed5705ab397943",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:0d7bc5358c6e18ea055f8b5f47a54cb727441f6c768dbabf41e43fa6cfb3539d"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_bump_empty_token_subclass.py::test_empty_token_build_on_parsed_subclass": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_bump_empty_token_subclass.py::test_empty_token_prerelease_on_parsed_subclass": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_parse_return_typevar.py::test_parse_on_subclass_then_bump_keeps_subclass": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_parse_return_typevar.py::test_parse_return_annotation_is_typevar_bound_to_version": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_subclass_parse_bump_invariant.py::test_default_bumps_increment_once": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_subclass_parse_bump_invariant.py::test_subclass_parse_returns_subclass_instance": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:23:10.707084+00:00"
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 126783,
+    "output_tokens": 3906,
+    "scenarios": {
+      "test_fold_survives_document_replacement.py": {
+        "kind": "intent_a",
+        "rationale": "Change A makes Time/DateTime keep the stdlib fold. Change B rewrites how unwrap orders a document after a value is replaced in place. This file assigns fold-carrying values into an existing slot of a parsed document, which goes through _replace_at, the path B is about. It then checks that the stored item keeps fold, renders in the original position, and supports replace(fold=...)."
+      },
+      "test_unwrap_order_with_temporal_replacement.py": {
+        "kind": "intent_b",
+        "rationale": "Change B keeps unwrap() key order aligned with the body after an in-place replacement. Here the replacement values are Time/DateTime items, whose construction change A alters (fold forwarding). This checks that B's ordering still holds when the replaced value is a fold-carrying temporal item."
+      },
+      "test_temporal_replace_roundtrip.py": {
+        "kind": "invariant",
+        "rationale": "Replacing parsed temporal values in place must keep the rendered layout and the unwrapped data consistent on every tree. Unwrapped contents are compared as dicts, so the order does not matter here. Values without a fold must keep fold 0. Both changes touch this path: A changes Time/DateTime construction and _new, and B changes unwrap."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:91298383ff7cd050d344e2216475f5bf4152e79bcd1069ce52d1177be290f811",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "e3a195a537ccf9617cc27b9bfa944770348a462d",
+      "a": "afb3d26c1eca5210f46ea54053bd6a613ae96063",
+      "b": "623256ad7939ada9eb92606350b922f0576218ef",
+      "ab": "393e40f6cbcce025ab42df20027b2404697a6b07",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:68b8cf76b416f6f76cab0be1d0f8314c1750b955e19dc3585f36b338e512c4af"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_fold_survives_document_replacement.py::test_datetime_fold_kept_when_replacing_value_in_document": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_fold_survives_document_replacement.py::test_time_fold_kept_when_replacing_value_in_document": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_temporal_replace_roundtrip.py::test_assigning_plain_python_temporals_keeps_slots": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_temporal_replace_roundtrip.py::test_replaced_datetime_and_time_roundtrip_and_unwrap": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unwrap_order_with_temporal_replacement.py::test_unwrap_order_after_replacing_datetime_via_replace": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unwrap_order_with_temporal_replacement.py::test_unwrap_order_after_replacing_time_with_fold": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:11:17.046540+00:00"
+  }
+}

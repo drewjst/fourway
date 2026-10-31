@@ -1,0 +1,102 @@
+{
+  "label": "conflict",
+  "expect": "emergent",
+  "verdict": "conflict",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 5190,
+    "output_tokens": 3148,
+    "scenarios": {
+      "test_retry_dedup.py": {
+        "kind": "invariant",
+        "rationale": "Change A retries a timed-out capture and relies on the idempotency key staying the same across attempts, so the gateway deduplicates a capture whose response was lost. Change B makes every key random. After the merge, a retry following a 'timeout_after' fault is a new request to the gateway, so the customer is charged twice. On every other tree an order is captured at most once."
+      },
+      "test_retry_after_lost_response.py": {
+        "kind": "intent_a",
+        "rationale": "Change A should make a transient timeout succeed on retry, including the case where the first capture happened but its response was lost. The retry should return that same single capture and publish one success event. Base and B raise instead of retrying. After the merge the retry creates a second capture."
+      },
+      "test_fresh_keys_per_charge.py": {
+        "kind": "intent_b",
+        "rationale": "Change B should make each charge() call for the same order reach the gateway as a new request with an unseen key. That lets a customer retry after a decline, and lets a second charge produce a new capture instead of replaying the old one. Base and A reuse the key for the order."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:b18a1f05d676c7e7b03cc087bec446b8172a850117d6203f43e94412f25ebce6",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "f990b471c314a758fffb0e84e40647fba241cf98",
+      "a": "687d63d4883b5aed7c756c4aef79f34b56f6d955",
+      "b": "aa7209ca4cf4655d905ac2dab620c3022e1a2346",
+      "ab": "c4c784866355bcb1f0f56cc1a9f9f213727a93ad",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:b33418f0e00340ee070dd3361a05bf8587302b003d6ff676a1e8e401bd05d6bf"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_fresh_keys_per_charge.py::test_charge_after_decline_sends_a_new_key": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_fresh_keys_per_charge.py::test_separate_charge_calls_are_new_requests": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_retry_after_lost_response.py::test_retry_after_lost_response_returns_the_single_capture": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "failed",
+        "finding": "differential_a"
+      },
+      "fourway_scenarios/test_retry_after_lost_response.py::test_revenue_matches_money_actually_captured_after_retry": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "failed",
+        "finding": "differential_a"
+      },
+      "fourway_scenarios/test_retry_dedup.py::test_lost_gateway_response_never_double_charges[faults0]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "emergent"
+      },
+      "fourway_scenarios/test_retry_dedup.py::test_lost_gateway_response_never_double_charges[faults1]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "emergent"
+      },
+      "fourway_scenarios/test_retry_dedup.py::test_lost_gateway_response_never_double_charges[faults2]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "emergent"
+      }
+    },
+    "verdict": "conflict",
+    "recorded_at": "2026-10-31T19:27:04.088909+00:00"
+  }
+}

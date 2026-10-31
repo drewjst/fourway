@@ -1,0 +1,102 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 87157,
+    "output_tokens": 3610,
+    "scenarios": {
+      "test_union_none_ordering.py": {
+        "kind": "intent_a",
+        "rationale": "Change A moves None to the end of the runtime-evaluated union annotations on BaseRetrying.copy, retry_if_exception_message.__init__ and AsyncRetrying.__init__. These checks inspect the same signatures that change B also touches, the BaseRetrying class and retry_if_exception_message, to confirm the reordering survives the merge."
+      },
+      "test_init_return_annotations.py": {
+        "kind": "intent_b",
+        "rationale": "Change B adds an explicit '-> None' return annotation to AttemptManager.__init__ and BaseRetrying.__init__. It also sits in the same class and file as change A's annotation reordering, so this checks the return annotations survive the merge and that BaseRetrying construction is unaffected."
+      },
+      "test_annotation_runtime_invariants.py": {
+        "kind": "invariant",
+        "rationale": "Both changes edit the signatures of BaseRetrying.copy and retry_if_exception_message, and the code around them. Runtime behavior must stay the same on every tree: copy must keep values and accept None overrides, and message matching must work for both strings and precompiled patterns."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:9b3ec85d3749321f64f527e65f2ab98b550109ce7125707db383b76f9f724d72",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "0012187a7035766f6ca06200404f4b14f85c54c6",
+      "a": "ff1dbf6b201fe3ce8b71bc5c0d37132df8ba1cec",
+      "b": "e3230fd769e9672ea299c37799cbb83b4c2d3345",
+      "ab": "6785bc7cb489f2035edbba70dcbdc68a97ee6433",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:5516a8246ea74d661d4b0220b2b604607d383f2c0726996d4ebdb937e8cc1b6b"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_annotation_runtime_invariants.py::test_copy_preserves_and_overrides_with_none": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_annotation_runtime_invariants.py::test_retry_if_exception_message_match_behaviour": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_annotation_runtime_invariants.py::test_retry_with_message_match_end_to_end": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_init_return_annotations.py::test_attempt_manager_init_returns_none_annotation": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_init_return_annotations.py::test_base_retrying_init_returns_none_annotation_and_constructs": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_union_none_ordering.py::test_copy_unions_end_with_none": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_union_none_ordering.py::test_match_and_async_unions_end_with_none": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:39:12.520269+00:00"
+  }
+}

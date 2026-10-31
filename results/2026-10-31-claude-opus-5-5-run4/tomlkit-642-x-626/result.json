@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 130649,
+    "output_tokens": 2845,
+    "scenarios": {
+      "test_crlf_error_position.py": {
+        "kind": "intent_a",
+        "rationale": "Change A fixes parse-error line/column for CRLF and mixed line endings. These tests use documents that also contain datetime values (the area change B touches) and also go through TOMLFile, which does not normalise mixed endings. The reported position must be the true one."
+      },
+      "test_unwrap_fold_in_document.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes DateTime.unwrap and Time.unwrap keep fold. These tests check that a folded value stored in a document keeps its fold through TOMLDocument.unwrap. They also check that the datetime's timestamp stays correct."
+      },
+      "test_lf_and_unwrap_invariants.py": {
+        "kind": "invariant",
+        "rationale": "These properties should hold on every tree. Error positions in LF-only documents must not change. A datetime parsed from a CRLF document must unwrap to a plain datetime with fold 0 that equals the original value."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:2be5b988e10ef5e1d1a1c5049fffe18ce42efc9ccb15521f64ca51d450c12bc9",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "05bd241badf569e13dd1e75b16d17644e8d56149",
+      "a": "99886a25edbc362b43405655e7ce27d1cef4217b",
+      "b": "2d3b299e729b34022279a9a16a29d9467b75248d",
+      "ab": "da0ae2fa6f702f9a9fef606d22b383da077fe372",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:717e6d4e2fea5d722bb6ebe9c076d3f6c50692e3ca18b8eb03c9292aba37fbba"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_crlf_error_position.py::test_crlf_document_with_datetime_reports_true_position": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_crlf_error_position.py::test_mixed_endings_file_read_reports_true_position": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_lf_and_unwrap_invariants.py::test_crlf_parsed_datetime_unwraps_to_plain_value": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_lf_and_unwrap_invariants.py::test_lf_document_error_position_unchanged": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unwrap_fold_in_document.py::test_document_unwrap_keeps_datetime_fold": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unwrap_fold_in_document.py::test_document_unwrap_keeps_time_fold": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:13:25.317135+00:00"
+  }
+}

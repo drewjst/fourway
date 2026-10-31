@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 129269,
+    "output_tokens": 2925,
+    "scenarios": {
+      "test_esc_escape_output.py": {
+        "kind": "intent_a",
+        "rationale": "Change A stops writing ESC as the TOML 1.1-only \\e and writes \\u001b instead. These tests check that output in documents that also hold the signed floats change B touches. They cover the dumps() path for keys, values and multiline strings, and the String.__add__ path, which also goes through escape_string/_compact_escapes."
+      },
+      "test_negative_zero_float.py": {
+        "kind": "intent_b",
+        "rationale": "Change B renders a negative-zero result of signed-float arithmetic as -0.0 instead of the unparseable +-0.0. These tests check that rendering in documents that also hold ESC-bearing strings, whose escaping change A modifies. They cover float multiplication and signed-integer true division, and confirm the output parses back."
+      },
+      "test_edit_roundtrip_invariant.py": {
+        "kind": "invariant",
+        "rationale": "Editing a document that holds both an ESC-bearing string and a signed float, using operations whose output both changes affect, must always produce text that tomlkit parses back to the same values. These tests use non-zero float results, so they hold on the base, on A, on B and on the merge."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:ecec5a5d6d82066b2c5035af783a7d113f1726750a26087579cd0de69fc618b2",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "5605d06191b3699c0089ad91eab8d6b36a03bca7",
+      "a": "aa09f359717910a2819cf9bee7b11631b08c4c89",
+      "b": "ffbb81d0614f5422920ae83f69fea600b91a831c",
+      "ab": "862dfed50f443b424f9cd54963fc7d55c6a26886",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:af7c7b7e60407721bd6d26cdf38b685a140d96d81dc8034360fc2a9a6b7728e1"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_edit_roundtrip_invariant.py::test_dumped_dict_with_esc_and_floats_round_trips": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_edit_roundtrip_invariant.py::test_edited_document_with_esc_and_signed_float_round_trips": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_esc_escape_output.py::test_appending_esc_to_parsed_string_uses_unicode_escape": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_esc_escape_output.py::test_dumps_esc_as_unicode_escape_alongside_floats": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_negative_zero_float.py::test_negative_zero_from_signed_float_next_to_esc_string": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_negative_zero_float.py::test_negative_zero_from_signed_int_division": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:12:52.458220+00:00"
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 71793,
+    "output_tokens": 2462,
+    "scenarios": {
+      "test_reraise_with_pattern_message.py": {
+        "kind": "invariant",
+        "rationale": "Change A rewrites the reraise=True give-up path in exc_check. Change B changes the type of the `match` argument of the message-based retry predicates to re.Pattern. These tests drive message predicates built from compiled re.Pattern objects into the reraise give-up path. They check three things on every tree: the original exception object from the last attempt propagates unchanged, a non-failed last attempt still surfaces RetryError, and the attempt count is unchanged. The sync, context-manager and asyncio code paths are all covered."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:97b7559eefeff75fdc23620e5761fbbad65261ebbf2d744ae8047535b491301c",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "a7fe0e187d18e90b6c9e7527a7685f2c514881b6",
+      "a": "194f73f133f56118e782d52c1085474f9043e333",
+      "b": "1c6d149b4b4de05ecd5ea7f488bfba3d318e9535",
+      "ab": "f692c02d085a428dd334560887668ae5b3340653",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:a19837994ef2d3619d5fef3dea51e7037ce0cd2d027c2efc30531fe68ba335df"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_reraise_with_pattern_message.py::test_async_reraise_with_compiled_pattern": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_reraise_with_pattern_message.py::test_no_reraise_wraps_in_retry_error_with_cause": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_reraise_with_pattern_message.py::test_reraise_context_manager_with_compiled_pattern": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_reraise_with_pattern_message.py::test_reraise_last_exception_with_compiled_match_pattern": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_reraise_with_pattern_message.py::test_reraise_non_matching_message_not_retried_with_compiled_pattern": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_reraise_with_pattern_message.py::test_reraise_with_successful_last_attempt_raises_retry_error": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:35:23.594938+00:00"
+  }
+}

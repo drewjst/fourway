@@ -1,0 +1,91 @@
+{
+  "label": "conflict",
+  "expect": "differential_a",
+  "verdict": "conflict",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 83723,
+    "output_tokens": 2455,
+    "scenarios": {
+      "test_mru_get_counts_as_use.py": {
+        "kind": "intent_a",
+        "rationale": "Change A adds MRUCache, which tracks use the same way LRUCache does, so a read through get() should count as a use. On the A tree, Cache.get goes through self[key], which calls MRUCache.__getitem__ and moves the key to the end. Change B makes Cache.get read the data dict directly. B adds get() overrides only to the use-tracking classes it knows about (LRU, LFU and the timed caches), and MRUCache is not among them. In the merge, MRUCache.get() therefore stops recording a use, so the wrong item is evicted or popped."
+      },
+      "test_get_use_tracking_invariant.py": {
+        "kind": "invariant",
+        "rationale": "Change B reroutes Cache.get. Whatever the base implementation, a read through get() on use-tracking and expiring caches must keep recording a use and must keep hiding expired items. This holds on the base, A, B and the merge."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:1738bf9d1c070bd441e493d4fa2fefc16151d57668294a1f17a58f2506526e34",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "2ab68ed14f6f23ad1f0acdeffb0dd12723580114",
+      "a": "b180b491e508957dc1933be8a3b8d41e917f5688",
+      "b": "dfd3c936286987c39632223ef179e3f0c8215fee",
+      "ab": "3d03c7a18f6a43976ddd44b2d5b5e32c2d4639a4",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:7fdf2d07b57ceaaeb08594df81a0452d7c59f12cfd466008a58177ce219ae0f2"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_get_use_tracking_invariant.py::test_lru_and_lfu_get_count_as_use": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_get_use_tracking_invariant.py::test_ttl_get_hides_expired": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_mru_get_counts_as_use.py::test_get_marks_item_most_recently_used_for_eviction": {
+        "base": "error",
+        "a": "passed",
+        "b": "error",
+        "ab": "failed",
+        "finding": "differential_a"
+      },
+      "fourway_scenarios/test_mru_get_counts_as_use.py::test_get_marks_item_most_recently_used_for_popitem": {
+        "base": "error",
+        "a": "passed",
+        "b": "error",
+        "ab": "failed",
+        "finding": "differential_a"
+      },
+      "fourway_scenarios/test_mru_get_counts_as_use.py::test_get_matches_getitem_semantics": {
+        "base": "error",
+        "a": "passed",
+        "b": "error",
+        "ab": "failed",
+        "finding": "differential_a"
+      },
+      "fourway_scenarios/test_mru_get_counts_as_use.py::test_get_missing_returns_default_without_disturbing_order": {
+        "base": "error",
+        "a": "passed",
+        "b": "error",
+        "ab": "failed",
+        "finding": "differential_a"
+      }
+    },
+    "verdict": "conflict",
+    "recorded_at": "2026-10-31T19:19:47.681005+00:00"
+  }
+}

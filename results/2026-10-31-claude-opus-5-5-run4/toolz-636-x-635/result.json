@@ -1,0 +1,91 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 99301,
+    "output_tokens": 1356,
+    "scenarios": {
+      "test_interpose_empty_merge.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes interpose tolerate empty input instead of raising StopIteration. These tests check that fix through the plain, curried and tlz entry points on the merged tree. They also cover generator and lazy-empty inputs, plus the helpers in functoolz that change A touched."
+      },
+      "test_interpose_and_functoolz_invariants.py": {
+        "kind": "invariant",
+        "rationale": "Behavior that must hold on every tree. interpose on nonempty input stays unchanged. functoolz still exposes a correct PYPY flag after change A removes the duplicate definition. The itertoolz and functoolz doctests, which change B extends, still pass."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:e70214664b0def1542a968a5b7989c8cc98669fcfaf3184373274e88725dbdf2",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "93a2691bc6e414a91f05050a222c0604beb13933",
+      "a": "a60f4c1de9e50dca26d50c5736224238a0d29abb",
+      "b": "ec30512bf558c1aaa131093332573a070375ab6d",
+      "ab": "9a0f8d7e211116664fadbb0db06d4e29e3f7726b",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:0b5fced9136d4f6e4ff4e7d93b2063d6f2b02005eccb6df12a3800806e691d13"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_interpose_and_functoolz_invariants.py::test_functoolz_pypy_flag_still_correct": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_interpose_and_functoolz_invariants.py::test_interpose_nonempty_unchanged": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_interpose_and_functoolz_invariants.py::test_module_doctests_pass": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_interpose_empty_merge.py::test_interpose_empty_list_and_generator": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_interpose_empty_merge.py::test_interpose_empty_via_curried_and_compose": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_interpose_empty_merge.py::test_interpose_empty_via_tlz": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:21:25.219015+00:00"
+  }
+}

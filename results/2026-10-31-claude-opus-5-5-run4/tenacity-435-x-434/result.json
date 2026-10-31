@@ -1,0 +1,102 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 76988,
+    "output_tokens": 6368,
+    "scenarios": {
+      "test_iter_state.py": {
+        "kind": "intent_b",
+        "rationale": "Change B adds a thread-local IterState that records the decisions made by iter(): explicit retry, the retry predicate result and the stop result. These tests drive iter() by hand through a TryAgain retry and then a stopping failure. They check the recorded flags and confirm the state is per thread. Change A rewrites the same iter/BaseRetrying code for formatting, so the merge must keep B's refactor working."
+      },
+      "test_iter_callbacks.py": {
+        "kind": "invariant",
+        "rationale": "The observable behaviour of iter() must survive both B's action-list refactor and A's reformatting of the same code. That covers callback order, how often each callback runs, and statistics. TryAgain must skip the retry predicate, and stop must see the upcoming sleep. retry_error_callback and reraise must still work."
+      },
+      "test_iter_loops.py": {
+        "kind": "invariant",
+        "rationale": "AsyncRetrying and the context-manager iteration loops both run through the shared iter(). Change B restructured iter() and change A reformatted these modules. The async callback order, async-for result retry, and sync for-loop attempt counting must stay intact on every tree."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:936064bac0493cb4c16efd22f694bd2baafbae926f79ae50501d6f449c257673",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "80f966be82559b1956f7daf05a67b1f6f74a7486",
+      "a": "5d8a22767f00cbbd08c0f7b4b6dfb75883437275",
+      "b": "a0bc851e5aa94c84394054834ab059cf396e9656",
+      "ab": "deda4c125cdf9d50af7414e9a42c73f4b4a6cc2f",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:389b7be9d0d9af4b4ed0185130d822cae1cf36bf6b0f281e2b8c2d5d6072ad1a"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_iter_callbacks.py::test_callback_order_and_statistics": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_iter_callbacks.py::test_retry_error_callback_and_reraise": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_iter_callbacks.py::test_try_again_skips_predicate_and_stop_sees_wait": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_iter_loops.py::test_async_call_callback_order": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_iter_loops.py::test_async_for_and_sync_for_loops": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_iter_state.py::test_iter_state_flags_track_decisions": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_iter_state.py::test_iter_state_is_thread_local": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:32:03.618229+00:00"
+  }
+}

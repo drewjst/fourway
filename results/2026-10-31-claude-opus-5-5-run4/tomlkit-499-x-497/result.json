@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 106642,
+    "output_tokens": 5569,
+    "scenarios": {
+      "test_comma_first_array_tab_keys.py": {
+        "kind": "intent_a",
+        "rationale": "Change A must keep appends and middle inserts into a comma-first array parseable (no doubled comma). These tests run it on arrays whose keys use tab whitespace around bare and dotted keys and table names. That is exactly the key syntax change B's stricter bare-key check touches, so on the merge the documents must still parse and round-trip."
+      },
+      "test_tab_bare_key_in_arrays.py": {
+        "kind": "intent_b",
+        "rationale": "Change B must reject interior tabs in bare keys everywhere they occur. These tests cover keys inside inline tables nested in arrays, including a comma-first array (the array formatting change A deals with), and array-of-tables headers. The array parser swallows only UnexpectedCharError, so the merged tree must still surface the ParseError."
+      },
+      "test_tab_separated_keys_roundtrip.py": {
+        "kind": "invariant",
+        "rationale": "Holds on every tree: tabs as outer whitespace around bare keys and table names, and tabs inside quoted keys, stay valid. Ordinary (non comma-first) array appends keep adding the usual trailing comma and round-trip. This guards against B over-rejecting and against A changing normal append output."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:7403765400835bffa05bd2bc7ab4d892061bd89e59cf65ac8835f5638bb52a37",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "0d6545295338634164f10eaf1c4e4d16bb52e606",
+      "a": "3f20eeedcb65d924ea6a447224f180e407c37e3f",
+      "b": "c2846a899598f53d99ae3457aedf6002567c82c1",
+      "ab": "f4dcebd54f3697256a6869724aac1c59c058c05c",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:874b499e9843b30909a85551ae5a05e44b508f976ce86f6aa10a55d83bac7030"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_comma_first_array_tab_keys.py::test_append_comma_first_array_under_tab_separated_keys": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_comma_first_array_tab_keys.py::test_insert_middle_comma_first_array_under_dotted_tab_key": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_tab_bare_key_in_arrays.py::test_tab_in_aot_header_and_value_helper_rejected": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_tab_bare_key_in_arrays.py::test_tab_in_inline_table_key_inside_comma_first_array_rejected": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_tab_separated_keys_roundtrip.py::test_outer_tabs_around_keys_and_plain_array_append": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_tab_separated_keys_roundtrip.py::test_quoted_key_with_tab_still_allowed_and_array_editable": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:53:10.783547+00:00"
+  }
+}

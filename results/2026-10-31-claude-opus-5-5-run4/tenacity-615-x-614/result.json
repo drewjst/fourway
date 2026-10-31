@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 81934,
+    "output_tokens": 5569,
+    "scenarios": {
+      "test_pickle_after_decorated_call.py": {
+        "kind": "intent_a",
+        "rationale": "Change A makes Retrying picklable by dropping _local in __getstate__ and rebuilding it in __setstate__. Change B makes wraps() write into the original object's _local on every call. These tests check two things. First, a decorated function's .retry object can still be pickled after a call has filled its _local, and the restored copy starts with empty statistics. Second, a restored Retrying can be wrapped and called, which on the merge means B writes to the _local that A recreated."
+      },
+      "test_retry_statistics_with_strategies.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes func.retry.statistics share the statistics dict of the per-call copy, for both sync and async wrappers. Change A rewrote the predicates of retry_if_exception_type and the exception-message strategies as bound methods. These tests check that B's live, shared statistics stay correct when retries are driven by those rewritten strategies."
+      },
+      "test_strategy_semantics_decorated.py": {
+        "kind": "invariant",
+        "rationale": "Change A replaced the closures in the exception-type and exception-message strategies with bound methods and removed the custom __init__ from retry_if_not_exception_message. Change B changed how statistics flow through the decorator. The retry and stop decisions, and the attempt counts reported in func.statistics, must stay the same on every tree."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:db4cb6f2641e120866319c94c8ce1233ade65d01db286d2278bca0fc1e9e0305",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "f482fa586b6ce99589725645bb39f97b7d1f4ded",
+      "a": "6538093003d13c8e7f87cf7cc955c42fb89f1953",
+      "b": "adc02622853b9f9123859cc8de81c6d33e06e7c8",
+      "ab": "023b01b2113ff89f6765bbb574f460f788a2e399",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:d52fa65688d2e584ff8a661854736d920834849f4a368f6c3b5abb17dbb7ed82"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_pickle_after_decorated_call.py::test_restored_retrying_wraps_and_populates_statistics": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_pickle_after_decorated_call.py::test_retry_object_picklable_after_decorated_call": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_retry_statistics_with_strategies.py::test_async_retry_object_statistics_track_attempts_with_type_strategy": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_retry_statistics_with_strategies.py::test_retry_object_statistics_track_attempts_with_message_strategy": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_strategy_semantics_decorated.py::test_exception_message_and_type_semantics": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_strategy_semantics_decorated.py::test_not_exception_message_and_unless_type_semantics": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:37:17.290691+00:00"
+  }
+}

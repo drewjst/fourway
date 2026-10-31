@@ -1,0 +1,102 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 47354,
+    "output_tokens": 3051,
+    "scenarios": {
+      "test_docstring_examples.py": {
+        "kind": "intent_a",
+        "rationale": "Change A rewrites the bump_* and next_version docstring examples to use semver.Version.parse so they run as doctests. Change B edits the body of next_version right next to that docstring. These tests execute the six docstrings, including next_version's, and check that they no longer reference semver.parse. They fail on base and on B because the examples call methods on a dict."
+      },
+      "test_next_version_build_only.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes next_version bump the version when it has build metadata but no prerelease, instead of only stripping the build. These tests check that behavior through the Version.parse style that change A's docstrings promote, through the CLI nextver command, and through a subclass."
+      },
+      "test_next_version_prerelease_invariants.py": {
+        "kind": "invariant",
+        "rationale": "Neither change should alter how next_version finalizes prereleases, including prereleases that carry build metadata, or the documented prerelease example in next_version's docstring. These must hold on every tree."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:367abb73fb2ded99bbbd8f80d711e9151ca8e803edb01c92762df9d337e54079",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "b6849d0d214dcfc5f798cf7835676bee2c44a83f",
+      "a": "1bf62565c415273804c5fe0a71810106de452b3f",
+      "b": "e5b831cc94bbb78819d9db0a89718a001c2f3715",
+      "ab": "933ba8957512075388e240b476707df1e7cd3994",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:676cd00dba2f89f2c32b9f666e62381e1dc944722fedf85666d70b4cb930e46b"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_docstring_examples.py::test_docstring_examples_execute_cleanly": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_docstring_examples.py::test_docstrings_do_not_use_deprecated_parse": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_next_version_build_only.py::test_build_only_versions_are_bumped": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_next_version_build_only.py::test_cli_nextver_bumps_build_only_version": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_next_version_build_only.py::test_subclass_build_only_bump_preserves_type": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_next_version_prerelease_invariants.py::test_prerelease_part_examples_stable": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_next_version_prerelease_invariants.py::test_prerelease_with_build_finalizes": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:24:33.977172+00:00"
+  }
+}

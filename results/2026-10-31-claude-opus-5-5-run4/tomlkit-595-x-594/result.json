@@ -1,0 +1,130 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 129332,
+    "output_tokens": 9214,
+    "scenarios": {
+      "test_inline_table_key_value_separator.py": {
+        "kind": "intent_a",
+        "rationale": "Change A makes the separator inserted before a key appended to a ', '-spaced parsed inline table read ', '. Change B makes key_value() parse the comment trail, so the items it returns now carry a trail ('\\n', trailing spaces) and a comment. These tests check that A's spacing still holds when the appended values come from the new key_value(). They also check that when such a value's trailing space precedes the next separator, A's 'following text already starts with a space' rule keeps the output single-spaced (', w') rather than ',  w'."
+      },
+      "test_key_value_trailing_input.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes key_value() reject trailing input and makes it parse the trailing comment. These tests use inline-table style snippets, the input most likely to be copied into an inline table (the code change A touches). They also check that the comment key_value() now preserves is kept on the item, but is dropped when the item is inserted into a spaced inline table. The rendered table must keep A's spacing and still round-trip."
+      },
+      "test_inline_table_append_invariants.py": {
+        "kind": "invariant",
+        "rationale": "These properties should hold on every tree. A padded inline table such as '{ foo = 1, bar = 2 }' renders exactly '{ foo = 1, bar = 2, baz = 3}' when a key_value()-produced item is appended; A must not double-space it, and B's preserved '\\n' trail must not leak. Appending several key_value() items, with and without trailing newlines and whitespace, to a comma-separated inline table must always produce valid TOML that round-trips with the right values and never contains ',,' or ', ,'."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:6178926d8f224950aa129ee7aac70e6e6ba6d61f8b0255f6c325f4ad8b45d6ab",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "2a22384c59e8642d55ef4980fa6b967ad698c47b",
+      "a": "fb3216afa63e1f446914df426ffa883687bf150f",
+      "b": "e5d2dae60645e9ddbad80c7fa8a67d09506b6a61",
+      "ab": "e142ebf1c7b418fe26d2fd30ae56b91b5652573e",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:50e29801daa7195b14d6efcefee6543213a6ba4c8cd6b67affea28abe5a9863b"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_inline_table_append_invariants.py::test_padded_inline_table_append_from_key_value_is_not_double_spaced": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_inline_table_append_invariants.py::test_sequential_key_value_appends_round_trip": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_inline_table_key_value_separator.py::test_key_value_item_appended_to_spaced_inline_table_uses_spaced_separator[z = 3  # note\\n]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_inline_table_key_value_separator.py::test_key_value_item_appended_to_spaced_inline_table_uses_spaced_separator[z = 3\\n]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_inline_table_key_value_separator.py::test_key_value_item_appended_to_spaced_inline_table_uses_spaced_separator[z = 3]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_inline_table_key_value_separator.py::test_trailing_space_from_key_value_is_not_doubled_by_next_separator": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_key_value_trailing_input.py::test_key_value_comment_kept_on_item_but_dropped_in_inline_table": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_key_value_trailing_input.py::test_key_value_rejects_inline_table_style_trailing_input[z = 3 , w = 4]": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_key_value_trailing_input.py::test_key_value_rejects_inline_table_style_trailing_input[z = 3 junk]": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_key_value_trailing_input.py::test_key_value_rejects_inline_table_style_trailing_input[z = 3, w = 4]": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_key_value_trailing_input.py::test_key_value_rejects_inline_table_style_trailing_input[z = 3}]": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:10:01.354031+00:00"
+  }
+}

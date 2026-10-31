@@ -1,0 +1,98 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 56949,
+    "output_tokens": 4184,
+    "scenarios": {
+      "test_query_test_list_args_cache.py": {
+        "kind": "intent_a",
+        "rationale": "Change A makes Query.test queries with list, dict or nested-in-tuple arguments hashable, so they now go through Table.search's query cache, and makes unhashable arguments uncacheable instead of raising. These tests check that path: equal queries share a cache entry, different list args do not collide, writes invalidate the cache, and unhashable args skip the cache. They also check the cache-sharing contract that change B documents (fresh result list, shared document objects) on these newly cacheable queries. Every test raises TypeError on trees without A."
+      },
+      "test_query_test_hashable_args_cache.py": {
+        "kind": "invariant",
+        "rationale": "Query.test queries with hashable scalar args are cacheable on every tree. These tests check properties that should hold before and after both changes: mutating the returned list never corrupts the cache, writes invalidate cached results, and an equal query rebuilt from the same function and args hits the same cache entry. A's change to how test args are frozen must not break any of these."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:5b076d33a80f965a3b68c222af565823f4168da55ff22c02976db3dedfaa98fe",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "e334444a7dec602e338ddfd2405582faf768c4b0",
+      "a": "44e02c45c71c148081d1287a152d17cb57dc7bef",
+      "b": "9f3300cc017a3471053e862f2c00c5da5ce9a1f2",
+      "ab": "025dd75084a21b24d67574c6da4b8f37b5eef012",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:8ee9e2db79b175fb939077147b101410190a7514e9008e583a68203d30cbf965"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_query_test_hashable_args_cache.py::test_equal_scalar_arg_query_hits_cache": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_query_test_hashable_args_cache.py::test_returned_list_is_fresh_and_write_invalidates": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_query_test_list_args_cache.py::test_different_list_args_do_not_collide_in_cache": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_query_test_list_args_cache.py::test_list_arg_cached_results_list_fresh_but_docs_shared": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_query_test_list_args_cache.py::test_list_arg_query_cache_invalidated_by_write": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_query_test_list_args_cache.py::test_list_arg_query_is_cached_and_equal_query_hits_cache": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_query_test_list_args_cache.py::test_nested_dict_in_tuple_arg_and_unhashable_arg_search": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:44:49.332381+00:00"
+  }
+}

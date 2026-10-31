@@ -1,0 +1,88 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 79321,
+    "output_tokens": 2219,
+    "scenarios": {
+      "test_annotation_modernization.py": {
+        "kind": "intent_a",
+        "rationale": "Change A rewrites the AttemptManager.__exit__/__aexit__ traceback annotation, the copy() stop/wait annotations and wait_base.__radd__ return annotation as PEP 604 strings. Change B edits a neighbouring annotation in the same file, so the merge must keep A's rewritten annotations. These checks fail on base and on B alone."
+      },
+      "test_set_exception_annotation.py": {
+        "kind": "intent_b",
+        "rationale": "Change B fixes the spacing in the traceback element of RetryCallState.set_exception's exc_info annotation. That element is the value AttemptManager.__exit__ passes in, and Change A edits AttemptManager.__exit__'s own annotation. The fix must survive the merge. This check fails on base and on A alone."
+      },
+      "test_attempt_exception_flow.py": {
+        "kind": "invariant",
+        "rationale": "Both changes touch the annotated path that leads from AttemptManager.__exit__ into RetryCallState.set_exception, and A also touches copy() and wait __radd__. Runtime behaviour must be unchanged on every tree: exceptions in a with-attempt block are recorded and retried, copy() keeps stop and wait, and sum() over waits still works."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:1e34240e1515d3172b29f58933450e1357b04c4f6f01eae741a792014286fb28",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "c1516bff06db910b2e852f7d85dea8922aca9d66",
+      "a": "b0fb6ade219de50d1d894d3a0123e02c9bcc6dfd",
+      "b": "1a559e9cad9e45ae0ecc325d9d257eff4889d57d",
+      "ab": "fce9ccb936b2517a657d86b117fb2f811224bd33",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:82c31bbf5a4809d8197c40dbece561a52f059a8b8c3ff4483039978617d33b7c"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_annotation_modernization.py::test_attempt_manager_traceback_annotation_uses_pep604": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_annotation_modernization.py::test_copy_and_radd_annotations_use_pep604": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_attempt_exception_flow.py::test_context_manager_records_exceptions_and_retries": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_attempt_exception_flow.py::test_copy_preserves_stop_wait_and_sum_of_waits": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_set_exception_annotation.py::test_set_exception_traceback_annotation_spacing": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:37:39.210947+00:00"
+  }
+}

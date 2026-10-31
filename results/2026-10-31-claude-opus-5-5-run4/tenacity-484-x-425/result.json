@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 72748,
+    "output_tokens": 5371,
+    "scenarios": {
+      "test_patch_retry_attribute_wait.py": {
+        "kind": "intent_a",
+        "rationale": "Change A makes `fn.retry` the live Retrying/AsyncRetrying object, so patching its `wait` changes how a decorated function behaves. These tests patch in a `wait_random_exponential(min=...)`, the strategy change B modifies. `random.uniform` is pinned to its upper bound, so the expected sleeps are the same with or without B. On trees without A, `fn.retry` is the wrapper function and the patch has no effect or errors, so the tests fail there."
+      },
+      "test_random_exponential_min_decorated.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes `wait_random_exponential` respect `min` as the lower bound of the random sample. These tests check that through decorated functions and `retry_with`, reading the wait totals from the function's `statistics` attribute, which is the read path change A documents. Without B the sampled waits can drop below `min`, so the tests fail on trees lacking B."
+      },
+      "test_wait_stats_invariants.py": {
+        "kind": "invariant",
+        "rationale": "Neither change should break two things: `wait_random_exponential` staying within [0, max], and the decorated function's `statistics` reflecting the latest run, with `idle_for` equal to the sleeps actually performed. Both must hold on the base, on each change alone, and on the merge."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:7ec812de6f37e54d91c678ee502c031af149c126da4d0292ec255cbd6b99a55e",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "0ff4f4645c03ab56f4aa3e5dc9bb32c8a89d9bbf",
+      "a": "ad14d87e403b8d17a64a547e138ae3689161e224",
+      "b": "67d9b507179799ac36d6daa327c4c9fb1db7a0fb",
+      "ab": "714664f923c0662975fcbc0950b1ed536d9f001b",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:bbb26406163aaf75ebb432a0cf41f7a0f656305fd33a258c0c1ab6c2318cbb17"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_patch_retry_attribute_wait.py::test_patch_async_retry_wait_with_random_exponential": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_patch_retry_attribute_wait.py::test_patch_sync_retry_wait_with_random_exponential": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_random_exponential_min_decorated.py::test_decorated_random_exponential_respects_min": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_random_exponential_min_decorated.py::test_retry_with_random_exponential_min_seeded": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_wait_stats_invariants.py::test_random_exponential_bounded_by_max_through_decorator": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_wait_stats_invariants.py::test_statistics_reflect_latest_run_and_sleeps": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:32:55.589968+00:00"
+  }
+}

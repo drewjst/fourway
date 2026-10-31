@@ -1,0 +1,109 @@
+{
+  "label": "clean",
+  "expect": "ok",
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 90676,
+    "output_tokens": 8656,
+    "scenarios": {
+      "test_stop_before_idle_with_before_sleep.py": {
+        "kind": "intent_a",
+        "rationale": "Change A adds stop_before_idle, which budgets only the time spent sleeping. Change B adds an accounting step after every before_sleep callback. These tests run stop_before_idle in real retry loops that have a before_sleep callback, in sync and async form. The callback either leaves the sleep alone or rewrites it to the same value, and some runs use slow attempts. The merged accounting must not double-count sleeps. The stop must still happen right before the budget is exceeded, and time spent inside attempts must not count."
+      },
+      "test_before_sleep_sleep_accounting.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes idle_for and the statistics count the sleep a before_sleep callback sets. Change A introduces stopping that depends on idle_for, so these tests use an equivalent idle-budget stop written as a plain callable. They also check the idle_for seen at the start of each attempt and the async statistics. All three must reflect the overridden sleep."
+      },
+      "test_sleep_accounting_invariant.py": {
+        "kind": "invariant",
+        "rationale": "This property must hold on every tree whenever before_sleep leaves the sleep unchanged. The sleeps performed, the next_action.sleep reported to before_sleep_log, and statistics idle_for must all agree, with each sleep counted exactly once. The tests cover the sync and async controllers."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:b0289f4c1adec7e61d5a6c61d733a5cf7182f94f7a56c20e7112132c12d71468",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "4cda64c598475f5157231227243ad60ffa9b7294",
+      "a": "3684fb909ac0c3453f2f3f3c1369a3a8cfcd50f0",
+      "b": "6c3e829e09c84fdb83b12e6eb7b8a03db599f845",
+      "ab": "214dba3e73545d2a7663e9470d6a6aa2053195d6",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:a7e5ec5c82b3f5bffdb6c443b126821ddb104643b4672f3c375f682018ce996f"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_before_sleep_sleep_accounting.py::test_async_before_sleep_override_counted": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_before_sleep_sleep_accounting.py::test_idle_budget_stop_sees_overridden_sleep": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_before_sleep_sleep_accounting.py::test_idle_for_visible_to_next_attempt_matches_actual_sleep": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_sleep_accounting_invariant.py::test_async_unchanged_sleep_accounting_consistent": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_sleep_accounting_invariant.py::test_sync_unchanged_sleep_accounting_consistent": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_stop_before_idle_with_before_sleep.py::test_async_stop_before_idle_with_before_sleep": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_stop_before_idle_with_before_sleep.py::test_slow_attempts_and_unchanged_override_do_not_eat_idle_budget": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_stop_before_idle_with_before_sleep.py::test_stop_before_idle_counts_each_sleep_once_with_before_sleep": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:41:06.306702+00:00"
+  }
+}

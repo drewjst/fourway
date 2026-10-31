@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "conflict",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 56608,
+    "output_tokens": 6380,
+    "scenarios": {
+      "test_timedelta_wait_units.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes datetime.timedelta a valid wait unit for wait strategies, including their `max` cap. Change A adds a new wait strategy, wait_exponential_jitter, that takes a `max` argument but stores it raw, without to_seconds(). These tests check every concrete wait strategy in tenacity.wait that accepts `max`. On the base and A-only trees they fail because timedelta is not converted. On B they pass. On the merge, wait_exponential_jitter(max=timedelta) raises TypeError when it compares a float with a timedelta, so B's guarantee no longer holds for all wait strategies."
+      },
+      "test_exponential_jitter.py": {
+        "kind": "intent_a",
+        "rationale": "Change A adds wait_exponential_jitter. Its wait is initial * base**(n-1) plus a jitter, clamped to `max`. Change B rewrites the neighbouring wait classes so they convert their arguments to float seconds. These tests check that the new strategy computes, caps, composes with wait_fixed and drives Retrying sleeps correctly when given plain numbers. They fail on trees without A and should hold on the merge."
+      },
+      "test_wait_sleep_propagation.py": {
+        "kind": "invariant",
+        "rationale": "Change B rewrites how wait_fixed and wait_exponential store their parameters, converting them to float. Change A adds another strategy alongside them. On every tree, a computed wait given as plain numbers must reach the sleep function, before_sleep's next_action and the idle_for statistic unchanged and exactly once per retry. This holds on the base."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:550414f13425090e180f32e0e0c87ff81c21e097291604ed67c9aafadc52aeb5",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "92cb0a62e2e070d468dd99bf9aeeeb7b3cd9fd79",
+      "a": "a13a1298402e8f8c8bd41aad32d555fe40f05736",
+      "b": "96ed6795ebb1694ebb571a70c3b26c291a5c0ac4",
+      "ab": "ef1e1e48dfa864a755f6b9b3a22bdaef58daecb7",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:ed3c5cdb9f4b78c03c85f2dcdfd45bd9ae4c75f081a33869cf2dffb6b5d6ccb7"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_exponential_jitter.py::test_exponential_jitter_drives_retrying_sleeps": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_exponential_jitter.py::test_exponential_jitter_growth_cap_and_combination": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_timedelta_wait_units.py::test_every_wait_strategy_accepts_timedelta_max": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "differential_b"
+      },
+      "fourway_scenarios/test_timedelta_wait_units.py::test_retrying_sleeps_with_timedelta_max_for_every_strategy": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "differential_b"
+      },
+      "fourway_scenarios/test_wait_sleep_propagation.py::test_numeric_waits_reach_sleep_and_callbacks[wait0-expected0]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_wait_sleep_propagation.py::test_numeric_waits_reach_sleep_and_callbacks[wait1-expected1]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "conflict",
+    "recorded_at": "2026-10-31T19:29:01.753513+00:00"
+  }
+}

@@ -1,0 +1,147 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 107910,
+    "output_tokens": 4224,
+    "scenarios": {
+      "test_unicode_escape_validation.py": {
+        "kind": "intent_a",
+        "rationale": "Change A rejects \\u/\\U escapes whose digits are not pure hex. Change B moves single-line string bodies onto a bulk-scan fast path, so the ordinary text around an escape is consumed differently. These tests embed malformed escapes between long runs of ordinary characters in single-line basic strings, which is B's fast path. They also cover quoted keys, table headers, inline tables and arrays, which all go through the rewritten _parse_string. Rejection must still happen on the merged tree. Base and B-only accept these inputs."
+      },
+      "test_string_scan_escapes.py": {
+        "kind": "invariant",
+        "rationale": "Every tree must keep three behaviours. First, valid \\u/\\U escapes surrounded by long ordinary runs decode to the right characters and the document round-trips byte-for-byte. Second, literal strings containing an escape-like sequence stay raw. Third, the error types after an escape are unchanged: a control character raises InvalidControlChar and a missing closing quote raises UnexpectedEofError. A changes how escape digits are validated, B changes how the text after an escape is scanned, and their combination must not regress any of this."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:d930a196b24abf0960f2c376749ef5f96b95d9a702fab2ce3b524c55113afeeb",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "8d7808c4deaf14ca0b787b33fe5dc6d92f1cc56c",
+      "a": "4f24aabce49769014f1377433c62f9a4ea5506fa",
+      "b": "ba5044b3b78cd7634079001659ba85bc01945b56",
+      "ab": "3645c4c9e042e01e8f2d89aea7b40ae82ccdf0ed",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:082533e2a8758e8b7f74090d2e869272bd3916661f4aa606f9deeb64f0a76105"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_string_scan_escapes.py::test_error_types_after_escape_are_preserved": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_string_scan_escapes.py::test_valid_escapes_between_long_runs_decode_and_round_trip": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unicode_escape_validation.py::test_invalid_unicode_escape_in_keys_and_nested_values[\"key \\\\u12_3 name\" = 1]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unicode_escape_validation.py::test_invalid_unicode_escape_in_keys_and_nested_values[[\"prefix\\\\u1_23suffix\"]\\nx = 1\\n]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unicode_escape_validation.py::test_invalid_unicode_escape_in_keys_and_nested_values[[table]\\n\"abc\\\\u+123def\" = \"x\"\\n]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unicode_escape_validation.py::test_invalid_unicode_escape_in_keys_and_nested_values[a = \"ok \\\\u00e9 text\"\\nb = \"bad text \\\\u12_3\"]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unicode_escape_validation.py::test_invalid_unicode_escape_in_keys_and_nested_values[a = [\"first plain\", \"second \\\\U0000_0041 tail\"]]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unicode_escape_validation.py::test_invalid_unicode_escape_in_keys_and_nested_values[a = {b = \"value text \\\\u 123 more text\"}]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unicode_escape_validation.py::test_invalid_unicode_escape_inside_long_single_line_string[\\\\U0000_0041]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unicode_escape_validation.py::test_invalid_unicode_escape_inside_long_single_line_string[\\\\U0010_FFFF]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unicode_escape_validation.py::test_invalid_unicode_escape_inside_long_single_line_string[\\\\u 123]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unicode_escape_validation.py::test_invalid_unicode_escape_inside_long_single_line_string[\\\\u+123]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unicode_escape_validation.py::test_invalid_unicode_escape_inside_long_single_line_string[\\\\u12_3]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_unicode_escape_validation.py::test_invalid_unicode_escape_inside_long_single_line_string[\\\\u1_23]": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:53:55.532550+00:00"
+  }
+}

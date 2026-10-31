@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 55003,
+    "output_tokens": 2345,
+    "scenarios": {
+      "test_jitter_doc_and_exports.py": {
+        "kind": "intent_a",
+        "rationale": "Change A corrects the wait_exponential_jitter docstring so jitter is added, not multiplied by initial. After B adds __all__, the class must still be reachable from the tenacity namespace with the corrected docstring."
+      },
+      "test_explicit_exports.py": {
+        "kind": "intent_b",
+        "rationale": "Change B declares tenacity.__all__ so type checkers treat the convenience symbols as public. Every listed name must resolve on the module, the core names must be present, and a star import must expose them."
+      },
+      "test_jitter_behavior.py": {
+        "kind": "invariant",
+        "rationale": "The wait_exponential_jitter behavior that A's docstring now describes must hold on every tree: jitter is added after scaling by initial and capped at max. B's export changes must not alter that behavior or package-level access."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:bc145fcb62cd1b45594f2fd25a3b444d47b88a57abc23b96ac9c698de624d423",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "9e709c01f05e48619dac909337bbbded1e6d5d7c",
+      "a": "d32d34f535b4c0cb1f3a90dc462a3b8038e98949",
+      "b": "c176630d36596776a1e85ec5bb76040def8369f0",
+      "ab": "e18d2bc5be6e464969304d51642bed269b0aa380",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:06caf8347cb8a3f3fed82b702ed52699c39625ec5c1ee0346fe20519383cabde"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_explicit_exports.py::test_all_is_declared_and_resolvable": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_explicit_exports.py::test_star_import_exposes_core_symbols": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_jitter_behavior.py::test_jitter_is_additive_not_multiplied": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_jitter_behavior.py::test_jitter_respects_max_in_retrying": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_jitter_doc_and_exports.py::test_docstring_describes_additive_jitter": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_jitter_doc_and_exports.py::test_docstring_visible_via_package_namespace": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:29:25.641808+00:00"
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 119264,
+    "output_tokens": 8354,
+    "scenarios": {
+      "test_inline_table_rejects_table_in_arrays.py": {
+        "kind": "intent_a",
+        "rationale": "Change A makes InlineTable.append/__setitem__ reject Table children. These tests target inline tables that live inside arrays, which is the parser path change B rewrote. The inline tables are obtained by parsing a document or by building an array from a string. The tests check that both public mutation paths raise, and that nothing is half-mutated: the document still renders byte-for-byte and re-parses. They also check that plain dicts are still accepted and become nested inline tables."
+      },
+      "test_malformed_inline_table_in_array.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes a malformed array element raise instead of being silently dropped. These tests cover malformed inline-table elements, the value kind whose construction change A touched. They exercise it in nesting contexts that B's own tests miss: an array inside an inline table, and the public value()/array() helpers. On the base tree these inputs come back as truncated arrays."
+      },
+      "test_inline_tables_in_arrays_roundtrip.py": {
+        "kind": "invariant",
+        "rationale": "Change A alters how values are inserted into inline tables, and change B alters how array elements are parsed. Valid inline tables inside arrays must keep working on every tree. That covers: parsing and byte-for-byte round-trips (including dotted keys, nested arrays and trailing commas), dumping Python dicts and lists that build nested inline tables inside arrays, and editing a parsed inline-table element with dict values."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:49173c3e9967c22525a8c48b67ae9a23ab2384933e2099f605f9270e03b259a7",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "c75846e4b38625674b3579a2cf54a702c60be87c",
+      "a": "39de59a3b45eed0cd1c9f439dbe3e45a6fb0c088",
+      "b": "c429415fd494aa4186fd0fc37dc324c658252415",
+      "ab": "d002da187c823ffffab29d5895812e658ffebde0",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:70983813b9976fbd2aabf1fcb6bd398dad60e1501d0e6b524ac71901e884f813"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_inline_table_rejects_table_in_arrays.py::test_array_built_from_string_rejects_table_but_accepts_dict": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_inline_table_rejects_table_in_arrays.py::test_parsed_inline_tables_in_array_reject_table_children": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_inline_tables_in_arrays_roundtrip.py::test_dump_and_edit_nested_inline_tables_in_arrays": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_inline_tables_in_arrays_roundtrip.py::test_valid_arrays_of_inline_tables_round_trip[a = [ {x = 1} , { y = { z = 3 } } ]\\n]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_inline_tables_in_arrays_roundtrip.py::test_valid_arrays_of_inline_tables_round_trip[a = [\\n  {x = 1}, # c\\n  {y = 2},\\n]\\n]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_inline_tables_in_arrays_roundtrip.py::test_valid_arrays_of_inline_tables_round_trip[a = []\\nb = [ ]\\n]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_inline_tables_in_arrays_roundtrip.py::test_valid_arrays_of_inline_tables_round_trip[a = [{b.c = 1}, {d = [{e = 2}]},]\\n]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_malformed_inline_table_in_array.py::test_malformed_inline_table_inside_nested_array_raises[a = [{p = [{q]}]\\n]": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_malformed_inline_table_in_array.py::test_malformed_inline_table_inside_nested_array_raises[a = {x = [{1]}\\n]": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_malformed_inline_table_in_array.py::test_malformed_inline_table_inside_nested_array_raises[a = {x = [{y = 1}, {z]}\\n]": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_malformed_inline_table_in_array.py::test_value_and_array_helpers_reject_malformed_inline_table_element": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T20:03:32.933643+00:00"
+  }
+}

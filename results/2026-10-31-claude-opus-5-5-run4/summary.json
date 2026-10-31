@@ -1,0 +1,2143 @@
+{
+  "summary": {
+    "generator": "claude",
+    "detected": 6,
+    "conflicts": 6,
+    "false_positives": 3,
+    "cleans": 82,
+    "cleans_verified": 82,
+    "unverified": 0,
+    "errors": 0,
+    "fallbacks": 0,
+    "total": 88,
+    "cost_usd": 36.973204,
+    "models": [
+      "claude-opus-5-5"
+    ]
+  },
+  "cases": [
+    {
+      "id": "cache-x-quote",
+      "label": "clean",
+      "class": "cache x invalidation",
+      "mined": false,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_price_lookup_values.py::test_interleaved_lookups_return_each_skus_price": "ok",
+        "fourway_scenarios/test_quote_backend_reads.py::test_quote_reads_each_distinct_sku_once": "ok",
+        "fourway_scenarios/test_quote_backend_reads.py::test_quote_reuses_prices_read_by_price": "ok",
+        "fourway_scenarios/test_quote_with_cached_prices.py::test_quote_counts_repeats_after_cache_is_warm": "ok",
+        "fourway_scenarios/test_quote_with_cached_prices.py::test_repeated_quotes_give_the_same_total": "ok"
+      },
+      "cost_usd": 0.06142,
+      "seconds": 23.44,
+      "evidence": "sha256:6ea11afc355e6f4ac115faa1e40b0b031ebdc5140b9a14b271d49d30ae71e8cb"
+    },
+    {
+      "id": "cache-x-set-price",
+      "label": "conflict",
+      "class": "cache x invalidation",
+      "mined": false,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "conflict",
+      "findings": {
+        "fourway_scenarios/test_price_cache_with_editor.py::test_each_sku_is_read_from_the_backend_once": "ok",
+        "fourway_scenarios/test_price_cache_with_editor.py::test_rejected_price_edit_does_not_force_a_reread": "ok",
+        "fourway_scenarios/test_price_update_visibility.py::test_accepted_price_update_becomes_visible": "emergent",
+        "fourway_scenarios/test_set_price_after_read.py::test_set_price_is_visible_after_the_sku_was_already_read": "differential_b",
+        "fourway_scenarios/test_set_price_after_read.py::test_set_price_updates_only_the_edited_sku_after_reads": "differential_b"
+      },
+      "cost_usd": 0.06632,
+      "seconds": 23.12,
+      "evidence": "sha256:11ea9a47a3209bd23fa73cb2db112fdebeaeb30474c80c8fec04cd8d3b22bd5c"
+    },
+    {
+      "id": "cachetools-mru-x-fast-get",
+      "label": "conflict",
+      "class": "new subclass x read path",
+      "mined": false,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "conflict",
+      "findings": {
+        "fourway_scenarios/test_get_use_tracking_invariant.py::test_lru_and_lfu_get_count_as_use": "ok",
+        "fourway_scenarios/test_get_use_tracking_invariant.py::test_ttl_get_hides_expired": "ok",
+        "fourway_scenarios/test_mru_get_counts_as_use.py::test_get_marks_item_most_recently_used_for_eviction": "differential_a",
+        "fourway_scenarios/test_mru_get_counts_as_use.py::test_get_marks_item_most_recently_used_for_popitem": "differential_a",
+        "fourway_scenarios/test_mru_get_counts_as_use.py::test_get_matches_getitem_semantics": "differential_a",
+        "fourway_scenarios/test_mru_get_counts_as_use.py::test_get_missing_returns_default_without_disturbing_order": "differential_a"
+      },
+      "cost_usd": 0.383992,
+      "seconds": 24.18,
+      "evidence": "sha256:1738bf9d1c070bd441e493d4fa2fefc16151d57668294a1f17a58f2506526e34"
+    },
+    {
+      "id": "cachetools-mru-x-peek",
+      "label": "clean",
+      "class": "new subclass x read path",
+      "mined": false,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_cache_classes_invariants.py::test_all_exports_resolve": "ok",
+        "fourway_scenarios/test_cache_classes_invariants.py::test_get_still_counts_as_use": "ok",
+        "fourway_scenarios/test_mru_eviction_with_peek.py::test_mru_getsizeof_eviction_with_peek": "ok",
+        "fourway_scenarios/test_mru_eviction_with_peek.py::test_mru_popitem_order_unaffected_by_peek": "ok",
+        "fourway_scenarios/test_mru_peek.py::test_peek_does_not_count_as_use_in_mru": "ok",
+        "fourway_scenarios/test_mru_peek.py::test_peek_missing_in_mru_subclass_does_not_store": "ok"
+      },
+      "cost_usd": 0.41922,
+      "seconds": 38.69,
+      "evidence": "sha256:31a799f8b476f079e65eebd0930263d54a9b5215d526c3aaf8c22e936ec64f0e"
+    },
+    {
+      "id": "free-order-skip-x-money-format",
+      "label": "clean",
+      "class": "single-side regression",
+      "mined": false,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "conflict",
+      "findings": {
+        "fourway_scenarios/test_free_order_events.py::test_free_order_is_captured_but_not_counted_as_revenue": "ok",
+        "fourway_scenarios/test_free_order_events.py::test_paid_order_after_free_order_still_counted": "ok",
+        "fourway_scenarios/test_paid_charge_event_once.py::test_paid_jpy_charge_event_reaches_consumers_once": "ok",
+        "fourway_scenarios/test_paid_charge_event_once.py::test_paid_usd_charge_event_reaches_consumers_once": "ok",
+        "fourway_scenarios/test_yen_receipts.py::test_small_yen_charge_counts_as_revenue": "differential_b",
+        "fourway_scenarios/test_yen_receipts.py::test_small_yen_charge_sends_receipt": "differential_b"
+      },
+      "cost_usd": 0.078984,
+      "seconds": 27.71,
+      "evidence": "sha256:1d042d6ff2ca47df2cee23931ce3df8cfdd694fedaef525a4091f64708f9d39b"
+    },
+    {
+      "id": "python-dotenv-614-x-621",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_dotenv_values_docstring.py::test_dotenv_values_documents_interpolate": "ok",
+        "fourway_scenarios/test_interpolate_behavior.py::test_dotenv_values_interpolate_flag": "ok",
+        "fourway_scenarios/test_interpolate_behavior.py::test_load_dotenv_interpolate_false_keeps_raw": "ok",
+        "fourway_scenarios/test_load_dotenv_docstring.py::test_load_dotenv_documents_interpolate_once_in_parameters": "ok",
+        "fourway_scenarios/test_load_dotenv_docstring.py::test_load_dotenv_interpolate_between_override_and_encoding": "ok",
+        "fourway_scenarios/test_load_dotenv_docstring_typo.py::test_load_dotenv_docstring_uses_its": "ok"
+      },
+      "cost_usd": 0.204316,
+      "seconds": 19.55,
+      "evidence": "sha256:cc9f69ac8f440b6e94d6fababafb315e6f1bb031f15c85f6bb01746c3a1f310b"
+    },
+    {
+      "id": "python-dotenv-640-x-638",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [
+        "a"
+      ],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_bom_empty_cache.py::test_bom_only_file_is_empty_and_parsed_once": "ok",
+        "fourway_scenarios/test_bom_empty_cache.py::test_empty_file_parsed_once": "ok",
+        "fourway_scenarios/test_bom_keys_with_cache.py::test_bom_comment_only_file_loads_nothing": "ok",
+        "fourway_scenarios/test_bom_keys_with_cache.py::test_bom_first_key_clean_through_cached_dict": "ok",
+        "fourway_scenarios/test_cache_invariants.py::test_empty_file_load_returns_false_and_env_untouched": "ok",
+        "fourway_scenarios/test_cache_invariants.py::test_nonempty_dict_cached_same_object": "ok"
+      },
+      "cost_usd": 0.241052,
+      "seconds": 35.12,
+      "evidence": "sha256:486aedd5a85daf89691dba3aa0fbd631eba3f8530a2431cb47cfbaa2543ac344"
+    },
+    {
+      "id": "python-dotenv-714-x-669",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_crlf_recovery_stream.py::test_crlf_invalid_line_consumes_whole_newline": "ok",
+        "fourway_scenarios/test_crlf_recovery_stream.py::test_crlf_invalid_line_warning_line_numbers": "ok",
+        "fourway_scenarios/test_home_path_crlf.py::test_find_dotenv_tilde_finds_crlf_file": "ok",
+        "fourway_scenarios/test_home_path_crlf.py::test_load_found_tilde_file_with_crlf_invalid_line": "ok",
+        "fourway_scenarios/test_tilde_rewrite_roundtrip.py::test_crlf_stream_originals_roundtrip[a: b\\r\\n\\r\\nc=d\\r\\n]": "ok",
+        "fourway_scenarios/test_tilde_rewrite_roundtrip.py::test_crlf_stream_originals_roundtrip[a: b\\r\\nc=d\\r\\ne: f]": "ok",
+        "fourway_scenarios/test_tilde_rewrite_roundtrip.py::test_crlf_stream_originals_roundtrip[a: b\\r\\nc=d]": "ok",
+        "fourway_scenarios/test_tilde_rewrite_roundtrip.py::test_crlf_stream_originals_roundtrip[x=1\\r\\na: b\\r\\n]": "ok",
+        "fourway_scenarios/test_tilde_rewrite_roundtrip.py::test_tilde_path_crlf_values_and_set_key": "ok"
+      },
+      "cost_usd": 0.318416,
+      "seconds": 58.99,
+      "evidence": "sha256:17a675494f48271477832d8671b6587a72b3fd1566d5b3b6fcdf1603c0dce65e"
+    },
+    {
+      "id": "python-semver-396-x-365",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_bump_empty_token_subclass.py::test_empty_token_build_on_parsed_subclass": "ok",
+        "fourway_scenarios/test_bump_empty_token_subclass.py::test_empty_token_prerelease_on_parsed_subclass": "ok",
+        "fourway_scenarios/test_parse_return_typevar.py::test_parse_on_subclass_then_bump_keeps_subclass": "ok",
+        "fourway_scenarios/test_parse_return_typevar.py::test_parse_return_annotation_is_typevar_bound_to_version": "ok",
+        "fourway_scenarios/test_subclass_parse_bump_invariant.py::test_default_bumps_increment_once": "ok",
+        "fourway_scenarios/test_subclass_parse_bump_invariant.py::test_subclass_parse_returns_subclass_instance": "ok"
+      },
+      "cost_usd": 0.223304,
+      "seconds": 22.96,
+      "evidence": "sha256:ba8cbb859eeec72bfed9ce845d840247bad12d78a41eb7fa119a6f9ebb0c8598"
+    },
+    {
+      "id": "python-semver-440-x-439",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_cmp_type_hints.py::test_cmp_and_nat_cmp_have_int_return_annotations": "ok",
+        "fourway_scenarios/test_cmp_type_hints.py::test_cmp_returns_ints_for_tuples_strings_ints": "ok",
+        "fourway_scenarios/test_prerelease_ordering_merge.py::test_deprecated_and_cli_compare_use_prerelease_ordering": "ok",
+        "fourway_scenarios/test_prerelease_ordering_merge.py::test_deprecated_compare_still_warns_and_returns_value": "ok",
+        "fourway_scenarios/test_prerelease_ordering_merge.py::test_prerelease_chain_ordering_via_version_and_nat_cmp": "ok"
+      },
+      "cost_usd": 0.227324,
+      "seconds": 18.86,
+      "evidence": "sha256:43d9c2c3f4d21469d9ba8a4efe1deaa8bdf1032760c2be9908668155185cf152"
+    },
+    {
+      "id": "python-semver-464-x-462",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_build_bump_invariants.py::test_bump_build_keeps_subclass_and_chains": "ok",
+        "fourway_scenarios/test_build_bump_invariants.py::test_bump_build_results_and_precedence[3.4.5--3.4.5+1]": "ok",
+        "fourway_scenarios/test_build_bump_invariants.py::test_bump_build_results_and_precedence[3.4.5-None-3.4.5+build.1]": "ok",
+        "fourway_scenarios/test_build_bump_invariants.py::test_bump_build_results_and_precedence[3.4.5-b-3.4.5+b.1]": "ok",
+        "fourway_scenarios/test_build_bump_invariants.py::test_bump_build_results_and_precedence[3.4.5-rc.1+0009.dev-build-3.4.5-rc.1+0010.dev]": "ok",
+        "fourway_scenarios/test_build_bump_invariants.py::test_bump_build_results_and_precedence[3.4.5-rc.1+build.9-build-3.4.5-rc.1+build.10]": "ok",
+        "fourway_scenarios/test_build_bump_invariants.py::test_bump_build_results_and_precedence[3.4.5-rc.1-build-3.4.5-rc.1+build.1]": "ok",
+        "fourway_scenarios/test_bump_build_single_increment.py::test_bump_build_after_prerelease_bump_increments_once": "ok",
+        "fourway_scenarios/test_bump_build_single_increment.py::test_bump_build_increments_existing_build_once": "ok",
+        "fourway_scenarios/test_prerelease_then_build.py::test_bump_when_empty_then_build": "ok",
+        "fourway_scenarios/test_prerelease_then_build.py::test_nonnumeric_prerelease_bump_then_build_is_newer": "ok"
+      },
+      "cost_usd": 0.27732,
+      "seconds": 36.66,
+      "evidence": "sha256:720941befaaa3208fbd995d2614c2c0e21532249cea53d14a9c219dc9eacad9c"
+    },
+    {
+      "id": "python-semver-471-x-469",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_docstring_examples.py::test_docstring_examples_execute_cleanly": "ok",
+        "fourway_scenarios/test_docstring_examples.py::test_docstrings_do_not_use_deprecated_parse": "ok",
+        "fourway_scenarios/test_next_version_build_only.py::test_build_only_versions_are_bumped": "ok",
+        "fourway_scenarios/test_next_version_build_only.py::test_cli_nextver_bumps_build_only_version": "ok",
+        "fourway_scenarios/test_next_version_build_only.py::test_subclass_build_only_bump_preserves_type": "ok",
+        "fourway_scenarios/test_next_version_prerelease_invariants.py::test_prerelease_part_examples_stable": "ok",
+        "fourway_scenarios/test_next_version_prerelease_invariants.py::test_prerelease_with_build_finalizes": "ok"
+      },
+      "cost_usd": 0.250436,
+      "seconds": 27.75,
+      "evidence": "sha256:367abb73fb2ded99bbbd8f80d711e9151ca8e803edb01c92762df9d337e54079"
+    },
+    {
+      "id": "python-semver-480-x-479",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_build_precedence_invariant.py::test_bump_build_does_not_mutate_original_and_orders_consistently": "ok",
+        "fourway_scenarios/test_build_precedence_invariant.py::test_bump_build_preserves_precedence_against_collection_forms": "ok",
+        "fourway_scenarios/test_bump_build_comparisons.py::test_digitless_build_raised_and_still_comparable_to_collections": "ok",
+        "fourway_scenarios/test_bump_build_comparisons.py::test_subclass_digitless_build_bump_and_tuple_compare": "ok",
+        "fourway_scenarios/test_malformed_operands_bumped.py::test_bumped_digitless_build_equality_with_malformed_collections_is_false": "ok",
+        "fourway_scenarios/test_malformed_operands_bumped.py::test_bumped_digitless_build_ordering_with_malformed_collection_raises_std_typeerror": "ok"
+      },
+      "cost_usd": 0.276144,
+      "seconds": 31.37,
+      "evidence": "sha256:980d1a33cac9768105219133564dcb04c3edf64d559b653e20b0d0916c16c0c0"
+    },
+    {
+      "id": "python-semver-495-x-498",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_is_valid_bytes_annotation.py::test_is_valid_annotation_includes_bytes": "ok",
+        "fourway_scenarios/test_is_valid_bytes_annotation.py::test_is_valid_bytes_on_token_switch_results": "ok",
+        "fourway_scenarios/test_next_version_token_switch.py::test_backward_token_switch_advances_patch[1.2.3-beta.3-alpha-1.2.4-alpha.1]": "ok",
+        "fourway_scenarios/test_next_version_token_switch.py::test_backward_token_switch_advances_patch[1.2.3-rc.1+build.7-dev-1.2.4-dev.1]": "ok",
+        "fourway_scenarios/test_next_version_token_switch.py::test_backward_token_switch_advances_patch[1.2.3-rc.1-alpha-1.2.4-alpha.1]": "ok",
+        "fourway_scenarios/test_next_version_token_switch.py::test_backward_token_switch_advances_patch[1.2.3-rc3-alpha-1.2.4-alpha.1]": "ok",
+        "fourway_scenarios/test_next_version_token_switch.py::test_backward_token_switch_preserves_subclass": "ok",
+        "fourway_scenarios/test_next_version_validity_invariant.py::test_forward_and_same_token_keep_patch[0.1.2-rc3-rc-0.1.2-rc4]": "ok",
+        "fourway_scenarios/test_next_version_validity_invariant.py::test_forward_and_same_token_keep_patch[1.2.3-alpha.1-beta-1.2.3-beta.1]": "ok",
+        "fourway_scenarios/test_next_version_validity_invariant.py::test_forward_and_same_token_keep_patch[1.2.3-alpha.4-rc-1.2.3-rc.1]": "ok",
+        "fourway_scenarios/test_next_version_validity_invariant.py::test_forward_and_same_token_keep_patch[1.2.3-rc.3-rc-1.2.3-rc.4]": "ok",
+        "fourway_scenarios/test_next_version_validity_invariant.py::test_next_prerelease_is_valid_semver[1.2.3-alpha.4-rc]": "ok",
+        "fourway_scenarios/test_next_version_validity_invariant.py::test_next_prerelease_is_valid_semver[1.2.3-alphaXbeta9-alpha.beta]": "ok",
+        "fourway_scenarios/test_next_version_validity_invariant.py::test_next_prerelease_is_valid_semver[1.2.3-rc.1+build.7-dev]": "ok",
+        "fourway_scenarios/test_next_version_validity_invariant.py::test_next_prerelease_is_valid_semver[1.2.3-rc.1-2]": "ok",
+        "fourway_scenarios/test_next_version_validity_invariant.py::test_next_prerelease_is_valid_semver[1.2.3-rc.1-alpha]": "ok",
+        "fourway_scenarios/test_next_version_validity_invariant.py::test_next_prerelease_is_valid_semver[1.2.3-rc3-rc]": "ok",
+        "fourway_scenarios/test_next_version_validity_invariant.py::test_next_prerelease_is_valid_semver[1.2.3-rc]": "ok"
+      },
+      "cost_usd": 0.29366,
+      "seconds": 30.55,
+      "evidence": "sha256:88583c10c2d095cefbae995b8c9da6b43361d845f2fe3a84b1c10507390e184e"
+    },
+    {
+      "id": "receipt-x-event-rename",
+      "label": "conflict",
+      "class": "rename x new consumer",
+      "mined": false,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "conflict",
+      "findings": {
+        "fourway_scenarios/test_payment_captured_event.py::test_charge_publishes_payment_captured": "ok",
+        "fourway_scenarios/test_receipts_via_charge.py::test_charge_sends_a_receipt": "differential_a",
+        "fourway_scenarios/test_receipts_via_charge.py::test_each_charge_sends_exactly_one_receipt_alongside_analytics": "differential_a",
+        "fourway_scenarios/test_subscribers_receive_charge_events.py::test_every_installed_consumer_sees_each_charge_once": "emergent",
+        "fourway_scenarios/test_subscribers_receive_charge_events.py::test_every_subscribed_event_is_published_by_charge": "emergent"
+      },
+      "cost_usd": 0.070428,
+      "seconds": 23.67,
+      "evidence": "sha256:91cdb919f39aed7f061c5684473e111c74dd2a903f6a28af29fc4acaddab3f2a"
+    },
+    {
+      "id": "retry-x-currency-key",
+      "label": "clean",
+      "class": "retry x idempotency",
+      "mined": false,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_currency_captures.py::test_each_currency_gets_its_own_capture": "ok",
+        "fourway_scenarios/test_currency_captures.py::test_requote_with_lost_response_captures_once_per_currency": "ok",
+        "fourway_scenarios/test_retry_keys.py::test_mixed_timeouts_still_capture_once": "ok",
+        "fourway_scenarios/test_retry_keys.py::test_retry_after_lost_response_captures_once_in_other_currency": "ok",
+        "fourway_scenarios/test_single_capture.py::test_caller_retry_after_lost_response_captures_once": "ok",
+        "fourway_scenarios/test_single_capture.py::test_charging_same_order_twice_captures_once": "ok",
+        "fourway_scenarios/test_single_capture.py::test_decline_captures_nothing_and_publishes_nothing": "ok"
+      },
+      "cost_usd": 0.091408,
+      "seconds": 33.86,
+      "evidence": "sha256:957d772f9846e5e35c70663a08ca06f8e1c6f4cc940bb608f8f5254f3b16a7b9"
+    },
+    {
+      "id": "retry-x-nonce-key",
+      "label": "conflict",
+      "class": "retry x idempotency",
+      "mined": false,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "conflict",
+      "findings": {
+        "fourway_scenarios/test_fresh_keys_per_charge.py::test_charge_after_decline_sends_a_new_key": "ok",
+        "fourway_scenarios/test_fresh_keys_per_charge.py::test_separate_charge_calls_are_new_requests": "ok",
+        "fourway_scenarios/test_retry_after_lost_response.py::test_retry_after_lost_response_returns_the_single_capture": "differential_a",
+        "fourway_scenarios/test_retry_after_lost_response.py::test_revenue_matches_money_actually_captured_after_retry": "differential_a",
+        "fourway_scenarios/test_retry_dedup.py::test_lost_gateway_response_never_double_charges[faults0]": "emergent",
+        "fourway_scenarios/test_retry_dedup.py::test_lost_gateway_response_never_double_charges[faults1]": "emergent",
+        "fourway_scenarios/test_retry_dedup.py::test_lost_gateway_response_never_double_charges[faults2]": "emergent"
+      },
+      "cost_usd": 0.08372,
+      "seconds": 30.66,
+      "evidence": "sha256:b18a1f05d676c7e7b03cc087bec446b8172a850117d6203f43e94412f25ebce6"
+    },
+    {
+      "id": "tenacity-309-x-310",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_abc_base_classes.py::test_base_retrying_inherits_abc": "ok",
+        "fourway_scenarios/test_abc_base_classes.py::test_strategy_bases_inherit_abc": "ok",
+        "fourway_scenarios/test_abstract_bases_still_enforced.py::test_bases_remain_abstract_with_abcmeta": "ok",
+        "fourway_scenarios/test_abstract_bases_still_enforced.py::test_custom_subclasses_and_combinators_drive_retrying": "ok",
+        "fourway_scenarios/test_no_encoding_cookie_on_abc_files.py::test_shared_files_compile_as_utf8_without_cookie[tenacity/__init__.py]": "ok",
+        "fourway_scenarios/test_no_encoding_cookie_on_abc_files.py::test_shared_files_compile_as_utf8_without_cookie[tenacity/retry.py]": "ok",
+        "fourway_scenarios/test_no_encoding_cookie_on_abc_files.py::test_shared_files_compile_as_utf8_without_cookie[tenacity/stop.py]": "ok",
+        "fourway_scenarios/test_no_encoding_cookie_on_abc_files.py::test_shared_files_compile_as_utf8_without_cookie[tenacity/wait.py]": "ok",
+        "fourway_scenarios/test_no_encoding_cookie_on_abc_files.py::test_shared_files_have_no_encoding_cookie[tenacity/__init__.py]": "ok",
+        "fourway_scenarios/test_no_encoding_cookie_on_abc_files.py::test_shared_files_have_no_encoding_cookie[tenacity/retry.py]": "ok",
+        "fourway_scenarios/test_no_encoding_cookie_on_abc_files.py::test_shared_files_have_no_encoding_cookie[tenacity/stop.py]": "ok",
+        "fourway_scenarios/test_no_encoding_cookie_on_abc_files.py::test_shared_files_have_no_encoding_cookie[tenacity/wait.py]": "ok"
+      },
+      "cost_usd": 0.263532,
+      "seconds": 27.44,
+      "evidence": "sha256:fc5c253542faf2d645129328674379139a3ab07018ac3d8748912af9007a085f"
+    },
+    {
+      "id": "tenacity-315-x-302",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_callstate_repr_runtime.py::test_async_retrying_callstate_repr_via_decorator_and_call": "ok",
+        "fourway_scenarios/test_callstate_repr_runtime.py::test_sync_retrying_callstate_repr_in_before_sleep": "ok",
+        "fourway_scenarios/test_retry_runtime_invariants.py::test_sync_and_async_call_results_and_sleep_counts": "ok",
+        "fourway_scenarios/test_retry_runtime_invariants.py::test_wait_defaults_unchanged": "ok"
+      },
+      "cost_usd": 0.27176,
+      "seconds": 27.72,
+      "evidence": "sha256:305ca4ecf2231f1ab2e0ea9be0e4c04a92226e4fb1d069632923704d9c62c28a"
+    },
+    {
+      "id": "tenacity-351-x-342",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "conflict",
+      "findings": {
+        "fourway_scenarios/test_exponential_jitter.py::test_exponential_jitter_drives_retrying_sleeps": "ok",
+        "fourway_scenarios/test_exponential_jitter.py::test_exponential_jitter_growth_cap_and_combination": "ok",
+        "fourway_scenarios/test_timedelta_wait_units.py::test_every_wait_strategy_accepts_timedelta_max": "differential_b",
+        "fourway_scenarios/test_timedelta_wait_units.py::test_retrying_sleeps_with_timedelta_max_for_every_strategy": "differential_b",
+        "fourway_scenarios/test_wait_sleep_propagation.py::test_numeric_waits_reach_sleep_and_callbacks[wait0-expected0]": "ok",
+        "fourway_scenarios/test_wait_sleep_propagation.py::test_numeric_waits_reach_sleep_and_callbacks[wait1-expected1]": "ok"
+      },
+      "cost_usd": 0.354032,
+      "seconds": 62.5,
+      "evidence": "sha256:550414f13425090e180f32e0e0c87ff81c21e097291604ed67c9aafadc52aeb5"
+    },
+    {
+      "id": "tenacity-372-x-347",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_explicit_exports.py::test_all_is_declared_and_resolvable": "ok",
+        "fourway_scenarios/test_explicit_exports.py::test_star_import_exposes_core_symbols": "ok",
+        "fourway_scenarios/test_jitter_behavior.py::test_jitter_is_additive_not_multiplied": "ok",
+        "fourway_scenarios/test_jitter_behavior.py::test_jitter_respects_max_in_retrying": "ok",
+        "fourway_scenarios/test_jitter_doc_and_exports.py::test_docstring_describes_additive_jitter": "ok",
+        "fourway_scenarios/test_jitter_doc_and_exports.py::test_docstring_visible_via_package_namespace": "ok"
+      },
+      "cost_usd": 0.266912,
+      "seconds": 23.89,
+      "evidence": "sha256:bc145fcb62cd1b45594f2fd25a3b444d47b88a57abc23b96ac9c698de624d423"
+    },
+    {
+      "id": "tenacity-393-x-392",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_exports_and_custom_wait_invariants.py::test_callable_wait_returning_numbers_drives_sleep": "ok",
+        "fourway_scenarios/test_exports_and_custom_wait_invariants.py::test_every_all_name_resolves": "ok",
+        "fourway_scenarios/test_star_import_exports.py::test_all_lists_new_names": "ok",
+        "fourway_scenarios/test_star_import_exports.py::test_star_import_exposes_and_works": "inconclusive",
+        "fourway_scenarios/test_wait_base_type_annotation.py::test_wait_base_t_callable_returns_numeric": "ok",
+        "fourway_scenarios/test_wait_base_type_annotation.py::test_wait_base_t_still_reachable_from_package": "ok"
+      },
+      "cost_usd": 0.275564,
+      "seconds": 25.01,
+      "evidence": "sha256:2e85b34fa9bd22b10709144c491e9305ff42ce43d5c6f5675e06bdea1b269988"
+    },
+    {
+      "id": "tenacity-400-x-406",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_retry_async_sleep_defaults.py::test_async_retry_with_async_sleep_preserves_defaults_and_kwdefaults": "ok",
+        "fourway_scenarios/test_retry_async_sleep_defaults.py::test_async_retry_with_copy_preserves_defaults": "ok",
+        "fourway_scenarios/test_retry_async_sleep_runtime.py::test_async_sleep_awaited_per_retry_and_defaults_used": "ok",
+        "fourway_scenarios/test_retry_async_sleep_runtime.py::test_async_sleep_exhaustion_raises_retry_error_once": "ok",
+        "fourway_scenarios/test_retry_async_sleep_runtime.py::test_sync_sleep_and_defaults": "ok",
+        "fourway_scenarios/test_retry_sleep_annotation.py::test_retry_overload_sleep_accepts_awaitable_return": "ok"
+      },
+      "cost_usd": 0.29684,
+      "seconds": 31.21,
+      "evidence": "sha256:20ef42f27d8cf4e3f9f2f85d5cd2cff698dba276b343a2f289ecaff41cebd69d"
+    },
+    {
+      "id": "tenacity-424-x-423",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_retry_loop_invariants.py::test_future_type_usable": "ok",
+        "fourway_scenarios/test_retry_loop_invariants.py::test_retry_error_callback_receives_last_state": "ok",
+        "fourway_scenarios/test_retry_loop_invariants.py::test_sleep_bookkeeping_consistent": "ok",
+        "fourway_scenarios/test_retry_loop_invariants.py::test_stop_after_delay_semantics_unchanged": "ok",
+        "fourway_scenarios/test_stop_before_delay_loop.py::test_custom_stop_sees_upcoming_sleep": "ok",
+        "fourway_scenarios/test_stop_before_delay_loop.py::test_stop_before_delay_async": "ok",
+        "fourway_scenarios/test_stop_before_delay_loop.py::test_stop_before_delay_never_exceeds_deadline_sync": "ok"
+      },
+      "cost_usd": 0.342788,
+      "seconds": 43.67,
+      "evidence": "sha256:62d6846ba2f7b5be45b5d10cd04073ecc8bf7fe7ffe6231d48a5fbdce52c522a"
+    },
+    {
+      "id": "tenacity-435-x-434",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_iter_callbacks.py::test_callback_order_and_statistics": "ok",
+        "fourway_scenarios/test_iter_callbacks.py::test_retry_error_callback_and_reraise": "ok",
+        "fourway_scenarios/test_iter_callbacks.py::test_try_again_skips_predicate_and_stop_sees_wait": "ok",
+        "fourway_scenarios/test_iter_loops.py::test_async_call_callback_order": "ok",
+        "fourway_scenarios/test_iter_loops.py::test_async_for_and_sync_for_loops": "ok",
+        "fourway_scenarios/test_iter_state.py::test_iter_state_flags_track_decisions": "ok",
+        "fourway_scenarios/test_iter_state.py::test_iter_state_is_thread_local": "ok"
+      },
+      "cost_usd": 0.435312,
+      "seconds": 58.08,
+      "evidence": "sha256:936064bac0493cb4c16efd22f694bd2baafbae926f79ae50501d6f449c257673"
+    },
+    {
+      "id": "tenacity-484-x-425",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_patch_retry_attribute_wait.py::test_patch_async_retry_wait_with_random_exponential": "ok",
+        "fourway_scenarios/test_patch_retry_attribute_wait.py::test_patch_sync_retry_wait_with_random_exponential": "ok",
+        "fourway_scenarios/test_random_exponential_min_decorated.py::test_decorated_random_exponential_respects_min": "ok",
+        "fourway_scenarios/test_random_exponential_min_decorated.py::test_retry_with_random_exponential_min_seeded": "ok",
+        "fourway_scenarios/test_wait_stats_invariants.py::test_random_exponential_bounded_by_max_through_decorator": "ok",
+        "fourway_scenarios/test_wait_stats_invariants.py::test_statistics_reflect_latest_run_and_sleeps": "ok"
+      },
+      "cost_usd": 0.398412,
+      "seconds": 51.97,
+      "evidence": "sha256:7ec812de6f37e54d91c678ee502c031af149c126da4d0292ec255cbd6b99a55e"
+    },
+    {
+      "id": "tenacity-518-x-497",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_copy_self_type.py::test_async_template_copy_is_async_iterable_with_compiled_match": "ok",
+        "fourway_scenarios/test_copy_self_type.py::test_copy_return_annotation_is_self": "ok",
+        "fourway_scenarios/test_copy_self_type.py::test_subclass_copy_preserves_class_and_pattern_strategy": "ok",
+        "fourway_scenarios/test_match_pattern_types.py::test_copy_with_not_exception_message_compiled_pattern": "ok",
+        "fourway_scenarios/test_match_pattern_types.py::test_match_annotation_accepts_pattern": "ok",
+        "fourway_scenarios/test_match_pattern_types.py::test_retry_with_keeps_compiled_pattern_strategy": "ok"
+      },
+      "cost_usd": 0.364612,
+      "seconds": 39.66,
+      "evidence": "sha256:eb6cd4e489d3e03b6f9b91a7e8462fda77d03087cd82403f8df27f93ed0a146c"
+    },
+    {
+      "id": "tenacity-576-x-577",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "a"
+      ],
+      "assisted": [
+        "a",
+        "b"
+      ],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_init_module_invariants.py::test_copy_preserves_subclass_and_runs": "ok",
+        "fourway_scenarios/test_init_module_invariants.py::test_iter_annotation_mentions_actions": "ok",
+        "fourway_scenarios/test_init_module_invariants.py::test_public_reexports_intact": "inconclusive",
+        "fourway_scenarios/test_init_module_invariants.py::test_self_fallback_on_old_python": "ok",
+        "fourway_scenarios/test_self_typing_import.py::test_self_resolves_from_stdlib_without_typing_extensions": "ok"
+      },
+      "cost_usd": 0.393828,
+      "seconds": 54.15,
+      "evidence": "sha256:66a716932d0ea382af24b9ca1e92a55aa1dd43c0872d2c479186af66a5bf584c"
+    },
+    {
+      "id": "tenacity-586-x-587",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [
+        "a",
+        "b"
+      ],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_iterstate_field_removed.py::test_iter_state_after_run_lacks_field_but_stats_have_delay": "ok",
+        "fourway_scenarios/test_iterstate_field_removed.py::test_iterstate_has_no_delay_field": "ok",
+        "fourway_scenarios/test_logger_protocol_signature.py::test_logger_protocol_matches_logging_logger_msg_kind": "ok",
+        "fourway_scenarios/test_logger_protocol_signature.py::test_logger_protocol_msg_is_not_positional_only": "ok",
+        "fourway_scenarios/test_logging_callbacks_with_retry_loop.py::test_async_retry_logs_and_records_delay_with_real_logger": "ok",
+        "fourway_scenarios/test_logging_callbacks_with_retry_loop.py::test_sync_retry_logs_each_attempt_once_with_real_logger": "inconclusive"
+      },
+      "cost_usd": 0.352652,
+      "seconds": 29.99,
+      "evidence": "sha256:28a7476e71c45de746a2924bd18f30a8f3c4afb755fa47ab76c8b26b05aba5f5"
+    },
+    {
+      "id": "tenacity-588-x-589",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a"
+      ],
+      "assisted": [
+        "a",
+        "b"
+      ],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_reraise_with_pattern_message.py::test_async_reraise_with_compiled_pattern": "ok",
+        "fourway_scenarios/test_reraise_with_pattern_message.py::test_no_reraise_wraps_in_retry_error_with_cause": "ok",
+        "fourway_scenarios/test_reraise_with_pattern_message.py::test_reraise_context_manager_with_compiled_pattern": "ok",
+        "fourway_scenarios/test_reraise_with_pattern_message.py::test_reraise_last_exception_with_compiled_match_pattern": "ok",
+        "fourway_scenarios/test_reraise_with_pattern_message.py::test_reraise_non_matching_message_not_retried_with_compiled_pattern": "ok",
+        "fourway_scenarios/test_reraise_with_pattern_message.py::test_reraise_with_successful_last_attempt_raises_retry_error": "ok"
+      },
+      "cost_usd": 0.336412,
+      "seconds": 24.19,
+      "evidence": "sha256:97b7559eefeff75fdc23620e5761fbbad65261ebbf2d744ae8047535b491301c"
+    },
+    {
+      "id": "tenacity-590-x-591",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "b"
+      ],
+      "assisted": [
+        "a",
+        "b"
+      ],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_after_log_in_retry_loop.py::test_after_log_numeric_seconds_in_real_loop": "ok",
+        "fourway_scenarios/test_after_log_none_seconds.py::test_after_log_custom_format_none_seconds": "ok",
+        "fourway_scenarios/test_after_log_none_seconds.py::test_after_log_default_format_none_seconds": "ok",
+        "fourway_scenarios/test_docstring_typos.py::test_fixed_docstrings_present": "ok"
+      },
+      "cost_usd": 0.338908,
+      "seconds": 23.57,
+      "evidence": "sha256:d170002c7f2893e149d4ecadb55dbf11d25e0c7f70b7723a1fece191eb18808f"
+    },
+    {
+      "id": "tenacity-606-x-605",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [
+        "a",
+        "b"
+      ],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_async_with_attempt_composed.py::test_async_with_non_retryable_propagates_after_one_attempt": "ok",
+        "fourway_scenarios/test_async_with_attempt_composed.py::test_async_with_retries_on_composed_strategy": "ok",
+        "fourway_scenarios/test_composed_plain_retry_async_loop.py::test_and_with_plain_function_stops_when_plain_says_no": "ok",
+        "fourway_scenarios/test_composed_plain_retry_async_loop.py::test_or_with_plain_function_in_async_for": "ok",
+        "fourway_scenarios/test_sync_async_retry_composition.py::test_sync_and_async_yields_async_retry_all": "ok",
+        "fourway_scenarios/test_sync_async_retry_composition.py::test_sync_or_async_yields_async_retry_any_and_behaves": "ok"
+      },
+      "cost_usd": 0.37604,
+      "seconds": 38.37,
+      "evidence": "sha256:4e5ff7c8df9284c67aab882c63a660381331fde99d2010ecb2c69a3c98958b1a"
+    },
+    {
+      "id": "tenacity-615-x-614",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [
+        "a",
+        "b"
+      ],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_pickle_after_decorated_call.py::test_restored_retrying_wraps_and_populates_statistics": "ok",
+        "fourway_scenarios/test_pickle_after_decorated_call.py::test_retry_object_picklable_after_decorated_call": "ok",
+        "fourway_scenarios/test_retry_statistics_with_strategies.py::test_async_retry_object_statistics_track_attempts_with_type_strategy": "ok",
+        "fourway_scenarios/test_retry_statistics_with_strategies.py::test_retry_object_statistics_track_attempts_with_message_strategy": "ok",
+        "fourway_scenarios/test_strategy_semantics_decorated.py::test_exception_message_and_type_semantics": "ok",
+        "fourway_scenarios/test_strategy_semantics_decorated.py::test_not_exception_message_and_unless_type_semantics": "ok"
+      },
+      "cost_usd": 0.439116,
+      "seconds": 51.76,
+      "evidence": "sha256:db4cb6f2641e120866319c94c8ce1233ade65d01db286d2278bca0fc1e9e0305"
+    },
+    {
+      "id": "tenacity-616-x-617",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [],
+      "assisted": [
+        "a",
+        "b"
+      ],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_annotation_modernization.py::test_attempt_manager_traceback_annotation_uses_pep604": "ok",
+        "fourway_scenarios/test_annotation_modernization.py::test_copy_and_radd_annotations_use_pep604": "ok",
+        "fourway_scenarios/test_attempt_exception_flow.py::test_context_manager_records_exceptions_and_retries": "ok",
+        "fourway_scenarios/test_attempt_exception_flow.py::test_copy_preserves_stop_wait_and_sum_of_waits": "ok",
+        "fourway_scenarios/test_set_exception_annotation.py::test_set_exception_traceback_annotation_spacing": "ok"
+      },
+      "cost_usd": 0.361664,
+      "seconds": 21.92,
+      "evidence": "sha256:1e34240e1515d3172b29f58933450e1357b04c4f6f01eae741a792014286fb28"
+    },
+    {
+      "id": "tenacity-654-x-651",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_empty_message_retry_loop.py::test_empty_message_retries_bare_exceptions_with_exponential_wait": "ok",
+        "fourway_scenarios/test_empty_message_retry_loop.py::test_not_empty_message_stops_on_bare_exception_with_capped_wait": "ok",
+        "fourway_scenarios/test_exponential_cap_retry_loop.py::test_capped_wait_skips_power_in_message_filtered_loop": "ok",
+        "fourway_scenarios/test_exponential_cap_retry_loop.py::test_random_exponential_cap_skips_power_with_not_message_retry": "inconclusive",
+        "fourway_scenarios/test_exponential_sequence_invariant.py::test_exponential_sequence_reaches_and_holds_cap": "ok",
+        "fourway_scenarios/test_exponential_sequence_invariant.py::test_exponential_sequence_with_min_floor_and_cap": "ok"
+      },
+      "cost_usd": 0.43976,
+      "seconds": 54.27,
+      "evidence": "sha256:3499b405a816699955cde4cb20a2ceb0da2eee2d40f5ae43d1856ade62c503a2"
+    },
+    {
+      "id": "tenacity-670-x-664",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "b"
+      ],
+      "assisted": [
+        "a",
+        "b"
+      ],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_annotation_runtime_invariants.py::test_copy_preserves_and_overrides_with_none": "ok",
+        "fourway_scenarios/test_annotation_runtime_invariants.py::test_retry_if_exception_message_match_behaviour": "ok",
+        "fourway_scenarios/test_annotation_runtime_invariants.py::test_retry_with_message_match_end_to_end": "ok",
+        "fourway_scenarios/test_init_return_annotations.py::test_attempt_manager_init_returns_none_annotation": "ok",
+        "fourway_scenarios/test_init_return_annotations.py::test_base_retrying_init_returns_none_annotation_and_constructs": "ok",
+        "fourway_scenarios/test_union_none_ordering.py::test_copy_unions_end_with_none": "ok",
+        "fourway_scenarios/test_union_none_ordering.py::test_match_and_async_unions_end_with_none": "ok"
+      },
+      "cost_usd": 0.420828,
+      "seconds": 39.04,
+      "evidence": "sha256:9b3ec85d3749321f64f527e65f2ab98b550109ce7125707db383b76f9f724d72"
+    },
+    {
+      "id": "tenacity-696-x-645",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_enabled_direct_call.py::test_async_direct_call_disabled_raises_original_once": "ok",
+        "fourway_scenarios/test_enabled_direct_call.py::test_async_direct_call_disabled_sync_fn_raises_original_once": "ok",
+        "fourway_scenarios/test_enabled_direct_call.py::test_sync_direct_call_disabled_raises_original_once": "ok",
+        "fourway_scenarios/test_retry_paths_invariant.py::test_disabled_decorator_calls_once": "ok",
+        "fourway_scenarios/test_retry_paths_invariant.py::test_enabled_direct_call_still_retries": "ok"
+      },
+      "cost_usd": 0.425252,
+      "seconds": 34.8,
+      "evidence": "sha256:8523f1d7f345bb2be6b3800ff53ce109ed952131db30d29b4d5294cc581d6e58"
+    },
+    {
+      "id": "tenacity-idle-budget-x-sleep-override",
+      "label": "clean",
+      "class": "new stop strategy x pipeline order",
+      "mined": false,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_before_sleep_sleep_accounting.py::test_async_before_sleep_override_counted": "ok",
+        "fourway_scenarios/test_before_sleep_sleep_accounting.py::test_idle_budget_stop_sees_overridden_sleep": "ok",
+        "fourway_scenarios/test_before_sleep_sleep_accounting.py::test_idle_for_visible_to_next_attempt_matches_actual_sleep": "ok",
+        "fourway_scenarios/test_sleep_accounting_invariant.py::test_async_unchanged_sleep_accounting_consistent": "ok",
+        "fourway_scenarios/test_sleep_accounting_invariant.py::test_sync_unchanged_sleep_accounting_consistent": "ok",
+        "fourway_scenarios/test_stop_before_idle_with_before_sleep.py::test_async_stop_before_idle_with_before_sleep": "ok",
+        "fourway_scenarios/test_stop_before_idle_with_before_sleep.py::test_slow_attempts_and_unchanged_override_do_not_eat_idle_budget": "ok",
+        "fourway_scenarios/test_stop_before_idle_with_before_sleep.py::test_stop_before_idle_counts_each_sleep_once_with_before_sleep": "ok"
+      },
+      "cost_usd": 0.535824,
+      "seconds": 78.98,
+      "evidence": "sha256:b0289f4c1adec7e61d5a6c61d733a5cf7182f94f7a56c20e7112132c12d71468"
+    },
+    {
+      "id": "tenacity-idle-budget-x-stop-first",
+      "label": "conflict",
+      "class": "new stop strategy x pipeline order",
+      "mined": false,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "conflict",
+      "findings": {
+        "fourway_scenarios/test_stop_before_idle_with_stop_first.py::test_async_first_sleep_over_budget_is_not_taken": "differential_a",
+        "fourway_scenarios/test_stop_before_idle_with_stop_first.py::test_combined_with_stop_after_attempt_respects_idle_budget": "differential_a",
+        "fourway_scenarios/test_stop_before_idle_with_stop_first.py::test_first_sleep_over_budget_is_not_taken": "differential_a",
+        "fourway_scenarios/test_stop_before_idle_with_stop_first.py::test_growing_waits_respect_idle_budget": "differential_a"
+      },
+      "cost_usd": 0.414868,
+      "seconds": 56.3,
+      "evidence": "sha256:7bb40901081ca5945671377a4b3a09d8ed66aceb68377e355419bbe13951d8a3"
+    },
+    {
+      "id": "tinydb-188-x-184",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_query_repr_invariant.py::test_query_cache_visible_after_update": "ok",
+        "fourway_scenarios/test_query_repr_invariant.py::test_query_repr_stable": "ok",
+        "fourway_scenarios/test_write_back_interaction.py::test_write_back_deprecated_eids": "ok",
+        "fourway_scenarios/test_write_back_interaction.py::test_write_back_invalidates_query_cache": "ok",
+        "fourway_scenarios/test_write_back_interaction.py::test_write_back_length_mismatch_does_not_modify": "ok",
+        "fourway_scenarios/test_write_back_interaction.py::test_write_back_named_table_with_ids": "ok"
+      },
+      "cost_usd": 0.241104,
+      "seconds": 27.07,
+      "evidence": "sha256:39f91726d2aa3ab17bf0b8121b7eaaf3a4c80c829cadcee6a9feea4888742bc5"
+    },
+    {
+      "id": "tinydb-337-x-340",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_documented_operation_runs.py::test_documented_delete_example_and_cache_invalidation": "ok",
+        "fourway_scenarios/test_lru_eviction_order.py::test_lru_evicts_least_recent_after_access": "ok",
+        "fourway_scenarios/test_lru_eviction_order.py::test_table_query_cache_keeps_recently_hit_query": "ok",
+        "fourway_scenarios/test_lru_move_to_end.py::test_get_moves_without_reinsert": "ok",
+        "fourway_scenarios/test_lru_move_to_end.py::test_set_existing_moves_without_reinsert": "ok",
+        "fourway_scenarios/test_operations_docstring.py::test_operations_docstring_example_is_balanced": "ok"
+      },
+      "cost_usd": 0.238144,
+      "seconds": 29.56,
+      "evidence": "sha256:107ddcb1880d339809fa20c5098f79dc47ee394bb5b778a6e1ea70c0744ae7a4"
+    },
+    {
+      "id": "tinydb-449-x-445",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_docstrings.py::test_query_call_docstring_spelling": "ok",
+        "fourway_scenarios/test_docstrings.py::test_subtract_docstring_spelling": "ok",
+        "fourway_scenarios/test_query_invariants.py::test_plain_query_evaluation_and_caching": "ok",
+        "fourway_scenarios/test_query_invariants.py::test_subtract_operation_and_cache_invalidation": "ok",
+        "fourway_scenarios/test_query_map.py::test_map_cacheability_propagates_through_combinators": "ok",
+        "fourway_scenarios/test_query_map.py::test_map_eq_and_chain": "ok",
+        "fourway_scenarios/test_query_map.py::test_map_query_not_cached_in_table": "ok",
+        "fourway_scenarios/test_query_map.py::test_subtract_with_map_condition": "ok"
+      },
+      "cost_usd": 0.2645,
+      "seconds": 34.56,
+      "evidence": "sha256:2785846117cf9a2fa797a1c243660e4278060ac115ec282812adf4f9af967be2"
+    },
+    {
+      "id": "tinydb-606-x-616",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_operations_doc_ids.py::test_delete_and_set_with_missing_doc_ids[json]": "ok",
+        "fourway_scenarios/test_operations_doc_ids.py::test_delete_and_set_with_missing_doc_ids[memory]": "ok",
+        "fourway_scenarios/test_operations_doc_ids.py::test_increment_mixed_doc_ids_is_atomic_and_filtered[json]": "ok",
+        "fourway_scenarios/test_operations_doc_ids.py::test_increment_mixed_doc_ids_is_atomic_and_filtered[memory]": "ok",
+        "fourway_scenarios/test_operations_typing.py::test_annotated_operations_apply_via_update": "ok",
+        "fourway_scenarios/test_operations_typing.py::test_operation_type_hints_present": "ok",
+        "fourway_scenarios/test_upsert_semantics.py::test_upsert_document_existing_and_missing_id[json]": "ok",
+        "fourway_scenarios/test_upsert_semantics.py::test_upsert_document_existing_and_missing_id[memory]": "ok",
+        "fourway_scenarios/test_upsert_semantics.py::test_upsert_query_updates_all_matches_or_inserts[json]": "ok",
+        "fourway_scenarios/test_upsert_semantics.py::test_upsert_query_updates_all_matches_or_inserts[memory]": "ok"
+      },
+      "cost_usd": 0.297904,
+      "seconds": 36.09,
+      "evidence": "sha256:6399398af92491a04ab7ab0dd32fbb400b776a16472e64960acd46033ae5a057"
+    },
+    {
+      "id": "tinydb-618-x-617",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_query_test_hashable_args_cache.py::test_equal_scalar_arg_query_hits_cache": "ok",
+        "fourway_scenarios/test_query_test_hashable_args_cache.py::test_returned_list_is_fresh_and_write_invalidates": "ok",
+        "fourway_scenarios/test_query_test_list_args_cache.py::test_different_list_args_do_not_collide_in_cache": "ok",
+        "fourway_scenarios/test_query_test_list_args_cache.py::test_list_arg_cached_results_list_fresh_but_docs_shared": "ok",
+        "fourway_scenarios/test_query_test_list_args_cache.py::test_list_arg_query_cache_invalidated_by_write": "ok",
+        "fourway_scenarios/test_query_test_list_args_cache.py::test_list_arg_query_is_cached_and_equal_query_hits_cache": "ok",
+        "fourway_scenarios/test_query_test_list_args_cache.py::test_nested_dict_in_tuple_arg_and_unhashable_arg_search": "ok"
+      },
+      "cost_usd": 0.311476,
+      "seconds": 39.44,
+      "evidence": "sha256:5b076d33a80f965a3b68c222af565823f4168da55ff22c02976db3dedfaa98fe"
+    },
+    {
+      "id": "tinydb-619-x-621",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_create_dirs_cwd_update.py::test_tinydb_bare_filename_create_dirs_update_transforms": "ok",
+        "fourway_scenarios/test_create_dirs_cwd_update.py::test_touch_bare_filename_with_create_dirs": "ok",
+        "fourway_scenarios/test_nested_dir_update_persist.py::test_absolute_path_without_create_dirs_still_works": "ok",
+        "fourway_scenarios/test_nested_dir_update_persist.py::test_nested_create_dirs_and_transform_updates_persist": "ok",
+        "fourway_scenarios/test_update_transform_type_hints.py::test_update_multiple_transform_hint_is_mutable_mapping": "ok",
+        "fourway_scenarios/test_update_transform_type_hints.py::test_update_transform_hint_is_mutable_mapping": "ok"
+      },
+      "cost_usd": 0.281444,
+      "seconds": 32.89,
+      "evidence": "sha256:fd2c3b7f4e46a09b670bc4d229d20f977bfeb3ea5d885ac410ba1201c9de9ef7"
+    },
+    {
+      "id": "tinydb-635-x-633",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_cache_invalidation_batch.py::test_lru_capacity_respected_with_none_values": "ok",
+        "fourway_scenarios/test_cache_invalidation_batch.py::test_query_cache_refreshed_after_mixed_batch": "ok",
+        "fourway_scenarios/test_insert_multiple_mixed_ids.py::test_mixed_batch_after_primed_next_id_json": "ok",
+        "fourway_scenarios/test_insert_multiple_mixed_ids.py::test_mixed_batch_with_warm_query_cache": "ok",
+        "fourway_scenarios/test_lru_none_values.py::test_none_value_is_present_and_readable": "ok",
+        "fourway_scenarios/test_lru_none_values.py::test_none_value_participates_in_lru_ordering": "inconclusive"
+      },
+      "cost_usd": 0.318716,
+      "seconds": 44.41,
+      "evidence": "sha256:e7cfc220f3ee5a546ce8f8aaabe5ce2ca5e23a3a661e7f944af7242cf04b5d83"
+    },
+    {
+      "id": "tinydb-640-x-642",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_cache_and_persist_invariants.py::test_identical_flagged_regex_queries_share_cache_entry": "ok",
+        "fourway_scenarios/test_cache_and_persist_invariants.py::test_new_persist_empty_table_persisted_and_cache_invalidated": "ok",
+        "fourway_scenarios/test_persist_empty_reopen_regex.py::test_reopen_with_persist_empty_keeps_docs_for_regex_search": "ok",
+        "fourway_scenarios/test_persist_empty_reopen_regex.py::test_reopen_with_persist_empty_then_insert_updates_cached_search": "ok",
+        "fourway_scenarios/test_regex_flags_on_persisted_table.py::test_matches_flags_isolated_on_persist_empty_table": "ok",
+        "fourway_scenarios/test_regex_flags_on_persisted_table.py::test_search_flags_isolated_on_persist_empty_table_reverse_order": "ok"
+      },
+      "cost_usd": 0.306916,
+      "seconds": 40.46,
+      "evidence": "sha256:9458c940ea452bab1630e49dd722884be767c94aee5a4c3fc653c4dc5b458e2b"
+    },
+    {
+      "id": "tinydb-644-x-641",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_any_all_string_fields.py::test_all_and_get_ignore_string_fields": "ok",
+        "fourway_scenarios/test_any_all_string_fields.py::test_any_ignores_string_built_by_add_concatenation": "ok",
+        "fourway_scenarios/test_first_match_and_sequences.py::test_get_first_match_with_list_any_all": "ok",
+        "fourway_scenarios/test_first_match_and_sequences.py::test_query_test_receives_field_value_with_list_args": "ok",
+        "fourway_scenarios/test_runtime_type_hints.py::test_add_and_query_test_annotations": "ok",
+        "fourway_scenarios/test_runtime_type_hints.py::test_docstrings_describe_runtime_behavior": "ok"
+      },
+      "cost_usd": 0.30306,
+      "seconds": 31.5,
+      "evidence": "sha256:d762ff60ac8c1d8f658ad1231c8701b2514b6a227bfe9827589618ff7065fa36"
+    },
+    {
+      "id": "tinydb-warm-cache-x-cached-count",
+      "label": "clean",
+      "class": "cache maintenance x result order",
+      "mined": false,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_count_after_insert_cache.py::test_count_after_matching_insert_comes_from_kept_cache": "ok",
+        "fourway_scenarios/test_count_after_insert_cache.py::test_count_after_non_matching_insert_keeps_cached_value": "ok",
+        "fourway_scenarios/test_count_cache_hit_after_insert.py::test_count_uses_cache_and_not_search_after_insert": "ok",
+        "fourway_scenarios/test_count_consistency.py::test_count_tracks_mixed_writes[json]": "ok",
+        "fourway_scenarios/test_count_consistency.py::test_count_tracks_mixed_writes[memory]": "ok",
+        "fourway_scenarios/test_count_consistency.py::test_failed_duplicate_insert_leaves_count_unchanged[json]": "ok",
+        "fourway_scenarios/test_count_consistency.py::test_failed_duplicate_insert_leaves_count_unchanged[memory]": "ok",
+        "fourway_scenarios/test_count_consistency.py::test_failed_write_on_read_only_storage_leaves_count_unchanged": "ok"
+      },
+      "cost_usd": 0.391176,
+      "seconds": 76.44,
+      "evidence": "sha256:ab6e2681a7b09f50b45878cb99ee5c5911dd260d3cdac90d45e28a40fd075c79"
+    },
+    {
+      "id": "tinydb-warm-cache-x-ordered-search",
+      "label": "conflict",
+      "class": "cache maintenance x result order",
+      "mined": false,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "conflict",
+      "findings": {
+        "fourway_scenarios/test_cached_search_consistency.py::test_cached_result_equals_fresh_result_after_auto_id_insert": "ok",
+        "fourway_scenarios/test_cached_search_consistency.py::test_cached_result_equals_fresh_result_after_explicit_id_insert": "emergent",
+        "fourway_scenarios/test_insert_keeps_cache_ordered.py::test_insert_appends_to_cached_search_without_rescan": "ok",
+        "fourway_scenarios/test_insert_keeps_cache_ordered.py::test_insert_keeps_non_matching_cached_search": "ok",
+        "fourway_scenarios/test_search_order_after_insert.py::test_lower_explicit_id_inserted_after_cached_search_is_ordered": "differential_b",
+        "fourway_scenarios/test_search_order_after_insert.py::test_mixed_ids_after_cached_search_are_ordered": "differential_b"
+      },
+      "cost_usd": 0.287024,
+      "seconds": 24.94,
+      "evidence": "sha256:48aa9091e465aff9e77acad95a76a9d480d6812be80a937edc86425d3d1fd960"
+    },
+    {
+      "id": "tomlkit-471-x-470",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_crlf_multiline_sorted_dump.py::test_crlf_multiline_basic_string_survives_sorted_dump": "ok",
+        "fourway_scenarios/test_crlf_multiline_sorted_dump.py::test_crlf_multiline_literal_string_survives_sorted_dump": "ok",
+        "fourway_scenarios/test_dump_value_roundtrip.py::test_plain_dump_roundtrips_exactly": "ok",
+        "fourway_scenarios/test_dump_value_roundtrip.py::test_sorted_dump_preserves_values": "ok",
+        "fourway_scenarios/test_sorted_dump_multiline.py::test_sorted_dump_of_parsed_doc_with_multiline_basic_string": "ok",
+        "fourway_scenarios/test_sorted_dump_multiline.py::test_sorted_dump_of_parsed_doc_with_multiline_literal_string": "ok"
+      },
+      "cost_usd": 0.535224,
+      "seconds": 63.75,
+      "evidence": "sha256:ddd4782d3a99b256e894a806a56a14b9844b1c13e60fe22d2aa6d15ad7803ba4"
+    },
+    {
+      "id": "tomlkit-492-x-500",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_inline_dotted_add.py::test_add_to_dotted_key_with_tabs_around_separators": "ok",
+        "fourway_scenarios/test_inline_dotted_add.py::test_add_to_nested_spaced_dotted_key": "ok",
+        "fourway_scenarios/test_inline_dotted_add.py::test_add_to_quoted_dotted_key_at_eof_and_crlf": "ok",
+        "fourway_scenarios/test_inline_dotted_roundtrip.py::test_replacing_sibling_key_keeps_dotted_pair": "ok",
+        "fourway_scenarios/test_inline_dotted_roundtrip.py::test_unmodified_inline_dotted_tables_round_trip[[t]\\r\\nx = {b.c = 1, y = 3}\\r\\n]": "ok",
+        "fourway_scenarios/test_inline_dotted_roundtrip.py::test_unmodified_inline_dotted_tables_round_trip[a = { b . c = 1 }\\n]": "ok",
+        "fourway_scenarios/test_inline_dotted_roundtrip.py::test_unmodified_inline_dotted_tables_round_trip[a = {\"b c\".'d' = 1, x.y.z = 2}\\n]": "ok",
+        "fourway_scenarios/test_inline_dotted_roundtrip.py::test_unmodified_inline_dotted_tables_round_trip[a = {\\n  b.c = 1,\\n}\\n]": "ok",
+        "fourway_scenarios/test_inline_dotted_roundtrip.py::test_unmodified_inline_dotted_tables_round_trip[a = {\\tb\\t.\\tc\\t=\\t1}\\n]": "ok",
+        "fourway_scenarios/test_inline_dotted_roundtrip.py::test_unmodified_inline_dotted_tables_round_trip[a = {b.c = 1, b.d = 2}]": "ok",
+        "fourway_scenarios/test_inline_dotted_roundtrip.py::test_unmodified_inline_dotted_tables_round_trip[a = {b.c = 1}\\n]": "ok",
+        "fourway_scenarios/test_inline_dotted_roundtrip.py::test_unmodified_inline_dotted_tables_round_trip[a = {b.c = 1}]": "ok",
+        "fourway_scenarios/test_plain_char_source.py::test_source_and_parser_use_plain_str_characters": "ok",
+        "fourway_scenarios/test_plain_char_source.py::test_toml_char_module_removed_and_nul_not_eof": "ok"
+      },
+      "cost_usd": 0.614872,
+      "seconds": 82.87,
+      "evidence": "sha256:9ba63781391a75aaa337202b5ac0ecfddbed1c8d0f43b64cad8ecc2b013ca82a"
+    },
+    {
+      "id": "tomlkit-493-x-490",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_error_reports_correct_line": "ok",
+        "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_rejected_in_keys[   \"\\\\U0000DFFF\"   =   1]": "ok",
+        "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_rejected_in_keys[\"\\\\U0000D800\" = 1]": "ok",
+        "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_rejected_in_keys[[\"\\\\U0000D800\"]\\nx = 1\\n]": "ok",
+        "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_rejected_in_keys[[tbl]\\n  \"\\\\U0000DC00\"   = 2\\n]": "ok",
+        "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_rejected_in_keys[a.\"\\\\U0000D800\".b = 1]": "ok",
+        "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_rejected_in_keys[n = 1_000\\n\"\\\\U0000DBFF\"  = 3\\n]": "ok",
+        "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_rejected_in_values[   a   =   \"\\\\U0000D800\"   # c]": "ok",
+        "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_rejected_in_values[arr = [ 1, \"\\\\U0000DFFF\" ]]": "ok",
+        "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_rejected_in_values[d = 1979-05-27\\ns = \"\\\\U0000D800\"\\n]": "ok",
+        "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_rejected_in_values[dt = 1979-05-27 07:32:00Z\\n  s  =  \"\\\\U0000DFFF\"\\n]": "ok",
+        "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_rejected_in_values[m = \"\"\"\\n\\\\U0000D800\"\"\"\\n]": "ok",
+        "fourway_scenarios/test_surrogate_escapes_in_scanned_contexts.py::test_big_u_surrogate_rejected_in_values[t = { k = \"\\\\U0000DC00\" }]": "ok",
+        "fourway_scenarios/test_unicode_escape_scanning_invariants.py::test_astral_big_u_escape_in_table_header_and_following_values": "ok",
+        "fourway_scenarios/test_unicode_escape_scanning_invariants.py::test_boundary_big_u_escapes_parse_and_round_trip": "ok",
+        "fourway_scenarios/test_unicode_escape_scanning_invariants.py::test_invalid_and_short_surrogate_escapes_still_rejected[   a  =  \"\\\\uDFFF\"   # c]": "ok",
+        "fourway_scenarios/test_unicode_escape_scanning_invariants.py::test_invalid_and_short_surrogate_escapes_still_rejected[  \"\\\\U0000ZZ00\"  = 1]": "ok",
+        "fourway_scenarios/test_unicode_escape_scanning_invariants.py::test_invalid_and_short_surrogate_escapes_still_rejected[\"\\\\uD800\" = 1]": "ok",
+        "fourway_scenarios/test_unicode_escape_scanning_invariants.py::test_invalid_and_short_surrogate_escapes_still_rejected[a = \"\\\\U0000GGGG\"]": "ok",
+        "fourway_scenarios/test_unicode_escape_scanning_invariants.py::test_invalid_and_short_surrogate_escapes_still_rejected[t = { k = \"\\\\uDC00\" }]": "ok"
+      },
+      "cost_usd": 0.518072,
+      "seconds": 45.95,
+      "evidence": "sha256:fa52ebfb950bbdf281ec1ac1e3732e1ec369033b0bc4620f0b4085086bf39541"
+    },
+    {
+      "id": "tomlkit-499-x-497",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_comma_first_array_tab_keys.py::test_append_comma_first_array_under_tab_separated_keys": "ok",
+        "fourway_scenarios/test_comma_first_array_tab_keys.py::test_insert_middle_comma_first_array_under_dotted_tab_key": "ok",
+        "fourway_scenarios/test_tab_bare_key_in_arrays.py::test_tab_in_aot_header_and_value_helper_rejected": "ok",
+        "fourway_scenarios/test_tab_bare_key_in_arrays.py::test_tab_in_inline_table_key_inside_comma_first_array_rejected": "ok",
+        "fourway_scenarios/test_tab_separated_keys_roundtrip.py::test_outer_tabs_around_keys_and_plain_array_append": "ok",
+        "fourway_scenarios/test_tab_separated_keys_roundtrip.py::test_quoted_key_with_tab_still_allowed_and_array_editable": "ok"
+      },
+      "cost_usd": 0.537948,
+      "seconds": 58.25,
+      "evidence": "sha256:7403765400835bffa05bd2bc7ab4d892061bd89e59cf65ac8835f5638bb52a37"
+    },
+    {
+      "id": "tomlkit-501-x-491",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_string_scan_escapes.py::test_error_types_after_escape_are_preserved": "ok",
+        "fourway_scenarios/test_string_scan_escapes.py::test_valid_escapes_between_long_runs_decode_and_round_trip": "ok",
+        "fourway_scenarios/test_unicode_escape_validation.py::test_invalid_unicode_escape_in_keys_and_nested_values[\"key \\\\u12_3 name\" = 1]": "ok",
+        "fourway_scenarios/test_unicode_escape_validation.py::test_invalid_unicode_escape_in_keys_and_nested_values[[\"prefix\\\\u1_23suffix\"]\\nx = 1\\n]": "ok",
+        "fourway_scenarios/test_unicode_escape_validation.py::test_invalid_unicode_escape_in_keys_and_nested_values[[table]\\n\"abc\\\\u+123def\" = \"x\"\\n]": "ok",
+        "fourway_scenarios/test_unicode_escape_validation.py::test_invalid_unicode_escape_in_keys_and_nested_values[a = \"ok \\\\u00e9 text\"\\nb = \"bad text \\\\u12_3\"]": "ok",
+        "fourway_scenarios/test_unicode_escape_validation.py::test_invalid_unicode_escape_in_keys_and_nested_values[a = [\"first plain\", \"second \\\\U0000_0041 tail\"]]": "ok",
+        "fourway_scenarios/test_unicode_escape_validation.py::test_invalid_unicode_escape_in_keys_and_nested_values[a = {b = \"value text \\\\u 123 more text\"}]": "ok",
+        "fourway_scenarios/test_unicode_escape_validation.py::test_invalid_unicode_escape_inside_long_single_line_string[\\\\U0000_0041]": "ok",
+        "fourway_scenarios/test_unicode_escape_validation.py::test_invalid_unicode_escape_inside_long_single_line_string[\\\\U0010_FFFF]": "ok",
+        "fourway_scenarios/test_unicode_escape_validation.py::test_invalid_unicode_escape_inside_long_single_line_string[\\\\u 123]": "ok",
+        "fourway_scenarios/test_unicode_escape_validation.py::test_invalid_unicode_escape_inside_long_single_line_string[\\\\u+123]": "ok",
+        "fourway_scenarios/test_unicode_escape_validation.py::test_invalid_unicode_escape_inside_long_single_line_string[\\\\u12_3]": "ok",
+        "fourway_scenarios/test_unicode_escape_validation.py::test_invalid_unicode_escape_inside_long_single_line_string[\\\\u1_23]": "ok"
+      },
+      "cost_usd": 0.51612,
+      "seconds": 44.75,
+      "evidence": "sha256:d930a196b24abf0960f2c376749ef5f96b95d9a702fab2ce3b524c55113afeeb"
+    },
+    {
+      "id": "tomlkit-507-x-518",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_out_of_order_multiline_invariants.py::test_invalid_multiline_in_out_of_order_fragment_rejected[[a.x]\\np = 1\\n[foo]\\nbar = 2\\n[a.y]\\nq = \"\"\"never\\nclosed\\n]": "ok",
+        "fourway_scenarios/test_out_of_order_multiline_invariants.py::test_invalid_multiline_in_out_of_order_fragment_rejected[[a.x]\\np = 1\\n[foo]\\nbar = 2\\n[a.y]\\nq = \"\"\"ok\\rbad\"\"\"\\n]": "ok",
+        "fourway_scenarios/test_out_of_order_multiline_invariants.py::test_invalid_multiline_in_out_of_order_fragment_rejected[[a.x]\\np = 1\\n[foo]\\nbar = 2\\n[a.y]\\nq = \"\"\"ok\\x00bad\"\"\"\\n]": "ok",
+        "fourway_scenarios/test_out_of_order_multiline_invariants.py::test_invalid_multiline_in_out_of_order_fragment_rejected[[a.x]\\np = 1\\n[foo]\\nbar = 2\\n[a.y]\\nq = \"\"\"ok\\x0cbad\"\"\"\\n]": "ok",
+        "fourway_scenarios/test_out_of_order_multiline_invariants.py::test_invalid_multiline_in_out_of_order_fragment_rejected[[a.x]\\np = 1\\n[foo]\\nbar = 2\\n[a.y]\\nq = '''never\\nclosed '']": "ok",
+        "fourway_scenarios/test_out_of_order_multiline_invariants.py::test_invalid_multiline_in_out_of_order_fragment_rejected[[a.x]\\np = 1\\n[foo]\\nbar = 2\\n[a.y]\\nq = '''ok\\rbad'''\\n]": "ok",
+        "fourway_scenarios/test_out_of_order_multiline_invariants.py::test_invalid_multiline_in_out_of_order_fragment_rejected[[a.x]\\np = 1\\n[foo]\\nbar = 2\\n[a.y]\\nq = '''ok\\x7fbad'''\\n]": "ok",
+        "fourway_scenarios/test_out_of_order_multiline_invariants.py::test_out_of_order_multiline_update_is_visible": "ok",
+        "fourway_scenarios/test_out_of_order_multiline_invariants.py::test_out_of_order_tables_with_multiline_values_round_trip": "ok",
+        "fourway_scenarios/test_split_aot_multiline_strings.py::test_split_aot_multiline_crlf_escapes_and_write_through": "ok",
+        "fourway_scenarios/test_split_aot_multiline_strings.py::test_split_aot_with_multiline_values_merges_and_round_trips": "ok"
+      },
+      "cost_usd": 0.61616,
+      "seconds": 65.75,
+      "evidence": "sha256:b12907f93303ab710f5e8cdde84903fcbadd0451e1f866d8f76e0a09b7658abb"
+    },
+    {
+      "id": "tomlkit-515-x-514",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_proxy_contains_native.py::test_proxy_absent_membership_builds_no_exception": "ok",
+        "fourway_scenarios/test_proxy_contains_native.py::test_proxy_membership_does_not_resolve_values": "ok",
+        "fourway_scenarios/test_proxy_inline_comment_append.py::test_append_into_commented_inline_table_via_out_of_order_proxy": "ok",
+        "fourway_scenarios/test_proxy_inline_comment_append.py::test_setdefault_into_commented_inline_table_via_out_of_order_proxy": "ok",
+        "fourway_scenarios/test_proxy_membership_render_invariant.py::test_membership_and_append_through_proxy_round_trip": "ok"
+      },
+      "cost_usd": 0.593116,
+      "seconds": 66.38,
+      "evidence": "sha256:b50cfb1facbc4015a5172473d137d3a66ef26712d26ee332f5260038be8bd713"
+    },
+    {
+      "id": "tomlkit-516-x-517",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_array_close_no_discarded_error.py::test_empty_and_trailing_comma_arrays_build_no_error": "ok",
+        "fourway_scenarios/test_array_close_no_discarded_error.py::test_out_of_order_tables_with_arrays_build_no_error": "ok",
+        "fourway_scenarios/test_malformed_arrays_in_tables.py::test_malformed_arrays_still_raise[[a.b]\\nx = [, 1]\\n[a]\\n[a.c]\\n]": "ok",
+        "fourway_scenarios/test_malformed_arrays_in_tables.py::test_malformed_arrays_still_raise[[a.b]\\nx = [1, , 2]\\n[a]\\n[a.c]\\n]": "ok",
+        "fourway_scenarios/test_malformed_arrays_in_tables.py::test_malformed_arrays_still_raise[[a.b]\\nx = []\\n[a]\\ny = [1 2]\\n]": "ok",
+        "fourway_scenarios/test_out_of_order_tables_with_arrays.py::test_extending_subtable_with_deeper_header_and_arrays_parses": "ok",
+        "fourway_scenarios/test_out_of_order_tables_with_arrays.py::test_new_sibling_subtable_with_arrays_parses_and_round_trips": "ok",
+        "fourway_scenarios/test_redefined_table_with_arrays.py::test_deep_redefined_subtable_with_arrays_is_rejected": "ok",
+        "fourway_scenarios/test_redefined_table_with_arrays.py::test_redefined_subtable_with_value_less_array_closes_is_rejected": "ok"
+      },
+      "cost_usd": 0.541336,
+      "seconds": 46.08,
+      "evidence": "sha256:8d3067ffccf44b5b9289310ab6ffaaa378b6e64c147a3a2d1bf5e032b9f62453"
+    },
+    {
+      "id": "tomlkit-519-x-498",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_aot_header_brackets_out_of_order.py::test_malformed_sub_aot_header_after_unrelated_table_is_rejected": "ok",
+        "fourway_scenarios/test_aot_header_brackets_out_of_order.py::test_sub_aot_header_hitting_eof_after_unrelated_table_is_rejected": "ok",
+        "fourway_scenarios/test_aot_invariants.py::test_duplicate_concrete_subtable_of_aot_element_still_raises": "ok",
+        "fourway_scenarios/test_aot_invariants.py::test_plain_table_with_aot_name_after_unrelated_table_still_raises": "ok",
+        "fourway_scenarios/test_aot_invariants.py::test_well_formed_aot_documents_round_trip[[[a.b]]\\nx = 1\\n\\n[[a.b]]\\nx = 2\\n]": "ok",
+        "fourway_scenarios/test_aot_invariants.py::test_well_formed_aot_documents_round_trip[[[a]]  # comment\\nx = 1\\n]": "ok",
+        "fourway_scenarios/test_aot_invariants.py::test_well_formed_aot_documents_round_trip[[[a]]\\nx = 1\\n\\n[[a]]\\nx = 2\\n]": "ok",
+        "fourway_scenarios/test_aot_invariants.py::test_well_formed_aot_documents_round_trip[[[a]]]": "ok",
+        "fourway_scenarios/test_aot_invariants.py::test_well_formed_aot_documents_round_trip[[[fruit]]\\napple.color = \"red\"\\n\\n[fruit.apple.texture]\\nsmooth = true\\n]": "ok",
+        "fourway_scenarios/test_out_of_order_aot_subtables.py::test_out_of_order_aot_subtable_redump_is_stable": "ok",
+        "fourway_scenarios/test_out_of_order_aot_subtables.py::test_sub_aot_headers_after_unrelated_table_extend_last_element": "ok",
+        "fourway_scenarios/test_out_of_order_aot_subtables.py::test_subtable_merges_into_last_of_several_aot_elements": "ok"
+      },
+      "cost_usd": 0.625288,
+      "seconds": 73.3,
+      "evidence": "sha256:f3f9c07b677f1f335e86306e143f1e51793ef45432d5a6c6861be889712a56fd"
+    },
+    {
+      "id": "tomlkit-520-x-521",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_single_element_key_unwrap.py::test_single_element_key_is_visible_and_unwraps": "ok",
+        "fourway_scenarios/test_single_element_key_unwrap.py::test_single_element_key_table_unwraps": "ok",
+        "fourway_scenarios/test_unwrap_invariants.py::test_conflicting_out_of_order_fragment_still_raises": "ok",
+        "fourway_scenarios/test_unwrap_invariants.py::test_multi_element_key_documents_unwrap": "ok",
+        "fourway_scenarios/test_unwrap_invariants.py::test_out_of_order_tables_unwrap_merged": "ok",
+        "fourway_scenarios/test_unwrap_without_getitem.py::test_unwrap_does_not_go_through_getitem": "ok"
+      },
+      "cost_usd": 0.603184,
+      "seconds": 66.12,
+      "evidence": "sha256:90b4ea9f5c68883ec7fdb82747c71d0d4438c3cc8993d3b1f9339a88ac15b7ab"
+    },
+    {
+      "id": "tomlkit-525-x-526",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_inline_edit_rendering_invariants.py::test_inline_deletions_under_dotted_key_render_identically": "ok",
+        "fourway_scenarios/test_inline_edit_rendering_invariants.py::test_plain_table_replacement_preserves_inline_sibling": "ok",
+        "fourway_scenarios/test_inline_render_linear_scan.py::test_inline_render_without_tail_rescans_after_dotted_replacement": "ok",
+        "fourway_scenarios/test_inline_render_linear_scan.py::test_large_inline_table_render_is_single_pass": "ok",
+        "fourway_scenarios/test_replace_dotted_key_with_inline_siblings.py::test_dotted_replacement_keeps_edited_inline_sibling": "ok",
+        "fourway_scenarios/test_replace_dotted_key_with_inline_siblings.py::test_dotted_replacement_with_table_holding_inline_table": "ok"
+      },
+      "cost_usd": 0.672712,
+      "seconds": 90.79,
+      "evidence": "sha256:dfa230a33a937c92b0e7723294651c8dea94cbc1e67d10e36908cad9d595e29a"
+    },
+    {
+      "id": "tomlkit-530-x-533",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_dotted_inline_table_newline.py::test_add_key_after_dotted_inline_table_in_later_table": "ok",
+        "fourway_scenarios/test_dotted_inline_table_newline.py::test_add_key_after_dotted_inline_table_in_out_of_order_subtable": "ok",
+        "fourway_scenarios/test_out_of_order_dotted_redefinition.py::test_dotted_inline_table_then_out_of_order_table_header_rejected": "ok",
+        "fourway_scenarios/test_out_of_order_dotted_redefinition.py::test_inline_table_value_then_out_of_order_table_header_rejected": "ok",
+        "fourway_scenarios/test_out_of_order_dotted_valid.py::test_adding_key_to_valid_out_of_order_table_reparses": "ok",
+        "fourway_scenarios/test_out_of_order_dotted_valid.py::test_valid_out_of_order_with_dotted_inline_table_round_trips": "ok"
+      },
+      "cost_usd": 0.668316,
+      "seconds": 90.38,
+      "evidence": "sha256:db69efcf091520be777816282255388c685c53b0c1c1a235e194b83bbae5b1c5"
+    },
+    {
+      "id": "tomlkit-532-x-527",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_inline_table_rejects_table_in_arrays.py::test_array_built_from_string_rejects_table_but_accepts_dict": "ok",
+        "fourway_scenarios/test_inline_table_rejects_table_in_arrays.py::test_parsed_inline_tables_in_array_reject_table_children": "ok",
+        "fourway_scenarios/test_inline_tables_in_arrays_roundtrip.py::test_dump_and_edit_nested_inline_tables_in_arrays": "ok",
+        "fourway_scenarios/test_inline_tables_in_arrays_roundtrip.py::test_valid_arrays_of_inline_tables_round_trip[a = [ {x = 1} , { y = { z = 3 } } ]\\n]": "ok",
+        "fourway_scenarios/test_inline_tables_in_arrays_roundtrip.py::test_valid_arrays_of_inline_tables_round_trip[a = [\\n  {x = 1}, # c\\n  {y = 2},\\n]\\n]": "ok",
+        "fourway_scenarios/test_inline_tables_in_arrays_roundtrip.py::test_valid_arrays_of_inline_tables_round_trip[a = []\\nb = [ ]\\n]": "ok",
+        "fourway_scenarios/test_inline_tables_in_arrays_roundtrip.py::test_valid_arrays_of_inline_tables_round_trip[a = [{b.c = 1}, {d = [{e = 2}]},]\\n]": "ok",
+        "fourway_scenarios/test_malformed_inline_table_in_array.py::test_malformed_inline_table_inside_nested_array_raises[a = [{p = [{q]}]\\n]": "ok",
+        "fourway_scenarios/test_malformed_inline_table_in_array.py::test_malformed_inline_table_inside_nested_array_raises[a = {x = [{1]}\\n]": "ok",
+        "fourway_scenarios/test_malformed_inline_table_in_array.py::test_malformed_inline_table_inside_nested_array_raises[a = {x = [{y = 1}, {z]}\\n]": "ok",
+        "fourway_scenarios/test_malformed_inline_table_in_array.py::test_value_and_array_helpers_reject_malformed_inline_table_element": "ok"
+      },
+      "cost_usd": 0.644136,
+      "seconds": 78.6,
+      "evidence": "sha256:49173c3e9967c22525a8c48b67ae9a23ab2384933e2099f605f9270e03b259a7"
+    },
+    {
+      "id": "tomlkit-536-x-538",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_out_of_order_numeric_values_invariant.py::test_numeric_fragments_merge_and_round_trip": "ok",
+        "fourway_scenarios/test_out_of_order_numeric_values_invariant.py::test_special_floats_in_fragments_survive": "ok",
+        "fourway_scenarios/test_overlong_int_in_out_of_order_fragment.py::test_integer_under_limit_in_fragment_stays_integer": "ok",
+        "fourway_scenarios/test_overlong_int_in_out_of_order_fragment.py::test_overlong_integer_in_second_dotted_fragment_is_rejected": "ok",
+        "fourway_scenarios/test_proxy_repr_numeric_fragments.py::test_repr_merges_float_and_special_float_fragments": "ok",
+        "fourway_scenarios/test_proxy_repr_numeric_fragments.py::test_repr_merges_hex_int_and_exponent_float_fragments": "ok"
+      },
+      "cost_usd": 0.547556,
+      "seconds": 33.63,
+      "evidence": "sha256:a186e0eac0f23ac07cfd41f049bd0290aa8a6d0f44c1335d586a80f127234c3f"
+    },
+    {
+      "id": "tomlkit-551-x-544",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_add_line_multiline_string_round_trip.py::test_add_line_leading_newline_multiline_string_with_comment_round_trips": "ok",
+        "fourway_scenarios/test_multiline_comment_rejection_on_strings.py::test_add_line_with_multiline_string_and_line_break_comment_rejected": "ok",
+        "fourway_scenarios/test_multiline_comment_rejection_on_strings.py::test_comment_with_line_break_rejected_on_leading_newline_multiline_string": "ok",
+        "fourway_scenarios/test_multiline_string_comment_invariant.py::test_multiline_string_without_leading_newline_and_single_line_comment_round_trip": "ok",
+        "fourway_scenarios/test_multiline_string_with_comment.py::test_leading_newline_multiline_basic_string_with_comment_round_trips": "ok",
+        "fourway_scenarios/test_multiline_string_with_comment.py::test_leading_newline_multiline_literal_string_with_comment_round_trips": "ok"
+      },
+      "cost_usd": 0.558936,
+      "seconds": 34.36,
+      "evidence": "sha256:05a873f2117055be69550a6644e2f9965d12bf32489ae1ba3090821865af6bbd"
+    },
+    {
+      "id": "tomlkit-565-x-567",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [
+        "a"
+      ],
+      "verdict": "conflict",
+      "findings": {
+        "fourway_scenarios/test_dotted_extended_super_table_aot.py::test_emptying_aot_in_dotted_extended_super_table_keeps_valid_toml": "differential_a",
+        "fourway_scenarios/test_dotted_extended_super_table_aot.py::test_super_table_with_aot_extended_by_dotted_key_round_trips": "ok",
+        "fourway_scenarios/test_emptied_aot_beside_dotted_key.py::test_emptied_child_aot_coexists_with_dotted_key": "ok",
+        "fourway_scenarios/test_out_of_order_invariants.py::test_concrete_table_redefined_by_dotted_key_is_rejected": "ok",
+        "fourway_scenarios/test_out_of_order_invariants.py::test_non_empty_aot_under_reopened_super_table_round_trips": "ok"
+      },
+      "cost_usd": 0.802532,
+      "seconds": 128.45,
+      "evidence": "sha256:ba34857394bc8c9f06090c6458147a629f24ae3bc4b79875af749166d1fd9617"
+    },
+    {
+      "id": "tomlkit-570-x-539",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_multiline_crlf.py::test_crlf_multiline_basic_and_literal_preserved": "ok",
+        "fourway_scenarios/test_multiline_lone_cr.py::test_lone_cr_escaped_in_multiline_basic_and_round_trips": "ok",
+        "fourway_scenarios/test_multiline_lone_cr.py::test_lone_cr_in_array_of_multiline_strings_round_trips": "ok",
+        "fourway_scenarios/test_multiline_lone_cr.py::test_lone_cr_rejected_in_multiline_literal": "ok",
+        "fourway_scenarios/test_wrap_method_removed.py::test_items_still_work_without_wrap_method": "ok",
+        "fourway_scenarios/test_wrap_method_removed.py::test_wrap_method_no_longer_exported": "ok",
+        "fourway_scenarios/test_wrapper_operators.py::test_array_iadd_keeps_wrapper_and_renders": "ok",
+        "fourway_scenarios/test_wrapper_operators.py::test_table_or_returns_new_table_and_ior_in_place": "ok"
+      },
+      "cost_usd": 0.5909,
+      "seconds": 29.37,
+      "evidence": "sha256:a3c39951a028a654c7dffc2a2f5dc85340a36b5e1e8b55f2edd90bd281bd2a45"
+    },
+    {
+      "id": "tomlkit-581-x-599",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_add_line_comment_slice_delete_parseable.py::test_commented_array_in_document_after_prefix_slice_delete_dumps_valid": "ok",
+        "fourway_scenarios/test_add_line_comment_slice_delete_parseable.py::test_slice_deletions_on_commented_array_render_parseable": "ok",
+        "fourway_scenarios/test_add_line_comment_slice_delete_sync.py::test_negative_stop_slice_delete_updates_render_of_commented_array": "ok",
+        "fourway_scenarios/test_add_line_comment_slice_delete_sync.py::test_noop_slice_delete_keeps_render_of_commented_array": "ok",
+        "fourway_scenarios/test_array_slice_and_render_invariants.py::test_parsed_multiline_array_with_comment_round_trips_after_slice_delete": "ok",
+        "fourway_scenarios/test_array_slice_and_render_invariants.py::test_plain_single_line_array_positive_slice_delete_stays_single_line": "ok"
+      },
+      "cost_usd": 0.649096,
+      "seconds": 66.49,
+      "evidence": "sha256:443f7bdf9694185a96242573cc0a38cc2974ce392eb38a63aab466b747e51a8a"
+    },
+    {
+      "id": "tomlkit-595-x-594",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [
+        "a"
+      ],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_inline_table_append_invariants.py::test_padded_inline_table_append_from_key_value_is_not_double_spaced": "ok",
+        "fourway_scenarios/test_inline_table_append_invariants.py::test_sequential_key_value_appends_round_trip": "ok",
+        "fourway_scenarios/test_inline_table_key_value_separator.py::test_key_value_item_appended_to_spaced_inline_table_uses_spaced_separator[z = 3  # note\\n]": "ok",
+        "fourway_scenarios/test_inline_table_key_value_separator.py::test_key_value_item_appended_to_spaced_inline_table_uses_spaced_separator[z = 3\\n]": "ok",
+        "fourway_scenarios/test_inline_table_key_value_separator.py::test_key_value_item_appended_to_spaced_inline_table_uses_spaced_separator[z = 3]": "ok",
+        "fourway_scenarios/test_inline_table_key_value_separator.py::test_trailing_space_from_key_value_is_not_doubled_by_next_separator": "ok",
+        "fourway_scenarios/test_key_value_trailing_input.py::test_key_value_comment_kept_on_item_but_dropped_in_inline_table": "ok",
+        "fourway_scenarios/test_key_value_trailing_input.py::test_key_value_rejects_inline_table_style_trailing_input[z = 3 , w = 4]": "ok",
+        "fourway_scenarios/test_key_value_trailing_input.py::test_key_value_rejects_inline_table_style_trailing_input[z = 3 junk]": "ok",
+        "fourway_scenarios/test_key_value_trailing_input.py::test_key_value_rejects_inline_table_style_trailing_input[z = 3, w = 4]": "ok",
+        "fourway_scenarios/test_key_value_trailing_input.py::test_key_value_rejects_inline_table_style_trailing_input[z = 3}]": "ok"
+      },
+      "cost_usd": 0.701608,
+      "seconds": 96.12,
+      "evidence": "sha256:6178926d8f224950aa129ee7aac70e6e6ba6d61f8b0255f6c325f4ad8b45d6ab"
+    },
+    {
+      "id": "tomlkit-612-x-613",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_string_add_escape_in_doc.py::test_appending_quote_and_backslash_round_trips_in_document": "ok",
+        "fourway_scenarios/test_string_add_escape_in_doc.py::test_appending_to_multiline_basic_string_escapes_backslash": "ok",
+        "fourway_scenarios/test_string_time_invariants.py::test_document_with_naive_time_and_extended_string_round_trips": "ok",
+        "fourway_scenarios/test_string_time_invariants.py::test_naive_time_rendering_unchanged": "ok",
+        "fourway_scenarios/test_string_time_invariants.py::test_string_plus_string_and_plain_text_preserved": "ok",
+        "fourway_scenarios/test_time_local_render_in_doc.py::test_tz_aware_time_in_document_round_trips": "ok",
+        "fourway_scenarios/test_time_local_render_in_doc.py::test_tz_aware_time_replace_renders_local": "ok"
+      },
+      "cost_usd": 0.563996,
+      "seconds": 30.15,
+      "evidence": "sha256:d5bfb9d4b1f4c7b4ed1eb14648d413982fca83ef01dbb5ea42fb06c58ad1b554"
+    },
+    {
+      "id": "tomlkit-620-x-591",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_fold_survives_document_replacement.py::test_datetime_fold_kept_when_replacing_value_in_document": "ok",
+        "fourway_scenarios/test_fold_survives_document_replacement.py::test_time_fold_kept_when_replacing_value_in_document": "ok",
+        "fourway_scenarios/test_temporal_replace_roundtrip.py::test_assigning_plain_python_temporals_keeps_slots": "ok",
+        "fourway_scenarios/test_temporal_replace_roundtrip.py::test_replaced_datetime_and_time_roundtrip_and_unwrap": "ok",
+        "fourway_scenarios/test_unwrap_order_with_temporal_replacement.py::test_unwrap_order_after_replacing_datetime_via_replace": "ok",
+        "fourway_scenarios/test_unwrap_order_with_temporal_replacement.py::test_unwrap_order_after_replacing_time_with_fold": "ok"
+      },
+      "cost_usd": 0.585252,
+      "seconds": 45.54,
+      "evidence": "sha256:91298383ff7cd050d344e2216475f5bf4152e79bcd1069ce52d1177be290f811"
+    },
+    {
+      "id": "tomlkit-623-x-610",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_datetime_fold_subtraction.py::test_fold_one_subtracts_to_zero": "ok",
+        "fourway_scenarios/test_datetime_fold_subtraction.py::test_fold_preserved_for_datetime_stored_in_document": "ok",
+        "fourway_scenarios/test_integer_grouping.py::test_grouped_integer_dumps_alongside_datetime_arithmetic": "ok",
+        "fourway_scenarios/test_integer_grouping.py::test_integer_string_preserves_underscores": "ok",
+        "fourway_scenarios/test_merge_invariants.py::test_datetime_difference_with_fold_zero": "ok",
+        "fourway_scenarios/test_merge_invariants.py::test_integer_plain_forms_unchanged_and_garbage_rejected": "ok",
+        "fourway_scenarios/test_merge_invariants.py::test_timedelta_subtraction_matches_stdlib": "ok"
+      },
+      "cost_usd": 0.571032,
+      "seconds": 34.76,
+      "evidence": "sha256:bddd796d13ed66fd65c97327e0d7fe6be4ed303a5f6139ab7f480831b0b17471"
+    },
+    {
+      "id": "tomlkit-628-x-552",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_dumps_special_float_round_trip.py::test_dumps_inline_tables_with_special_floats_reparse": "ok",
+        "fourway_scenarios/test_dumps_special_float_round_trip.py::test_parsed_lowercase_signed_specials_in_inline_tables_round_trip": "ok",
+        "fourway_scenarios/test_inline_special_float_order.py::test_item_inline_table_order_with_special_floats_round_trips": "ok",
+        "fourway_scenarios/test_inline_special_float_order.py::test_item_mixed_array_inline_table_order_with_nan": "ok",
+        "fourway_scenarios/test_reject_uppercase_special_float_in_inline.py::test_uppercase_signed_special_floats_rejected_in_inline_tables[v = [[{a = {x = 1}, b = -Inf}]]]": "ok",
+        "fourway_scenarios/test_reject_uppercase_special_float_in_inline.py::test_uppercase_signed_special_floats_rejected_in_inline_tables[v = [{a = {x = +NaN}, b = 1}]]": "ok",
+        "fourway_scenarios/test_reject_uppercase_special_float_in_inline.py::test_uppercase_signed_special_floats_rejected_in_inline_tables[v = [{a = {x = -INF}, b = 2}, 's']]": "ok",
+        "fourway_scenarios/test_reject_uppercase_special_float_in_inline.py::test_value_api_rejects_uppercase_signed_special_float_in_array": "ok"
+      },
+      "cost_usd": 0.590224,
+      "seconds": 29.45,
+      "evidence": "sha256:6a98c19428a6a5aa5d2a0cfa29c0d8a4536c8df712815d5a856fbe30370bc29e"
+    },
+    {
+      "id": "tomlkit-641-x-629",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_edit_roundtrip_invariant.py::test_dumped_dict_with_esc_and_floats_round_trips": "ok",
+        "fourway_scenarios/test_edit_roundtrip_invariant.py::test_edited_document_with_esc_and_signed_float_round_trips": "ok",
+        "fourway_scenarios/test_esc_escape_output.py::test_appending_esc_to_parsed_string_uses_unicode_escape": "ok",
+        "fourway_scenarios/test_esc_escape_output.py::test_dumps_esc_as_unicode_escape_alongside_floats": "ok",
+        "fourway_scenarios/test_negative_zero_float.py::test_negative_zero_from_signed_float_next_to_esc_string": "ok",
+        "fourway_scenarios/test_negative_zero_float.py::test_negative_zero_from_signed_int_division": "ok"
+      },
+      "cost_usd": 0.575576,
+      "seconds": 31.2,
+      "evidence": "sha256:ecec5a5d6d82066b2c5035af783a7d113f1726750a26087579cd0de69fc618b2"
+    },
+    {
+      "id": "tomlkit-642-x-626",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_crlf_error_position.py::test_crlf_document_with_datetime_reports_true_position": "ok",
+        "fourway_scenarios/test_crlf_error_position.py::test_mixed_endings_file_read_reports_true_position": "ok",
+        "fourway_scenarios/test_lf_and_unwrap_invariants.py::test_crlf_parsed_datetime_unwraps_to_plain_value": "ok",
+        "fourway_scenarios/test_lf_and_unwrap_invariants.py::test_lf_document_error_position_unchanged": "ok",
+        "fourway_scenarios/test_unwrap_fold_in_document.py::test_document_unwrap_keeps_datetime_fold": "ok",
+        "fourway_scenarios/test_unwrap_fold_in_document.py::test_document_unwrap_keeps_time_fold": "ok"
+      },
+      "cost_usd": 0.579496,
+      "seconds": 32.86,
+      "evidence": "sha256:2be5b988e10ef5e1d1a1c5049fffe18ce42efc9ccb15521f64ca51d450c12bc9"
+    },
+    {
+      "id": "tomlkit-667-x-666",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_array_append_consistency.py::test_appends_to_commented_array_stay_consistent": "ok",
+        "fourway_scenarios/test_array_append_consistency.py::test_custom_encoder_values_appended_to_array": "ok",
+        "fourway_scenarios/test_array_tail_append_fastpath.py::test_fresh_array_tail_appends_skip_reindex": "ok",
+        "fourway_scenarios/test_array_tail_append_fastpath.py::test_parsed_multiline_tail_appends_skip_reindex": "ok",
+        "fourway_scenarios/test_register_encoder_docs.py::test_docs_conf_disables_docstring_signature_parsing": "ok",
+        "fourway_scenarios/test_register_encoder_docs.py::test_register_encoder_docstring_uses_literal_block": "ok"
+      },
+      "cost_usd": 0.660752,
+      "seconds": 42.17,
+      "evidence": "sha256:0c18793f735cba345208bee2ab99a5a44d45488e04ee46253f2516828bf7c9ca"
+    },
+    {
+      "id": "tomlkit-668-x-658",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [
+        "a"
+      ],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_multiline_escape_roundtrip.py::test_default_escape_multiline_basic_bare_cr_escaped": "ok",
+        "fourway_scenarios/test_multiline_escape_roundtrip.py::test_default_escape_multiline_leading_newline_round_trips": "ok",
+        "fourway_scenarios/test_string_escape_false_verbatim.py::test_multiline_basic_escape_false_is_verbatim": "ok",
+        "fourway_scenarios/test_string_escape_false_verbatim.py::test_multiline_literal_escape_false_is_verbatim": "ok",
+        "fourway_scenarios/test_version_release.py::test_package_version_is_0_15_2": "ok"
+      },
+      "cost_usd": 1.35388,
+      "seconds": 31.99,
+      "evidence": "sha256:f2407b30d674f410f7cefd32bb93a7dee5ac6e095734f8ca9817d877beba14ff"
+    },
+    {
+      "id": "tomlkit-683-x-673",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_date_factory_rejects_datetimes.py::test_date_factory_accepts_dates_and_arithmetic_still_works": "ok",
+        "fourway_scenarios/test_date_factory_rejects_datetimes.py::test_date_factory_rejects_timestamps[1979-05-13 12:34:56-07:00]": "ok",
+        "fourway_scenarios/test_date_factory_rejects_datetimes.py::test_date_factory_rejects_timestamps[1979-05-13T12:34:56Z]": "ok",
+        "fourway_scenarios/test_date_factory_rejects_datetimes.py::test_date_factory_rejects_timestamps[1979-05-13T12:34:56]": "ok",
+        "fourway_scenarios/test_factory_date_trivia_isolation.py::test_factory_date_arithmetic_result_does_not_alias_document_trivia": "ok",
+        "fourway_scenarios/test_factory_date_trivia_isolation.py::test_factory_datetime_replace_result_does_not_alias_document_trivia": "ok",
+        "fourway_scenarios/test_inplace_date_update_keeps_comment.py::test_factory_date_inplace_add_keeps_comment": "ok",
+        "fourway_scenarios/test_inplace_date_update_keeps_comment.py::test_parsed_date_inplace_add_keeps_comment_and_round_trips": "ok"
+      },
+      "cost_usd": 0.603516,
+      "seconds": 29.01,
+      "evidence": "sha256:bb84f5019075f2ae68b9bb514233c891d2da56627e2e946746236a7cf47af96a"
+    },
+    {
+      "id": "toolz-410-x-408",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_accumulate_empty_with_second.py::test_accumulate_empty_without_initial_yields_nothing": "ok",
+        "fourway_scenarios/test_accumulate_empty_with_second.py::test_second_and_first_of_empty_accumulate_raise_stopiteration": "ok",
+        "fourway_scenarios/test_second_over_accumulate.py::test_second_consumes_exactly_two_items": "ok",
+        "fourway_scenarios/test_second_over_accumulate.py::test_second_of_accumulate_values": "ok",
+        "fourway_scenarios/test_second_over_accumulate.py::test_second_of_single_item_accumulate_raises_stopiteration": "ok",
+        "fourway_scenarios/test_second_over_accumulate.py::test_second_on_infinite_accumulate": "ok"
+      },
+      "cost_usd": 0.405736,
+      "seconds": 26.57,
+      "evidence": "sha256:cbc41a6aa7621c3afa52909fd117881dcd35cf52e0fb5a2264f302044eb3f03f"
+    },
+    {
+      "id": "toolz-412-x-422",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_assoc_factory_calls.py::test_assoc_calls_factory_once": "ok",
+        "fourway_scenarios/test_assoc_factory_calls.py::test_nested_updates_call_factory_once_per_level": "ok",
+        "fourway_scenarios/test_assoc_semantics.py::test_assoc_respects_factory_type": "ok",
+        "fourway_scenarios/test_assoc_semantics.py::test_assoc_values_and_immutability": "ok",
+        "fourway_scenarios/test_compat_cleanup.py::test_py26_py33_compat_shims_removed": "ok",
+        "fourway_scenarios/test_merge_errors_and_pickle.py::test_curry_pickle_roundtrip": "ok",
+        "fourway_scenarios/test_merge_errors_and_pickle.py::test_merge_rejects_unknown_keyword_with_message": "ok"
+      },
+      "cost_usd": 0.463432,
+      "seconds": 44.34,
+      "evidence": "sha256:732eb8d038773c2627e7a233593588ca9c98db1f5781932b5b16a6546d93ca90"
+    },
+    {
+      "id": "toolz-425-x-398",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_compose_dissoc_methods.py::test_compose_binds_as_method_on_dict_subclass": "ok",
+        "fourway_scenarios/test_compose_dissoc_methods.py::test_compose_equality_and_hash_with_curried_dissoc": "ok",
+        "fourway_scenarios/test_compose_dissoc_methods.py::test_compose_signature_tracks_dissoc_signature": "ok",
+        "fourway_scenarios/test_dissoc_compose_invariant.py::test_class_level_and_static_access_of_composed_dissoc": "ok",
+        "fourway_scenarios/test_dissoc_compose_invariant.py::test_composed_dissoc_removes_exactly_requested_keys": "ok",
+        "fourway_scenarios/test_dissoc_factory_compose.py::test_curried_dissoc_with_factory_as_compose_head": "ok",
+        "fourway_scenarios/test_dissoc_factory_compose.py::test_dissoc_factory_many_keys_path_inside_compose": "ok"
+      },
+      "cost_usd": 0.522012,
+      "seconds": 73.54,
+      "evidence": "sha256:e5a83306ac62b28183f30ffc2af297b93fc87577b4f466f868eb83901027b609"
+    },
+    {
+      "id": "toolz-428-x-411",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_apply_with_join.py::test_apply_exposed_and_uncurried": "ok",
+        "fourway_scenarios/test_apply_with_join.py::test_apply_forwards_kwargs_to_join_modes": "ok",
+        "fourway_scenarios/test_apply_with_join.py::test_map_apply_over_join_results": "ok",
+        "fourway_scenarios/test_join_modes.py::test_full_outer_join": "ok",
+        "fourway_scenarios/test_join_modes.py::test_inner_join_many_to_many_and_sentinel_copy": "ok",
+        "fourway_scenarios/test_join_modes.py::test_right_and_left_outer_joins_order_and_duplicates": "ok",
+        "fourway_scenarios/test_join_modes.py::test_right_sequence_consumed_lazily": "ok"
+      },
+      "cost_usd": 0.434472,
+      "seconds": 37.67,
+      "evidence": "sha256:014d9aab35a34e0041fb0dea66c64e0f8e272c68e9a7cc07e31353d711496856"
+    },
+    {
+      "id": "toolz-431-x-433",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_groupby_doc.py::test_groupby_doc_mentions_itertools_groupby": "ok",
+        "fourway_scenarios/test_groupby_doctest_invariant.py::test_docstring_examples_still_pass": "ok",
+        "fourway_scenarios/test_groupby_doctest_invariant.py::test_groupby_behavior_unchanged": "ok",
+        "fourway_scenarios/test_update_in_invariants.py::test_update_in_missing_paths_and_factory": "ok",
+        "fourway_scenarios/test_update_in_invariants.py::test_update_in_no_mutation_and_copies": "ok",
+        "fourway_scenarios/test_update_in_iterkeys.py::test_update_in_accepts_generator_keys": "ok",
+        "fourway_scenarios/test_update_in_iterkeys.py::test_update_in_iterator_keys_missing_path_with_factory": "ok"
+      },
+      "cost_usd": 0.417172,
+      "seconds": 29.14,
+      "evidence": "sha256:5e65cf5b4669aef8d12d2ef90fb7f7da12747140fe5b821a6c570f9f85fe0e4b"
+    },
+    {
+      "id": "toolz-437-x-432",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_curry_introspection_still_works.py::test_curry_builtins_and_curried_namespace": "ok",
+        "fourway_scenarios/test_curry_introspection_still_works.py::test_curry_partial_application_repeated": "ok",
+        "fourway_scenarios/test_signature_or_spec_none.py::test_curry_does_not_cache_exception_objects": "ok",
+        "fourway_scenarios/test_signature_or_spec_none.py::test_signature_or_spec_returns_none_for_uninspectable": "ok",
+        "fourway_scenarios/test_unzip_behavior.py::test_sandbox_core_doctests_pass": "ok",
+        "fourway_scenarios/test_unzip_behavior.py::test_unzip_infinite_outer_sequence_is_lazy": "ok",
+        "fourway_scenarios/test_unzip_docstring.py::test_unzip_docstring_describes_infinite_outer_sequence": "ok"
+      },
+      "cost_usd": 0.420128,
+      "seconds": 35.21,
+      "evidence": "sha256:6ce0db8919d3aea337a0fb77b7fa514b4f7e74ba3ae46e43982cd2b6be0230f8"
+    },
+    {
+      "id": "toolz-451-x-381",
+      "label": "clean",
+      "class": "mined, same file",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_curried_compose_left.py::test_compose_left_exported_uncurried_from_curried": "ok",
+        "fourway_scenarios/test_curried_compose_left.py::test_compose_left_with_curried_functions": "ok",
+        "fourway_scenarios/test_curried_namespace_consistency.py::test_all_public_toolz_callables_introspectable": "ok",
+        "fourway_scenarios/test_curried_namespace_consistency.py::test_curried_namespace_matches_toolz": "ok",
+        "fourway_scenarios/test_curried_peekn.py::test_curried_peekn_partial_application": "ok",
+        "fourway_scenarios/test_curried_peekn.py::test_peekn_toplevel_short_sequence_and_generator": "ok"
+      },
+      "cost_usd": 0.42374,
+      "seconds": 25.7,
+      "evidence": "sha256:cf00ee96a4f6c583dd490f16742ca92682fde4ec13585f5a947c4be0ff936974"
+    },
+    {
+      "id": "toolz-478-x-476",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_count_doc.py::test_count_docstring_fixed": "ok",
+        "fourway_scenarios/test_count_doc.py::test_tlz_count_docstring_when_pure_python": "ok",
+        "fourway_scenarios/test_tlz_missing_file.py::test_exec_module_missing_file_with_both_backends": "ok",
+        "fourway_scenarios/test_tlz_missing_file.py::test_exec_module_tolerates_missing_file": "ok",
+        "fourway_scenarios/test_tlz_real_modules.py::test_real_tlz_mirrors_toolz": "ok"
+      },
+      "cost_usd": 0.4086,
+      "seconds": 22.51,
+      "evidence": "sha256:c4ae74c4d0c640f1bc9afad21dda1bf5bb224255e07edb9a8f9b34545cfe85bf"
+    },
+    {
+      "id": "toolz-624-x-634",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_compose_annotations.py::test_compose_annotations_basic_and_curried": "ok",
+        "fourway_scenarios/test_compose_annotations.py::test_compose_annotations_with_builtin_mapping_constructors": "ok",
+        "fourway_scenarios/test_frozendict_signature.py::test_frozendict_registry_entry_has_dict_semantics": "ok",
+        "fourway_scenarios/test_frozendict_signature.py::test_frozendict_specs_drive_introspection_and_curry": "ok",
+        "fourway_scenarios/test_introspection_invariants.py::test_compose_signature_and_registry_unchanged": "ok",
+        "fourway_scenarios/test_introspection_invariants.py::test_functoolz_public_callables_remain_introspectable": "ok"
+      },
+      "cost_usd": 0.518908,
+      "seconds": 65.29,
+      "evidence": "sha256:577866247e01176775e8f8d15565a0e2538237dd8b7b9b02603fc1107f8de4be"
+    },
+    {
+      "id": "toolz-636-x-635",
+      "label": "clean",
+      "class": "mined, other files",
+      "mined": true,
+      "runtime": [
+        "a",
+        "b"
+      ],
+      "assisted": [],
+      "verdict": "clean",
+      "findings": {
+        "fourway_scenarios/test_interpose_and_functoolz_invariants.py::test_functoolz_pypy_flag_still_correct": "ok",
+        "fourway_scenarios/test_interpose_and_functoolz_invariants.py::test_interpose_nonempty_unchanged": "ok",
+        "fourway_scenarios/test_interpose_and_functoolz_invariants.py::test_module_doctests_pass": "ok",
+        "fourway_scenarios/test_interpose_empty_merge.py::test_interpose_empty_list_and_generator": "ok",
+        "fourway_scenarios/test_interpose_empty_merge.py::test_interpose_empty_via_curried_and_compose": "ok",
+        "fourway_scenarios/test_interpose_empty_merge.py::test_interpose_empty_via_tlz": "ok"
+      },
+      "cost_usd": 0.424324,
+      "seconds": 16.75,
+      "evidence": "sha256:e70214664b0def1542a968a5b7989c8cc98669fcfaf3184373274e88725dbdf2"
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 46936,
+    "output_tokens": 1979,
+    "scenarios": {
+      "test_prerelease_ordering_merge.py": {
+        "kind": "invariant",
+        "rationale": "Change B rewrites Version._nat_cmp, renaming the parts lists and precompiling the digit regex. Change A touches _deprecated.py and __main__.py, which are the deprecated/CLI entry points that route into compare. These tests check that SemVer prerelease precedence stays correct on every tree, both through Version and through those entry points."
+      },
+      "test_cmp_type_hints.py": {
+        "kind": "intent_b",
+        "rationale": "Change B adds real type hints to _cmp and Version._nat_cmp and introduces the T_cmp TypeVar. These tests verify that the annotations survive a merge with Change A, which also edits module headers near version.py. They also check that the helpers keep their integer-returning behavior."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:43d9c2c3f4d21469d9ba8a4efe1deaa8bdf1032760c2be9908668155185cf152",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "30c107c7d4f00546cc3c52fdd06f960c5d46cf1e",
+      "a": "0f82ef5b5be178b50ddc91b72b097999ae21e93e",
+      "b": "602f3bd2f6af26bb2a34eca4d73009590ad2bf7a",
+      "ab": "9bdb5798027e8e63a6fe34a33518b7ae2a03a1e5",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:71b08f2bcf92fed564a1c760aff3e280b4aabb8206ca00d557ed5ef70e45ad55"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_cmp_type_hints.py::test_cmp_and_nat_cmp_have_int_return_annotations": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_cmp_type_hints.py::test_cmp_returns_ints_for_tuples_strings_ints": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_prerelease_ordering_merge.py::test_deprecated_and_cli_compare_use_prerelease_ordering": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_prerelease_ordering_merge.py::test_deprecated_compare_still_warns_and_returns_value": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_prerelease_ordering_merge.py::test_prerelease_chain_ordering_via_version_and_nat_cmp": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:23:29.569594+00:00"
+  }
+}

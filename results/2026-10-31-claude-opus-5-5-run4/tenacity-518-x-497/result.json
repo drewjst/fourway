@@ -1,0 +1,91 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 69053,
+    "output_tokens": 4420,
+    "scenarios": {
+      "test_copy_self_type.py": {
+        "kind": "intent_a",
+        "rationale": "Change A makes BaseRetrying.copy return Self so a copied template keeps its concrete type, for example AsyncRetrying stays async-iterable. The first test checks the declared return annotation, which is the only observable part of the intent. The other two tests are invariants that must hold on every tree. One copies an AsyncRetrying template configured with change B's compiled-pattern match and drives it with async-for. The other checks that a user subclass survives copy() with its retry strategy intact."
+      },
+      "test_match_pattern_types.py": {
+        "kind": "intent_b",
+        "rationale": "Change B widens the match parameter of retry_if_exception_message and retry_if_not_exception_message to accept re.Pattern. The first test checks both annotations, which is the declared intent. The other two tests are invariants. They check that compiled patterns, including ones with flags, drive retry decisions correctly when the retrying object is re-created through copy() or retry_with(), the path change A retypes."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:eb6cd4e489d3e03b6f9b91a7e8462fda77d03087cd82403f8df27f93ed0a146c",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "70f2682aa5906f0bd51a35a067b734cf37a6a2ce",
+      "a": "e3045bcd7d6ef4f7452cd76e1f53d695a20836eb",
+      "b": "ff6957e0f099a6f26badcfed9b48376bef12e044",
+      "ab": "a55853151b32c7de64ab4138815e32669f5e200f",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:f56200808e255c64ce3714f6360dccb529b848edb41223870c918864229b8bce"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_copy_self_type.py::test_async_template_copy_is_async_iterable_with_compiled_match": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_copy_self_type.py::test_copy_return_annotation_is_self": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_copy_self_type.py::test_subclass_copy_preserves_class_and_pattern_strategy": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_match_pattern_types.py::test_copy_with_not_exception_message_compiled_pattern": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_match_pattern_types.py::test_match_annotation_accepts_pattern": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_match_pattern_types.py::test_retry_with_keeps_compiled_pattern_strategy": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:33:35.253468+00:00"
+  }
+}

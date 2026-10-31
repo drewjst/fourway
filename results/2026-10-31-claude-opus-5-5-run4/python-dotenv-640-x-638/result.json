@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": null,
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 42233,
+    "output_tokens": 3606,
+    "scenarios": {
+      "test_bom_empty_cache.py": {
+        "kind": "intent_b",
+        "rationale": "Change B caches an empty parse result. Change A makes BOM-only files parse to an empty dict, which is exactly the case B's cache now has to hold. The first test fails on the base and on B alone, where the parse yields a bogus '\\ufeff' key, and fails on A alone, where the empty dict is re-parsed. The second test is B's plain empty-file case."
+      },
+      "test_bom_keys_with_cache.py": {
+        "kind": "intent_a",
+        "rationale": "Change A strips a leading BOM so the first key is correct. These tests check that this still holds through DotEnv's cached dict(), now that B changed the caching guard, and through load_dotenv when a BOM file has no bindings. Both tests fail on trees without A."
+      },
+      "test_cache_invariants.py": {
+        "kind": "invariant",
+        "rationale": "These properties hold on every tree. A non-empty dotenv is parsed once and returns the same cached object. load_dotenv on an empty file reports False and leaves os.environ untouched. A non-BOM file parses identically before and after the BOM stripping."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:486aedd5a85daf89691dba3aa0fbd631eba3f8530a2431cb47cfbaa2543ac344",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "3ed691ef5d6e3a00ed7aed88bc42f87120e8bfb8",
+      "a": "4bfa50d378c5a11327014f1087b4432d61cf873c",
+      "b": "341959bf79a5bc6206e11d1c1a6f9c8aa6bbcb38",
+      "ab": "315568e6d07931f0b4afb03bc29fa60ffe06a91f",
+      "env": "sha256:9e8e35523f1240a15a65286e856da6f93a2352aa97ce05472401a10c232eaf66",
+      "scenarios": "sha256:89e8999dc98780e476e1ba386496d1a9efb1202d814d4b12a80a8405066d7659"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_bom_empty_cache.py::test_bom_only_file_is_empty_and_parsed_once": {
+        "base": "failed",
+        "a": "failed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_bom_empty_cache.py::test_empty_file_parsed_once": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_bom_keys_with_cache.py::test_bom_comment_only_file_loads_nothing": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_bom_keys_with_cache.py::test_bom_first_key_clean_through_cached_dict": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_cache_invariants.py::test_empty_file_load_returns_false_and_env_untouched": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_cache_invariants.py::test_nonempty_dict_cached_same_object": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T19:21:48.751980+00:00"
+  }
+}
