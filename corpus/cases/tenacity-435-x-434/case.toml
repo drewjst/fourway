@@ -1,0 +1,29 @@
+base = { repo = "tenacity", commit = "99e7482e8b027f0521315e0f7830a0badae5c561" }
+label = "clean"
+class = "mined, same file"
+runtime = ["b"]
+assisted = []
+
+[a]
+title = "ci: replace black and flake8 by ruff"
+pr = "https://github.com/jd/tenacity/pull/435"
+from = "99e7482e8b027f0521315e0f7830a0badae5c561"
+to = "24b4a5c7f5fcad5ed79a47da41dcf0cb1b585fc6"
+body = """
+
+"""
+
+[b]
+title = "Incrementally build iter actions list"
+pr = "https://github.com/jd/tenacity/pull/434"
+from = "24b4a5c7f5fcad5ed79a47da41dcf0cb1b585fc6"
+to = "17aefd96cbc90fd5201f61562640709a185e8796"
+body = """
+First PR after breaking down https://github.com/jd/tenacity/pull/433
+- Second PR ~https://github.com/hasier/tenacity/pull/1~ https://github.com/jd/tenacity/pull/437
+- Third PR ~https://github.com/hasier/tenacity/pull/2~ https://github.com/jd/tenacity/pull/451
+
+An attempt at [DRYing the `iter()` function](https://github.com/jd/tenacity/pull/363#pullrequestreview-1118442473) in order to support `async` callbacks.
+
+The approach I have taken is to build a list of actions that `iter()` needs to go through, where each action is just a piece of the whole current logic, and each step can further extend the list of actions. 3 pieces have been taken out to redefine in specific Retrying implementations, i.e. `asyncio`. This way we can make sure we use coroutines for those calls, as well as dynamically wrapping each function as a coroutine, allowing for both sync and async strategies and callbacks.
+"""

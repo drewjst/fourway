@@ -1,0 +1,34 @@
+base = { repo = "tenacity", commit = "89c5735a81d291eb2fc019e37f13a81dfe763bcf" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = ["a", "b"]
+
+[a]
+title = "fix: make LoggerProtocol compatible with logging.Logger"
+pr = "https://github.com/jd/tenacity/pull/586"
+from = "89c5735a81d291eb2fc019e37f13a81dfe763bcf"
+to = "773f4386e596f52d5c5ed39a8f511c7b56936986"
+body = """
+Remove the positional-only marker (/) from LoggerProtocol.log().
+logging.Logger.log() defines msg as a regular parameter, so the
+positional-only constraint caused mypy to reject logging.Logger
+as incompatible with the protocol.
+
+Closes #554
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+"""
+
+[b]
+title = "refactor: remove unused IterState.delay_since_first_attempt field"
+pr = "https://github.com/jd/tenacity/pull/587"
+from = "773f4386e596f52d5c5ed39a8f511c7b56936986"
+to = "b42d0777e2da9bc75dc9de6cbd22a095f096eafd"
+body = """
+This field was declared and reset but never read or written anywhere
+in the codebase. The actual delay tracking uses
+statistics[\"delay_since_first_attempt\"] instead.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+"""

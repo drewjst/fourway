@@ -37,6 +37,7 @@ class Summary:
     conflicts: int
     false_positives: int
     cleans: int
+    cleans_verified: int  # clean pairs with a verdict; only these can show a false-positive rate
     unverified: int
     errors: int  # cases where the generator returned no scenarios because it failed
     fallbacks: int  # cases a fallback model served; their scenarios belong to another model
@@ -45,20 +46,28 @@ class Summary:
     models: tuple[str, ...]
 
 
+# Generators whose scenarios this project wrote, or that write none.
+TRUSTED = frozenset({"null", *CONTROLS})
+
+
 def check_case(case: Case) -> list[str]:
     """Return what is wrong with a case. An empty list means the case is usable.
 
     A usable case merges cleanly, its existing test suite passes on all four
     trees (so ordinary CI on the merge cannot see the problem), and its oracle
-    produces the expected finding and a verdict that matches the label.
+    produces the expected finding and a verdict that matches the label. A pair
+    mined from history has no oracle, so only the first two checks apply.
     """
     problems: list[str] = []
     oracle = read_oracle(case)
-    if not oracle:
+    if not oracle and case.expect is not None:
         return ["oracle/ has no test_*.py files"]
     with tempfile.TemporaryDirectory(prefix=f"fourway-check-{case.id}-") as tmp:
         work = Path(tmp)
-        pair = materialize(case, work)
+        try:
+            pair = materialize(case, work)
+        except gitops.GitError as e:
+            return [f"the case does not build: {e}"]
         try:
             _, trees = pipeline.build_trees(pair.repo, pair.base, pair.a, pair.b, work / "suite")
         except gitops.MergeConflict as e:
@@ -74,6 +83,8 @@ def check_case(case: Case) -> list[str]:
                 # alert CI.
                 if outcome not in ("passed", "missing", "skipped"):
                     problems.append(f"existing suite: {test} is {outcome} on {variant}")
+        if case.expect is None:
+            return problems
         result = pipeline.verify(
             pair.repo, pair.base, pair.a, pair.b, oracle, work / "oracle", suite=case.suite
         )
@@ -97,7 +108,16 @@ def run(
 
     ``options`` go to a blind generator's constructor. For ``replay``, they hold
     ``root``, the ``--out`` directory of the run to replay.
+
+    Model-written scenarios never run on a mined pair: its diffs and
+    descriptions are third-party input, and decision 0002 keeps scenarios
+    from such input out of the local runner until it is sandboxed.
     """
+    if generator not in TRUSTED and (mined := [c.id for c in cases if c.mined]):
+        raise ValueError(
+            f"decision 0002: {generator!r} scenarios can't run on mined pairs until the runner is "
+            f"sandboxed (issue #2); leave out {len(mined)} mined pair(s), for example with --seeded-only"
+        )
     if generator in CONTROLS:
         control = CONTROLS[generator](cases)
 
@@ -162,6 +182,7 @@ def summarize(generator: str, results: list[CaseResult]) -> Summary:
         conflicts=len(conflicts),
         false_positives=sum(r.detected for r in cleans),
         cleans=len(cleans),
+        cleans_verified=sum(r.verdict != "unverified" for r in cleans),
         unverified=sum(r.verdict == "unverified" for r in results),
         errors=sum("error" in r.scenarios.notes for r in results),
         fallbacks=sum(bool(r.scenarios.notes.get("fallback")) for r in results),
@@ -187,12 +208,35 @@ def _rate(k: int, n: int) -> str:
     return f"{k}/{n}  (95% CI {lo:.0%} to {hi:.0%})"
 
 
+def false_positive_breakdown(results: list[CaseResult]) -> list[tuple[str, int, int]]:
+    """Split false positives the ways corpus/README.md fixed before any run on mined pairs.
+
+    Each group counts only verified pairs, as the headline rate does. Empty
+    when the run has no mined pairs.
+    """
+    cleans = [r for r in results if r.case.label == "clean"]
+    mined = [r for r in cleans if r.case.mined]
+    if not mined:
+        return []
+    groups = {
+        "seeded twins": [r for r in cleans if not r.case.mined],
+        "mined, same file": [r for r in mined if r.case.conflict_class == "mined, same file"],
+        "mined, other files": [r for r in mined if r.case.conflict_class == "mined, other files"],
+        "mined, both sides change code": [r for r in mined if set(r.case.runtime) == {"a", "b"}],
+        "mined, no side AI-credited": [r for r in mined if not r.case.assisted],
+    }
+    return [
+        (name, sum(r.detected for r in rs), sum(r.verdict != "unverified" for r in rs))
+        for name, rs in groups.items()
+    ]
+
+
 def format_report(summary: Summary, results: list[CaseResult]) -> str:
     rows = [("case", "label", "expect", "verdict", "findings", "secs")]
     for r in results:
         counts = Counter(r.findings.values())
         findings = ", ".join(f"{k} ({v})" for k, v in sorted(counts.items())) or "-"
-        rows.append((r.case.id, r.case.label, r.case.expect, r.verdict, findings, f"{r.seconds:.1f}"))
+        rows.append((r.case.id, r.case.label, r.case.expect or "-", r.verdict, findings, f"{r.seconds:.1f}"))
     widths = [max(len(row[i]) for row in rows) for i in range(len(rows[0]))]
     lines = ["  ".join(cell.ljust(w) for cell, w in zip(row, widths)).rstrip() for row in rows]
     per_pair = summary.cost_usd / summary.total if summary.total else 0.0
@@ -200,7 +244,12 @@ def format_report(summary: Summary, results: list[CaseResult]) -> str:
         "",
         f"generator        {summary.generator} {' '.join(summary.models)}".rstrip(),
         f"recall           {_rate(summary.detected, summary.conflicts)}",
-        f"false positives  {_rate(summary.false_positives, summary.cleans)}",
+        # An unverified clean pair shows nothing either way. Counting it as a pass
+        # would give a generator that writes no scenarios a perfect rate.
+        f"false positives  {_rate(summary.false_positives, summary.cleans_verified)}"
+        + (f"; {left_out} unverified clean pair(s) left out"
+           if (left_out := summary.cleans - summary.cleans_verified) else ""),
+        *(f"  {name:<31}{_rate(k, n)}" for name, k, n in false_positive_breakdown(results)),
         f"unverified       {summary.unverified}/{summary.total}",
         f"generator errors {summary.errors}/{summary.total}",
         f"cost             ${summary.cost_usd:.2f} total, ${per_pair:.2f} per pair",
@@ -232,6 +281,7 @@ def save(results: list[CaseResult], summary: Summary, out: Path) -> None:
         "summary": asdict(summary),
         "cases": [
             {"id": r.case.id, "label": r.case.label, "class": r.case.conflict_class,
+             "mined": r.case.mined, "runtime": list(r.case.runtime), "assisted": list(r.case.assisted),
              "verdict": r.verdict, "findings": r.findings, "cost_usd": r.cost_usd,
              "seconds": round(r.seconds, 2), "evidence": r.record["id"]}
             for r in results

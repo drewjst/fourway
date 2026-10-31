@@ -70,11 +70,19 @@ dependencies = [
     { name = "pytest" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "typeguard" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "anthropic", specifier = ">=2.3.0" },
     { name = "pytest", specifier = ">=8" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "typeguard", specifier = ">=4.6.0" }]
 
 [[package]]
 name = "h11"
@@ -429,6 +437,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/ee/9f/c5201d42a484c061e528825fc8e2d565f5abd50a4ced6fb7d29c4ec99b2b/truststore-0.10.5.tar.gz", hash = "sha256:30d36967ccaded5cbb38d602c433f53600036c79d502f4533a49b60a03bbefcd", size = 28091, upload-time = "2026-10-12T22:27:31.808Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/51/e9/3a7820be2bb0fe53b6bc9c3be26d3d1158004e4c3ab953aa6840b955b1e9/truststore-0.10.5-py3-none-any.whl", hash = "sha256:9aaaedaefaf06d8b206278cf8b5012bc897f485a874503501e12d776df78951c", size = 19017, upload-time = "2026-10-12T22:27:30.377Z" },
+]
+
+[[package]]
+name = "typeguard"
+version = "4.6.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b4/de/4420db493fa8fc0856d5e5c1b159c63a323d2de2317babe36b01568928e8/typeguard-4.6.0.tar.gz", hash = "sha256:e7414f09111317de3e335de92cd397c5c0ca00b1cc1676de12e1d444a79b3f21", size = 82330, upload-time = "2026-07-26T08:40:23.207Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8f/eb/461d5f167b6f5c7d97696f397c82f82e3480e003fce3f0a1cd1dd26e2eb2/typeguard-4.6.0-py3-none-any.whl", hash = "sha256:79878165bb86f2cf5d41d159a0ff1792a796cf496882d2fe1b1c6c7049b9cdd7", size = 36884, upload-time = "2026-07-26T08:40:21.868Z" },
 ]
 
 [[package]]

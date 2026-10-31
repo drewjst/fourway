@@ -20,3 +20,10 @@ build-backend = "hatchling.build"
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 norecursedirs = ["corpus"]
+
+[dependency-groups]
+dev = [
+    # Upstream test dependencies, so corpus repositories' own suites run. tenacity's
+    # tests import typeguard at every commit from 2017 until 2026-08 (jd/tenacity#673).
+    "typeguard>=4.6.0",
+]

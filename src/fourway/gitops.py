@@ -82,6 +82,10 @@ def has_commit(repo: Path, sha: str) -> bool:
     return _run(repo, "cat-file", "-e", f"{sha}^{{commit}}", check=False).returncode == 0
 
 
+def has_path(repo: Path, sha: str, path: str) -> bool:
+    return _run(repo, "cat-file", "-e", f"{sha}:{path}", check=False).returncode == 0
+
+
 def merge(repo: Path, a: str, b: str) -> str:
     """Return the SHA of a merge commit of A and B, or raise MergeConflict."""
     proc = _run(repo, "merge-tree", "--write-tree", "--name-only", a, b, check=False)
@@ -106,3 +110,8 @@ def export(repo: Path, sha: str, dest: Path) -> Path:
 
 def diff(repo: Path, old: str, new: str) -> str:
     return _run(repo, "diff", "--no-color", "--no-ext-diff", old, new).stdout.decode()
+
+
+def binary_diff(repo: Path, old: str, new: str) -> bytes:
+    """A patch that `git apply` replays byte for byte, binary files included."""
+    return _run(repo, "diff", "--binary", "--full-index", "--no-color", "--no-ext-diff", old, new).stdout

@@ -1,0 +1,74 @@
+base = { repo = "tenacity", commit = "4213bad9560479e71ce294b52501765068e38f80" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Avoid unnecessary exponential wait computation"
+pr = "https://github.com/jd/tenacity/pull/654"
+from = "4213bad9560479e71ce294b52501765068e38f80"
+to = "29d398bd21af492abeecd9fc9d33c48dc4d5fc08"
+body = """
+`wait_exponential(max=...)` still computes `exp_base ** attempt_number` on every retry after reaching the cap, making each later retry increasingly expensive during long-running polling. This checks the logarithmic threshold first and returns the configured cap without constructing the large integer; the regression test proves the power operation is skipped.
+
+Fixes #526.
+
+"""
+
+[b]
+title = "Accept empty message in retry_if_exception_message"
+pr = "https://github.com/jd/tenacity/pull/651"
+from = "29d398bd21af492abeecd9fc9d33c48dc4d5fc08"
+to = "40fad186bae14796567ea6786d8701bdd9d79312"
+body = """
+## Problem
+
+`retry_if_exception_message` validates its two mutually-exclusive arguments
+with truthiness checks:
+
+```python
+if message and match:            # both given
+    raise TypeError(...)
+if not message and not match:    # neither given
+    raise TypeError(...)
+...
+self.match = re.compile(match) if match else None
+...
+def _check(self, exception):
+    if self.message:             # skips message == \"\"
+        return self.message == str(exception)
+```
+
+An **empty string is a valid message target** — it matches exceptions whose
+`str()` is empty, e.g. a bare `raise RuntimeError()` (`str(RuntimeError()) == \"\"`).
+But `not message` is `True` for `\"\"`, so:
+
+```python
+retry_if_exception_message(message=\"\")
+# TypeError: retry_if_exception_message() missing 1 required argument 'message' or 'match'
+```
+
+The result is an asymmetry: you can match *every* exception message **except**
+the empty one. `_check`'s `if self.message:` would drop the empty-message branch
+as well, falling through to `assert self.match is not None`.
+
+## Fix
+
+Replace the truthiness guards with `is None` checks, so an empty message is
+accepted and matched like any other. `retry_if_not_exception_message` inherits
+the same constructor and is fixed by the same change.
+
+## Tests
+
+Added `test_retry_if_exception_message_empty_message` and
+`test_retry_if_not_exception_message_empty_message`: construct with `message=\"\"`
+and drive the predicate against a bare `RuntimeError()` (matches) and a
+`RuntimeError(\"boom\")` (does not), plus the inverse for the not-variant. Both
+fail before the change (`TypeError` at construction) and pass after. The
+existing `test_..._negative_no_inputs` (passing *no* arguments must raise) still
+passes.
+
+Full suite: `167 passed, 1 skipped, 12 subtests`. `ruff check` / `ruff format --check` clean.
+
+"""

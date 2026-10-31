@@ -1,0 +1,26 @@
+base = { repo = "tenacity", commit = "4c1b7bc7817f967538ed33a7fe114cece26364a5" }
+label = "clean"
+class = "mined, same file"
+runtime = []
+assisted = ["a", "b"]
+
+[a]
+title = "refactor: replace deprecated typing constructs with modern syntax"
+pr = "https://github.com/jd/tenacity/pull/616"
+from = "4c1b7bc7817f967538ed33a7fe114cece26364a5"
+to = "ac9c21fc44d8cbfc25cba4651d9914fb79552312"
+body = """
+Replace t.Optional, t.Union, and typing.Union with X | None / X | Y
+union syntax (PEP 604).
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+"""
+
+[b]
+title = "fix: add missing space in type annotation"
+pr = "https://github.com/jd/tenacity/pull/617"
+from = "ac9c21fc44d8cbfc25cba4651d9914fb79552312"
+to = "6a2a08bf1ff1edd29677683ae6c556724f787803"
+body = """
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+"""

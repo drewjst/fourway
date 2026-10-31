@@ -9,8 +9,10 @@ A case directory holds:
     oracle/     the hidden scenario that demonstrates the answer
 
 The base tree is a directory in the corpus, or a pinned commit of a real
-repository described in repos/<name>.toml. Only the base tree, the diffs, and
-the descriptions reach a generator.
+repository described in repos/<name>.toml. A pair mined from that repository's
+history names its changes as upstream commits instead of carrying them, and
+has no oracle: its clean label rests on the history, not on a scenario. Only
+the base tree, the diffs, and the descriptions reach a generator.
 """
 
 from __future__ import annotations
@@ -42,6 +44,7 @@ class Side:
     overlay: Path
     deleted: tuple[str, ...]
     patch: Path | None = None
+    commits: tuple[str, str] | None = None  # upstream (from, to); the side is the diff between them
 
 
 @dataclass(frozen=True)
@@ -56,33 +59,55 @@ class Upstream:
 
 _SHA = re.compile(r"[0-9a-f]{40}")
 
+# Keys a case's base table may set. The commit and the suite keys override
+# repos/<name>.toml, because a layout can change between two commits.
+_BASE_KEYS = frozenset({"repo", "commit", "tests", "pythonpath", "pytest_args"})
 
-def load_upstream(path: Path) -> tuple[Upstream, Suite]:
-    meta = tomllib.loads(path.read_text())
-    if not _SHA.fullmatch(meta["commit"]):
-        raise ValueError(f"{path.name}: commit must be a full 40-character SHA, got {meta['commit']!r}")
+
+def _full_sha(sha: str, where: str) -> str:
+    if not _SHA.fullmatch(sha):
+        raise ValueError(f"{where}: commit must be a full 40-character SHA, got {sha!r}")
+    return sha
+
+
+def load_upstream(path: Path, base: dict | None = None) -> tuple[Upstream, Suite]:
+    """Read repos/<name>.toml, with a case's ``base`` table laid over it."""
+    base = base or {}
+    if unknown := set(base) - _BASE_KEYS:
+        raise ValueError(f"unknown keys in base: {sorted(unknown)}")
+    meta = {**tomllib.loads(path.read_text()), **base}
+    if "commit" not in meta:
+        raise ValueError(f"{path.name} pins no commit, so each case must name one")
     suite = Suite(
         tests=meta.get("tests", "tests"),
         pythonpath=tuple(meta.get("pythonpath", ())),
         args=tuple(meta.get("pytest_args", ())),
     )
-    return Upstream(path.stem, meta["url"], meta["commit"], meta["license"]), suite
+    return Upstream(path.stem, meta["url"], _full_sha(meta["commit"], path.name), meta["license"]), suite
 
 
 def cache_dir() -> Path:
     return Path(os.environ.get("FOURWAY_CACHE") or Path.home() / ".cache" / "fourway")
 
 
-def checkout_upstream(upstream: Upstream, dest: Path) -> Path:
-    """Write the pinned commit's tree into ``dest``, fetching it into the cache once."""
+def fetch(upstream: Upstream, *shas: str) -> Path:
+    """Return the cache repository for ``upstream``, fetching any of ``shas`` it lacks, once."""
     cache = cache_dir() / "repos" / f"{upstream.name}.git"
     if not (cache / "HEAD").exists():
         cache.mkdir(parents=True, exist_ok=True)
         gitops.git(cache, "init", "--quiet", "--bare")
-    if not gitops.has_commit(cache, upstream.commit):
-        gitops.git(cache, "fetch", "--quiet", "--depth", "1", upstream.url, upstream.commit)
-    if not gitops.has_commit(cache, upstream.commit):
-        raise gitops.GitError(f"{upstream.url} did not provide commit {upstream.commit}")
+    missing = [sha for sha in dict.fromkeys(shas) if not gitops.has_commit(cache, sha)]
+    if missing:
+        gitops.git(cache, "fetch", "--quiet", "--depth", "1", upstream.url, *missing)
+    for sha in missing:
+        if not gitops.has_commit(cache, sha):
+            raise gitops.GitError(f"{upstream.url} did not provide commit {sha}")
+    return cache
+
+
+def checkout_upstream(upstream: Upstream, dest: Path) -> Path:
+    """Write the pinned commit's tree into ``dest``, fetching it into the cache once."""
+    cache = fetch(upstream, upstream.commit)
     # The case repository is exported with `git archive`, which drops paths a
     # .gitattributes marks export-ignore and rewrites export-subst files.
     for name in gitops.git(cache, "ls-tree", "-r", "--name-only", upstream.commit).splitlines():
@@ -99,15 +124,22 @@ class Case:
     path: Path
     base: Path | Upstream
     label: str  # "conflict" or "clean": what a generator is scored against
-    expect: str  # the finding the oracle must produce on this case
+    expect: str | None  # the finding the oracle must produce; None for a mined pair, which has no oracle
     conflict_class: str  # for measuring whether conflicts recur in classes
     a: Side
     b: Side
     suite: Suite = Suite()
+    runtime: tuple[str, ...] = ("a", "b")  # mined pairs: sides that change code beyond docstrings and annotations
+    assisted: tuple[str, ...] = ()  # mined pairs: sides whose pull request credits an AI assistant
 
     @property
     def oracle(self) -> Path:
         return self.path / "oracle"
+
+    @property
+    def mined(self) -> bool:
+        """True for a pair of real changes from a repository's history, rather than seeded ones."""
+        return self.a.commits is not None
 
 
 @dataclass(frozen=True)
@@ -122,31 +154,45 @@ def load_case(path: Path) -> Case:
     meta = tomllib.loads((path / "case.toml").read_text())
     if meta["label"] not in LABELS:
         raise ValueError(f"{path.name}: label must be one of {LABELS}")
-    if meta["expect"] not in classify.FINDINGS:
-        raise ValueError(f"{path.name}: unknown expected finding {meta['expect']!r}")
 
     def side(name: str) -> Side:
         s = meta[name]
         patch = path / f"{name}.patch"
+        commits = None
+        if "from" in s or "to" in s:
+            where = f"{path.name} [{name}]"
+            commits = (_full_sha(s["from"], where), _full_sha(s["to"], where))
         return Side(
             Intent(s["title"], s["body"].strip()), path / name, tuple(s.get("deleted", ())),
-            patch if patch.is_file() else None,
+            patch if patch.is_file() else None, commits,
         )
 
+    a, b = side("a"), side("b")
     if isinstance(meta["base"], dict):
-        base, suite = load_upstream(path.parents[1] / "repos" / f"{meta['base']['repo']}.toml")
+        base, suite = load_upstream(path.parents[1] / "repos" / f"{meta['base']['repo']}.toml", meta["base"])
     else:
+        if a.commits or b.commits:
+            raise ValueError(f"{path.name}: a side named by commits needs a repository base")
         base, suite = (path / meta["base"]).resolve(), Suite()
+    expect = meta.get("expect")
+    if expect is None:
+        # Only history can stand in for an oracle, and only to say "clean".
+        if not (a.commits and b.commits and meta["label"] == "clean"):
+            raise ValueError(f"{path.name}: only a clean pair mined from history may omit expect and the oracle")
+    elif expect not in classify.FINDINGS:
+        raise ValueError(f"{path.name}: unknown expected finding {expect!r}")
     return Case(
         id=path.name,
         path=path,
         base=base,
         label=meta["label"],
-        expect=meta["expect"],
+        expect=expect,
         conflict_class=meta["class"],
-        a=side("a"),
-        b=side("b"),
+        a=a,
+        b=b,
         suite=suite,
+        runtime=tuple(meta.get("runtime", ("a", "b"))),
+        assisted=tuple(meta.get("assisted", ())),
     )
 
 
@@ -166,6 +212,7 @@ def materialize(case: Case, workdir: Path) -> Pair:
     """Build a git repo with the base commit on main and A and B on branches a and b."""
     repo = gitops.init(workdir / "repo")
     if isinstance(case.base, Upstream):
+        cache = fetch(case.base, *(sha for side in (case.a, case.b) for sha in side.commits or ()))
         _copy(checkout_upstream(case.base, workdir / "upstream"), repo)
     else:
         _copy(case.base, repo)
@@ -177,6 +224,12 @@ def materialize(case: Case, workdir: Path) -> Pair:
             _copy(side.overlay, repo)
         if side.patch:
             gitops.git(repo, "apply", str(side.patch.resolve()))
+        if side.commits:
+            # Replayed onto this base, not checked out: change B was made on
+            # its own parent, which may already hold change A.
+            patch = workdir / f"{name}.upstream.patch"
+            patch.write_bytes(gitops.binary_diff(cache, *side.commits))
+            gitops.git(repo, "apply", str(patch))
         for rel in side.deleted:
             (repo / rel).unlink()
         heads.append(gitops.commit_all(repo, side.intent.title))

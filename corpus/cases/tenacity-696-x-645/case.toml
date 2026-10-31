@@ -1,0 +1,42 @@
+base = { repo = "tenacity", commit = "389aab8b2688f7a1df41c2dd7797eeb18c8baff9" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "fix: read the tornado global live instead of an import-time snapshot"
+pr = "https://github.com/jd/tenacity/pull/696"
+from = "389aab8b2688f7a1df41c2dd7797eeb18c8baff9"
+to = "949dcfa6c0a4f0109dbbd019ff58208a580d185b"
+body = """
+#679 replaced `if tornado:` with a `_HAS_TORNADO` bool computed once at
+import, to stop `truthy-bool` flagging the module object as always true.
+But only one of the two call sites was converted: the `retry()` decorator
+still dereferences the live `tornado` global right after testing the
+snapshot. The two desync as soon as anything reassigns the global.
+
+A/B verified against a2af454: `tenacity.tornado = None` followed by any
+`@tenacity.retry` decoration returned normally before, and now raises
+`AttributeError: 'NoneType' object has no attribute 'gen'`. Nulling the
+module global is the standard way a downstream suite exercises the
+non-tornado path without uninstalling tornado.
+
+Replace the constant with a `_has_tornado()` function so both call sites
+read the live global and cannot drift apart. As a bonus this needs no
+`redundant-expr` suppression: the check reads as a plain return rather than
+the left operand of an `and`.
+"""
+
+[b]
+title = "Respect enabled=False on the direct-call path"
+pr = "https://github.com/jd/tenacity/pull/645"
+from = "949dcfa6c0a4f0109dbbd019ff58208a580d185b"
+to = "26f719dc73d3c5612b9c1b8d18a7883837790ad8"
+body = """
+`Retrying(enabled=False)(fn)` and `AsyncRetrying(enabled=False)(fn)` ignore `enabled=False` on the direct-call path — they run the full retry loop and wrap the original exception in `RetryError`, instead of calling the function once and propagating its exception.
+
+PR #643 added the `enabled=False` short-circuit to the iterator protocols (`__iter__`/`__aiter__`/`__anext__`) but the direct-call protocol (`__call__`) was left behind, since `iter()` itself never consults `enabled`. The fix adds the same short-circuit at the top of each `__call__` (awaiting coroutine callables for the async path).
+
+Verified both ways: old runs the function 5× and raises `RetryError` (sync and async); fixed calls once and raises the original `ValueError`, matching the iterator/decorator paths. 154 existing tests green; +4 regression tests (which fail on the unfixed code) → 158 passed.
+"""

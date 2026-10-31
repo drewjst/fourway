@@ -1,0 +1,84 @@
+base = { repo = "tinydb", commit = "6241478a0de6574dce838f198959a9ce7527ac17" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Drop support for EOL Python 2.6"
+pr = "https://github.com/msiemens/tinydb/pull/188"
+from = "6241478a0de6574dce838f198959a9ce7527ac17"
+to = "4d2fd91a4b32cc6b63a20b77a24f4464cd7c8655"
+body = """
+Fixes https://github.com/msiemens/tinydb/issues/185.
+"""
+
+[b]
+title = "Add Table.write_back(), replacing documents by ids"
+pr = "https://github.com/msiemens/tinydb/pull/184"
+from = "4d2fd91a4b32cc6b63a20b77a24f4464cd7c8655"
+to = "6b33fee09558c62be483033f256876410cdc5ab9"
+body = """
+Compare to `update()`, ~`replace()`~ `write_back()` provide a more customizable workflow
+to modify documents.
+One can fistly search the documents and modify them by thier conditions,
+then input new douments with thier `doc_ids` to ~`replace()`~ `write_back()`.
+
+### Example Usage
+```python
+from tinydb import TinyDB, Query
+from tinydb.storages import MemoryStorage
+
+db = TinyDB(storage=MemoryStorage)
+
+db.purge()
+
+dataset = [
+    {\"stock\": [\"cookies\", \"apple\"]},
+    {\"stock\": [\"brownies\"]},
+    {\"stock\": [\"cake\"]},
+    {\"stock\": [\"cookies\", \"milk\"]},
+    {\"stock\": [\"cake\"]},
+    {\"stock\": [\"pie\", \"cake\"]},
+    {\"stock\": [\"apple\"]},
+]
+
+table = db.table('yumyum')
+table.insert_multiple(dataset)
+# search
+yum = Query()
+docs = table.search(yum.stock.any([\"cake\", \"apple\"]))
+# modify docs
+for doc in docs:
+    for i, stock in enumerate(doc[\"stock\"]):
+        if stock == \"cake\":
+            doc[\"stock\"][i] = \"water\"
+        if stock == \"apple\":
+            doc[\"stock\"][i] = \"honey\"
+# write back
+table.write_back(docs)
+```
+
+Or ~replace~ write_back with new documents
+```python
+db.purge()
+
+table = db.table('yumyum')
+table.insert_multiple(dataset)
+
+docs = table.all()
+# save doc_ids
+doc_ids = [doc.doc_id for doc in docs]
+# modify docs
+for i, doc in enumerate(docs):
+    if len(doc[\"stock\"]) == 1:
+        docs[i] = {\"best\": doc[\"stock\"][0]}
+    elif len(doc[\"stock\"]) > 1:
+        docs[i] = {\"good\": doc[\"stock\"]}
+
+table.write_back(docs, doc_ids)
+```
+
+Could be a convenient feature :)
+
+"""

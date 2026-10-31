@@ -1,0 +1,35 @@
+base = { repo = "tenacity", commit = "33cd0e1d4ac529f2f7853eba66b8127232f1ec63" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "fix: Restore contents of retry attribute for wrapped functions"
+pr = "https://github.com/jd/tenacity/pull/484"
+from = "33cd0e1d4ac529f2f7853eba66b8127232f1ec63"
+to = "31fe2d0cf2505bffd0cf1ffda8c7e30450ce709f"
+body = """
+Fixes #482 
+
+After https://github.com/jd/tenacity/pull/479 we changed the contents of the `retry` attribute for retry wrapped functions. However, it is useful that this attribute contains the reference to the retry object as it allows to modify its behaviour on-the-fly. Simply restoring the previous behaviour not possible, as they assume the contents of the `retry` attribute can be read, but recursive calls may end up overwriting the same context and make this invalid (see the discussion in #482). These changes restore the `retry` attribute, and update both tests and docs to make clear this is a write-only attribute and statistics should be read from the separate `statistics` attribute in the wrapped function.
+"""
+
+[b]
+title = "Respects `min` argument for `wait_random_exponential`"
+pr = "https://github.com/jd/tenacity/pull/425"
+from = "31fe2d0cf2505bffd0cf1ffda8c7e30450ce709f"
+to = "a662bbb487cd6d34541824589f8e8c7a1f7791bb"
+body = """
+# Summary
+
+Respects `min` argument for `wait_random_exponential`
+- currently, `min` argument only affects computing the `high` range of the uniform sampling
+- `min` does not affect the `low` range of the uniform sampling, hence the sampled wait may be lower than `min` specified
+- This PR fixes the issue, which I believe is unexpected
+
+# Tests
+```
+pytest tests/test_tenacity.py::TestWaitConditions::test_wait_random_exponential
+```
+"""

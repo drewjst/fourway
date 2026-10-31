@@ -1,0 +1,39 @@
+base = { repo = "tenacity", commit = "42b70f90790e1a3203e3dc61ad2648579c3709db" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = ["a", "b"]
+
+[a]
+title = "fix: restore plain function composition with retry_base via | and &"
+pr = "https://github.com/jd/tenacity/pull/606"
+from = "42b70f90790e1a3203e3dc61ad2648579c3709db"
+to = "a02b51a20fbda8fcc9051b10bad4a728882a631c"
+body = """
+The delegation to __ror__/__rand__ introduced for async retry support
+broke composing retry_base instances with plain callables. Add an
+isinstance guard so delegation only happens for retry_base subclasses,
+while plain callables fall through to direct retry_all/retry_any wrapping.
+
+Also widen type annotations on retry_any/retry_all and the operator
+methods to accept RetryBaseT (the union of retry_base and plain
+callables), matching the runtime behavior.
+
+Fixes #481
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+"""
+
+[b]
+title = "feat: add async context manager support to AttemptManager"
+pr = "https://github.com/jd/tenacity/pull/605"
+from = "a02b51a20fbda8fcc9051b10bad4a728882a631c"
+to = "124e3a67c7a9b68f46df39d2a7b1a5e8d15270c1"
+body = """
+AttemptManager now supports `async with` in addition to `with`,
+allowing cleaner usage inside `async for` loops.
+
+Closes #469
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+"""

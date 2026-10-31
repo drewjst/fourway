@@ -2,5 +2,7 @@ url = "https://github.com/jd/tenacity"
 commit = "32ac68f0941319c0d2f4fb927f96e4ee29bb46c6"
 license = "Apache-2.0"
 tests = "tests"
-# test_tornado.py needs tornado, which fourway does not install.
-pytest_args = ["--ignore=tests/test_tornado.py"]
+# test_tornado.py needs tornado, which fourway does not install. A glob, because
+# older commits keep the suite in tenacity/tests.
+pytest_args = ["--ignore-glob=*/test_tornado.py"]
+packages = ["tenacity/"]
