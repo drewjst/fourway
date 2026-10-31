@@ -1,6 +1,6 @@
 # HANDOFF — fourway
 State:    review — run 4 done on corpus v5 in the sandbox (results/2026-10-31-claude-opus-5-5-run4/): recall 6/6; false positives 3/82 as recorded, 2/81 after adjudication (95% CI 1% to 9%); $36.97, $0.42 per pair; it found a real conflict that tenacity's history missed (tenacity-351-x-342)
-Next:     owner reviews the two adjudications that move the score (tenacity-351-x-342: conflict the history missed; tomlkit-565-x-567: counted, B's own bug) and decides whether corpus v6 relabels tenacity-351-x-342; the 5% bar needs about 142 verified clean pairs at 2 false positives
+Next:     owner reviews the two adjudications that move the score (tenacity-351-x-342: conflict the history missed; tomlkit-565-x-567: counted, B's own bug) and decides whether corpus v6 relabels tenacity-351-x-342 (#12); the 5% bar needs about 142 verified clean pairs at 2 false positives
 Blockers: owner review of run 4's adjudications; #6; #3 review
 Decisions this session:
 - Phase 0 is a benchmark only — no recall number exists to put behind an integration — rejected: GitHub App first (docs/decisions/0001)
@@ -49,4 +49,4 @@ Decisions this session:
 - tenacity-351-x-342 is reported as a conflict the history missed, not a false positive — every wait strategy accepts a timedelta max on the shipped merge except A's new wait_exponential_jitter; tenacity added it in #628, 2026-03-11 — rejected: counting it (the label is wrong, by the rules set before the run). Relabeling is the owner's call
 - pluggy is out as a mining source — its tree would shadow the pluggy that pytest itself imports — rejected: pinning it anyway
 - The `--corpus` default resolves to the checkout, so `uv run --project ~/Projects/fourway fourway ...` works from any directory — the first paid run failed from ~/Projects — rejected: documenting "cd first"
-Pointers: main · github.com/drewjst/fourway (public) · issues #1–#6 and #9 hold deferred work · `uv run pytest -q` (87 tests, about 100 s; the first run fetches three upstream repos) · `fourway mine` + `check-corpus --prune-mined` (corpus/README.md, Mined pairs) · src/fourway/claude.py · `fourway bench --generator claude|oracle|null|deranged` · corpus/README.md · docs/decisions/
+Pointers: main · github.com/drewjst/fourway (public) · open issues #1, #3–#6, and #12 hold deferred work (#2 and #9 are done) · `uv run pytest -q` (87 tests, about 100 s; the first run fetches three upstream repos) · `fourway mine` + `check-corpus --prune-mined` (corpus/README.md, Mined pairs) · src/fourway/claude.py · `fourway bench --generator claude|oracle|null|deranged` · corpus/README.md · docs/decisions/
