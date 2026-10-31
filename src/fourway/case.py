@@ -21,7 +21,7 @@ from . import classify, gitops
 
 LABELS = ("conflict", "clean")
 
-_IGNORE = shutil.ignore_patterns("__pycache__", "*.pyc", ".pytest_cache")
+_IGNORE = shutil.ignore_patterns("__pycache__", "*.pyc", ".pytest_cache", ".DS_Store")
 
 
 @dataclass(frozen=True)

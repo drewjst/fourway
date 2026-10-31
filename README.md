@@ -88,6 +88,14 @@ generated scenario and its four outcomes:
 uv run fourway bench --generator claude --repeat 3 --out runs/claude
 ```
 
+Rescore the scenarios that an earlier run saved, without calling the API. A
+change to the runner or the classifier then shows its effect on the same
+generated files:
+
+```bash
+uv run fourway bench --generator replay --from results/2026-10-30-claude-opus-5-5-run2 --repeat 3
+```
+
 Run your own scenario tests four ways on two branches of a repository:
 
 ```bash

@@ -63,6 +63,10 @@ def run_pytest(tree: Path, target: str, report: Path, timeout: float) -> RunRepo
         "-p", "no:cacheprovider",
         "-p", "fourway.pytest_plugin",
         "--import-mode=importlib",
+        # By default one file that fails to import stops the session, and every
+        # other scenario reads as "missing" on that tree. A scenario that imports
+        # a module only one side adds does exactly that on the other trees.
+        "--continue-on-collection-errors",
     ]
     try:
         subprocess.run(cmd, cwd=tree, env=env, capture_output=True, timeout=timeout)

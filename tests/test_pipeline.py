@@ -54,6 +54,21 @@ def test_a_scenario_that_cannot_import_anywhere_is_unverified(tmp_path):
     assert result.verdict == "unverified"
 
 
+def test_a_scenario_file_that_cannot_import_does_not_stop_the_others(tmp_path):
+    """pytest stops the whole session on one collection error. In run 2, a scenario that imported
+    B's new module did that on base, so a regression in A read as a lost B behavior: a false conflict."""
+    repo, base, a, b = make_pair(tmp_path, FLAGS, A_ON, {**B_ON, "fb_new.py": "X = 1\n"})
+    scenarios = {
+        "test_a_breaks.py": "import fa\n\ndef test_flag_a_is_off():\n    assert not fa.ON\n",
+        "test_b_module.py": "import fb_new\n\ndef test_b_module():\n    assert fb_new.X == 1\n",
+    }
+    result = pipeline.verify(repo, base, a, b, scenarios, tmp_path / "run")
+    [regressed] = [t for t in result.outcomes if "test_a_breaks" in t]
+    assert result.outcomes[regressed] == {"base": "passed", "a": "failed", "b": "passed", "ab": "failed"}
+    assert result.findings[regressed] == "regression_a"
+    assert result.verdict == "regression"
+
+
 def test_a_hang_only_on_the_merge_is_an_emergent_conflict(tmp_path):
     repo, base, a, b = make_pair(tmp_path, FLAGS, A_ON, B_ON)
     scenario = (

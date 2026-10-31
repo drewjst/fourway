@@ -10,7 +10,7 @@ from pathlib import Path
 from . import bench, gitops, ledger, pipeline
 from .case import load_corpus
 from .classify import CONFLICTS, REGRESSIONS
-from .generators import BLIND, CONTROLS
+from .generators import BLIND, CONTROLS, Replay
 
 # The corpus ships with the repository, not the package; find it from a checkout.
 _REPO_CORPUS = Path(__file__).resolve().parents[2] / "corpus"
@@ -34,6 +34,11 @@ def _bench(args: argparse.Namespace) -> int:
     if options and args.generator != "claude":
         print("--model and --effort apply only to --generator claude", file=sys.stderr)
         return 2
+    if (args.replay_from is None) == (args.generator == Replay.name):
+        print("--from is required with --generator replay and applies only to it", file=sys.stderr)
+        return 2
+    if args.replay_from:
+        options = {"root": args.replay_from}
     results = bench.run(
         cases, args.generator, repeat=args.repeat, timeout=args.timeout,
         ledger_path=args.ledger, options=options,
@@ -90,12 +95,14 @@ def main(argv: list[str] | None = None) -> int:
     check.set_defaults(func=_check_corpus)
 
     run = sub.add_parser("bench", help="score a generator on the benchmark corpus")
-    run.add_argument("--generator", required=True, choices=sorted({*BLIND, *CONTROLS}))
+    run.add_argument("--generator", required=True, choices=sorted({*BLIND, *CONTROLS, Replay.name}))
     run.add_argument("--corpus", type=Path, default=DEFAULT_CORPUS)
     run.add_argument("--out", type=Path, help="save each case's scenarios and outcomes under this directory")
     run.add_argument("--model", help="Claude model id (generator claude only; default claude-opus-5-5)")
     run.add_argument("--effort", choices=["low", "medium", "high", "xhigh", "max"],
                      help="Claude effort level (generator claude only; default high)")
+    run.add_argument("--from", dest="replay_from", type=Path,
+                     help="--out directory of an earlier run (generator replay only)")
     common(run)
     run.set_defaults(func=_bench)
 

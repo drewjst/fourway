@@ -12,7 +12,7 @@ from pathlib import Path
 
 from . import gitops, ledger, pipeline, runner
 from .case import Case, materialize
-from .generators import BLIND, CONTROLS, PairContext, Scenarios, read_oracle
+from .generators import BLIND, CONTROLS, PairContext, Replay, Scenarios, read_oracle
 
 
 @dataclass(frozen=True)
@@ -87,12 +87,21 @@ def run(
     ledger_path: Path | None = None,
     options: dict | None = None,
 ) -> list[CaseResult]:
-    """Run ``generator`` on every case. ``options`` go to a blind generator's constructor."""
+    """Run ``generator`` on every case.
+
+    ``options`` go to a blind generator's constructor. For ``replay``, they hold
+    ``root``, the ``--out`` directory of the run to replay.
+    """
     if generator in CONTROLS:
         control = CONTROLS[generator](cases)
 
         def source(case: Case, ctx: PairContext) -> Scenarios:
             return control.for_case(case)
+    elif generator == Replay.name:
+        replay = Replay(Path((options or {})["root"]))
+
+        def source(case: Case, ctx: PairContext) -> Scenarios:
+            return replay.for_case(case)
     elif generator in BLIND:
         blind = BLIND[generator](**(options or {}))
 

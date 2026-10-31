@@ -1,6 +1,7 @@
 """The benchmark itself must be able to come out wrong, or its numbers are not evidence."""
 
 import dataclasses
+import shutil
 from pathlib import Path
 
 import pytest
@@ -74,6 +75,19 @@ def test_the_right_scenario_on_the_wrong_pair_detects_less(scores):
     """If a deranged oracle scored like the real one, recall would measure the corpus, not the generator."""
     assert scores["deranged"].detected < scores["oracle"].detected
     assert scores["deranged"].false_positives == 0
+
+
+def test_replay_reproduces_the_run_it_reads(cases, tmp_path):
+    """A rescore after a runner fix credits the fix only if replaying unchanged files gives the original score."""
+    original = bench.run(cases, "oracle")
+    bench.save(original, bench.summarize("oracle", original), tmp_path)
+    replayed = bench.run(cases, "replay", options={"root": tmp_path})
+    assert [r.scenarios.files for r in replayed] == [r.scenarios.files for r in original]
+    assert [r.verdict for r in replayed] == [r.verdict for r in original]
+
+    shutil.rmtree(tmp_path / cases[0].id)
+    [gone] = bench.run(cases[:1], "replay", options={"root": tmp_path})
+    assert gone.verdict == "unverified" and "error" in gone.scenarios.notes
 
 
 def test_blind_generators_never_see_the_answer(cases, monkeypatch):
