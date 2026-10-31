@@ -103,7 +103,8 @@ so before the next run; this run is scored as described here.
 
 The bug is still in `tomlkit` at `d7def7d` (2026-10-29): `parse` accepts
 `[[a.b.c]]\nx = 1\n[a]\ny = 1\n`, and after the array's only entry is
-removed, `as_string()` returns text that `parse` rejects with `ParseError`.
+removed, `as_string()` returns text that `parse` rejects with `ParseError`. It's reported
+upstream as [python-poetry/tomlkit#690](https://github.com/python-poetry/tomlkit/issues/690).
 
 ## Why these numbers flatter the generator
 
