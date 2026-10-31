@@ -7,6 +7,7 @@ import math
 import tempfile
 import time
 from collections import Counter
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -124,11 +125,14 @@ def run(
     ledger_path: Path | None = None,
     options: dict | None = None,
     sandbox: Sandbox | None = None,
+    on_result: Callable[[CaseResult], None] | None = None,
 ) -> list[CaseResult]:
     """Run ``generator`` on every case.
 
     ``options`` go to a blind generator's constructor. For ``replay``, they hold
-    ``root``, the ``--out`` directory of the run to replay.
+    ``root``, the ``--out`` directory of the run to replay. ``on_result`` sees
+    each case as it finishes, so a paid run that stops partway keeps what it
+    bought.
 
     Model-written scenarios run on a mined pair only in ``sandbox``: its diffs
     and descriptions are third-party input, and decision 0002 keeps scenarios
@@ -187,6 +191,8 @@ def run(
             seconds=time.monotonic() - started,
             record=rec,
         ))
+        if on_result:
+            on_result(results[-1])
     return results
 
 
@@ -279,21 +285,26 @@ def format_report(summary: Summary, results: list[CaseResult]) -> str:
     return "\n".join(lines)
 
 
+def save_case(r: CaseResult, out: Path) -> None:
+    """Write one case's scenarios and outcomes under ``out`` so misses can be read, not guessed at."""
+    case_dir = out / r.case.id
+    (case_dir / "scenarios").mkdir(parents=True, exist_ok=True)
+    for name, source in r.scenarios.files.items():
+        (case_dir / "scenarios" / name).write_text(source)
+    (case_dir / "result.json").write_text(json.dumps({
+        "label": r.case.label,
+        "expect": r.case.expect,
+        "verdict": r.verdict,
+        "notes": r.scenarios.notes,
+        "evidence": r.record,
+    }, indent=2, default=str) + "\n")
+
+
 def save(results: list[CaseResult], summary: Summary, out: Path) -> None:
-    """Write each case's scenarios and outcomes under ``out`` so misses can be read, not guessed at."""
+    """Write every case under ``out``, then the summary."""
     out.mkdir(parents=True, exist_ok=True)
     for r in results:
-        case_dir = out / r.case.id
-        (case_dir / "scenarios").mkdir(parents=True, exist_ok=True)
-        for name, source in r.scenarios.files.items():
-            (case_dir / "scenarios" / name).write_text(source)
-        (case_dir / "result.json").write_text(json.dumps({
-            "label": r.case.label,
-            "expect": r.case.expect,
-            "verdict": r.verdict,
-            "notes": r.scenarios.notes,
-            "evidence": r.record,
-        }, indent=2, default=str) + "\n")
+        save_case(r, out)
     (out / "summary.json").write_text(json.dumps({
         "summary": asdict(summary),
         "cases": [

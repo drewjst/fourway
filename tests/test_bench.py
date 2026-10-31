@@ -187,3 +187,15 @@ def test_false_positives_split_the_ways_the_corpus_fixed_in_advance(cases):
         ("mined, no side AI-credited", 0, 0),
     ]
     assert bench.false_positive_breakdown([result(clean, "conflict")]) == []
+
+
+def test_a_run_saves_each_case_as_it_finishes(cases, tmp_path):
+    """A paid run that stops partway must keep the scenarios it already bought."""
+    seen = []
+
+    def save_and_note(result):
+        bench.save_case(result, tmp_path)
+        seen.append(sorted(p.name for p in tmp_path.iterdir()))
+
+    bench.run(cases[:2], "oracle", on_result=save_and_note)
+    assert seen == [[cases[0].id], sorted([cases[0].id, cases[1].id])]

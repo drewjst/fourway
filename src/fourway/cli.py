@@ -82,6 +82,7 @@ def _bench(args: argparse.Namespace) -> int:
     results = bench.run(
         cases, args.generator, repeat=args.repeat, timeout=args.timeout,
         ledger_path=args.ledger, options=options, sandbox=sandbox,
+        on_result=(lambda r: bench.save_case(r, args.out)) if args.out else None,
     )
     summary = bench.summarize(args.generator, results)
     print(bench.format_report(summary, results))
