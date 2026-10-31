@@ -520,7 +520,7 @@ main [id] { scroll-margin-top: 80px; }
         <div class="fleet-scroll">
           <svg id="fleet" viewBox="0 0 1100 400" role="img" aria-label="Six agent lanes with twelve changes in flight toward main. Nine pairs that share code are connected, and three of those pairs are flagged as conflicts."></svg>
         </div>
-        <figcaption>Simulated view of the planned merge layer. The three red pairs are the benchmark's real conflicts, and the other changes are illustrative.</figcaption>
+        <figcaption>Simulated view of the planned merge layer. The three red pairs are conflicts from the benchmark, and the other changes are illustrative.</figcaption>
       </figure>
       <div class="mc-points">
         <div><strong>Check the pairs that matter</strong><span>Only changes that share code or rules get paired, so cost follows risk instead of the square of your changes.</span></div>
@@ -691,7 +691,7 @@ def test_lost_response_never_captures_twice():
             <span class="bar-label" style="left: 50%">Bar: 50% or more</span>
             <span class="end end-l">0%</span><span class="end end-r">100%</span>
           </div>
-          <div class="verdict"><span class="tag tag-next">Above the bar</span><p>The 95% interval, 61% to 100%, is above the bar. Claude wrote both the cases and the tests, so they might share blind spots.</p></div>
+          <div class="verdict"><span class="tag tag-next">Above the bar</span><p>The 95% interval, 61% to 100%, is above the bar. Claude wrote both the cases and the tests, so they might share blind spots, and the three conflicts in real repositories follow one shape. Six cases can't separate 61% recall from 100%.</p></div>
         </li>
         <li class="measure">
           <span class="name">False alarms</span>
@@ -704,7 +704,7 @@ def test_lost_response_never_captures_twice():
             <span class="bar-label bar-start" style="left: 0">Bar: under 5%</span>
             <span class="end end-l">0%</span><span class="end end-r">100%</span>
           </div>
-          <div class="verdict"><span class="tag tag-exploring">Not proven yet</span><p>The flagged pair has a real bug in one change alone. A test that also used the other change's new code made it read as a conflict, and the rules count that as fourway's error. Proving under 5% takes at least 73 clean pairs with none flagged.</p></div>
+          <div class="verdict"><span class="tag tag-exploring">Not proven yet</span><p>The flagged pair has a real bug in one change alone. A test that also used the other change's new code made it read as a conflict, and the benchmark's rules count that against the generator. Proving under 5% takes at least 73 clean pairs with none flagged.</p></div>
         </li>
         <li class="measure">
           <span class="name">Model cost</span>
@@ -719,7 +719,7 @@ def test_lost_response_never_captures_twice():
           <div class="verdict"><span class="tag tag-built">Clears the bar</span><p>$2.82 in total for twelve pairs, with one model call per pair. Pairs in real repositories averaged $0.39, and none cost more than $0.50.</p></div>
         </li>
       </ul>
-      <p class="bench-foot"><a href="https://github.com/drewjst/fourway/tree/main/results/2026-10-30-claude-opus-5-5-run3">Run 3</a>, Claude Opus 5.5, 2026-10-30, on twelve cases: six conflicts and six clean pairs, half of each seeded into real open-source repositories. Published test-generation research found about a third of semantic conflicts (SAM detected 9 of 29).</p>
+      <p class="bench-foot"><a href="https://github.com/drewjst/fourway/tree/main/results/2026-10-30-claude-opus-5-5-run3">Run 3</a>, Claude Opus 5.5, 2026-10-30, on twelve cases: six conflicts and six clean pairs, half of each seeded into real open-source repositories. Corpus v4 adds 24 clean pairs mined from real pull requests, and no generator has run on v4 yet. Published test-generation research found about a third of semantic conflicts (SAM detected 9 of 29).</p>
     </div>
   </section>
 
