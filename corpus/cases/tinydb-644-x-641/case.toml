@@ -1,0 +1,52 @@
+base = { repo = "tinydb", commit = "717616bc3a74baa4da4dd75092b6039d427f4f16" }
+label = "clean"
+class = "mined, same file"
+runtime = ["b"]
+assisted = []
+
+[a]
+title = "docs: align docs and type hints with runtime behavior"
+pr = "https://github.com/msiemens/tinydb/pull/644"
+from = "717616bc3a74baa4da4dd75092b6039d427f4f16"
+to = "efe9da1155691cf58eb89e62db6c6f92cc32f2f8"
+body = """
+## Summary
+
+Aligns documentation and type annotations with actual runtime behavior, as listed in #630. No intentional behavior changes.
+
+| Item | Change |
+|------|--------|
+| `Query.test` | `Callable[..., bool]`; docstring says field value |
+| `operations.add` | `n: Union[int, float, str]` |
+| `usage.rst` | Fix broken `update_multiple` braces; `get` is first match, not random |
+| Package docstring | Remove invented `_id` field |
+| `Table.get` docstring | `doc_ids` → list (possibly empty); single get → doc or `None` |
+| `Query.search` | Flags documented as `re.search` |
+
+Fixes #630
+
+## Test plan
+
+- [x] `uv run py.test tests/test_queries.py tests/test_operations.py tests/test_tinydb.py -q --mypy` (165 passed)
+"""
+
+[b]
+title = "fix: do not treat str/bytes as sequences in Query.any/all"
+pr = "https://github.com/msiemens/tinydb/pull/641"
+from = "9c861c410f1069b51a4da8e49aa969230c47d306"
+to = "6d7c4fc3e04d398b1282876514660a33a7897b41"
+body = """
+## Summary
+
+`Query.any` / `Query.all` used `hasattr(obj, '__iter__')` for sequence checks, so string fields were treated as character sequences and could false-match (e.g. `name.any(['a', 'b'])` on `'abc'`).
+
+Per discussion on #638, option (1): treat real sequences only and exclude `str` / `bytes` (also `bytearray`).
+
+Fixes #638
+
+## Test plan
+
+- [x] `uv run py.test tests/test_queries.py -q --mypy`
+- [x] Existing list-based `any`/`all` tests still pass
+- [x] New assertions: string fields do not match `any`/`all` as char lists
+"""

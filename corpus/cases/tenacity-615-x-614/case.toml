@@ -1,0 +1,38 @@
+base = { repo = "tenacity", commit = "0a3ca8a208a9365f2cae45b83c7673e606d1b563" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = ["a", "b"]
+
+[a]
+title = "fix: make Retrying and retry strategies picklable for multiprocessing"
+pr = "https://github.com/jd/tenacity/pull/615"
+from = "0a3ca8a208a9365f2cae45b83c7673e606d1b563"
+to = "cb320c4d80d8af7e8953dbf40224172a06b9b977"
+body = """
+Add __getstate__/__setstate__ to BaseRetrying to exclude the unpicklable
+threading.local object during serialization. Replace lambdas in retry
+strategy classes with bound methods so they can be pickled with standard
+pickle.
+
+Fixes #147
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+"""
+
+[b]
+title = "fix: sync func.retry.statistics with copy's statistics"
+pr = "https://github.com/jd/tenacity/pull/614"
+from = "cb320c4d80d8af7e8953dbf40224172a06b9b977"
+to = "4c1b7bc7817f967538ed33a7fe114cece26364a5"
+body = """
+Fixes #613
+
+func.retry.statistics was always empty because func.retry points to
+the original Retrying object, but begin() (which populates statistics)
+is only called on the per-invocation copy. Fix by pointing the
+original's _local.statistics to the copy's statistics dict so they
+share the same object.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+"""

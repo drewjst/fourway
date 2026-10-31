@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": "regression_a",
+  "verdict": "conflict",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 4601,
+    "output_tokens": 2850,
+    "scenarios": {
+      "test_paid_yen_events.py": {
+        "kind": "invariant",
+        "rationale": "A paid order must always emit charge.succeeded so that receipts and revenue see it. Change A skips the event when amount_cents < 100, which assumes the amount is in cents. Change B makes it explicit that JPY has no minor unit, so 80 in minor units is 80 yen, a real paid charge. These tests pass on base and on B. They fail once A's cents-based threshold meets zero-decimal currencies, which is the case on the merge."
+      },
+      "test_free_orders_any_currency.py": {
+        "kind": "intent_a",
+        "rationale": "Change A's goal is that free orders, including zero-decimal currencies like JPY, still capture but publish no success event and add no revenue."
+      },
+      "test_formatted_yen_revenue.py": {
+        "kind": "intent_b",
+        "rationale": "Change B formats minor-unit amounts per currency, so 80 JPY shows as '80 JPY'. The amounts that reach format_amount through charge events must reflect the paid yen charge. On the merge, A drops the event for 80 yen, so the formatted revenue becomes '0 JPY'."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:7732e9ce0b5a6ee143cc52da736d2ac324e1d9c2fea50b4d7fcd6518b4015795",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "f990b471c314a758fffb0e84e40647fba241cf98",
+      "a": "f969925ead1d01c9c2c05383233b8830a6d3bfd1",
+      "b": "eee152c7954f96f92a29f2e859165130742ef990",
+      "ab": "9a4a0899ee0f738adfb43e59c58518e99dd20c4e",
+      "env": "sha256:08438a02fa79787cb15897d80abd9a1c07ca3957887ed6baaca4cb7a291b08e3",
+      "scenarios": "sha256:7e840808d8def8705e7c9dd501cd7b5922c5166d646e5332ce4e88d8b9e7e8e1"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_formatted_yen_revenue.py::test_formatted_yen_revenue_from_events": {
+        "base": "error",
+        "a": "error",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "differential_b"
+      },
+      "fourway_scenarios/test_formatted_yen_revenue.py::test_receipt_amount_formats_from_event_payload": {
+        "base": "error",
+        "a": "error",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "differential_b"
+      },
+      "fourway_scenarios/test_free_orders_any_currency.py::test_free_usd_order_not_counted_as_revenue": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_free_orders_any_currency.py::test_free_yen_order_publishes_no_event": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_paid_yen_events.py::test_paid_yen_order_publishes_success_event": {
+        "base": "passed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "regression_a"
+      },
+      "fourway_scenarios/test_paid_yen_events.py::test_revenue_counts_paid_yen_charge": {
+        "base": "passed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "regression_a"
+      }
+    },
+    "verdict": "conflict",
+    "recorded_at": "2026-10-31T04:12:38.135630+00:00"
+  }
+}

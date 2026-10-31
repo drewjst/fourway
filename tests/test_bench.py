@@ -2,6 +2,8 @@
 
 import dataclasses
 import shutil
+import tomllib
+from collections import Counter
 from pathlib import Path
 
 import pytest
@@ -12,9 +14,14 @@ from fourway.case import load_corpus
 CORPUS = Path(__file__).parents[1] / "corpus"
 
 
+def seeded() -> list:
+    """The seeded cases. Mined pairs run their upstream suites in `fourway check-corpus`, which CI runs."""
+    return [c for c in load_corpus(CORPUS) if not c.mined]
+
+
 @pytest.fixture(scope="module")
 def cases():
-    return load_corpus(CORPUS)
+    return seeded()
 
 
 @pytest.fixture(scope="module")
@@ -27,7 +34,7 @@ def test_corpus_has_conflicts_and_clean_controls(cases):
     assert labels.count("conflict") >= 3 and labels.count("clean") >= 3
 
 
-@pytest.mark.parametrize("case_id", [c.id for c in load_corpus(CORPUS)])
+@pytest.mark.parametrize("case_id", [c.id for c in seeded()])
 def test_every_case_matches_its_answer_key(cases, case_id):
     """A case whose oracle disagrees with its label would score every generator against a wrong answer."""
     [case] = [c for c in cases if c.id == case_id]
@@ -68,9 +75,11 @@ def test_oracle_finds_every_conflict_and_flags_no_clean_pair(scores):
 
 
 def test_no_scenarios_leaves_every_pair_unverified(scores):
+    """Writing nothing must not read as zero false positives: the rate's denominator is verified pairs only."""
     null = scores["null"]
     assert null.detected == 0 and null.false_positives == 0
     assert null.unverified == null.total
+    assert null.cleans_verified == 0
 
 
 def test_the_right_scenario_on_the_wrong_pair_detects_less(scores):
@@ -121,3 +130,58 @@ def test_blind_generators_never_see_the_answer(cases, monkeypatch):
             assert oracle_source not in visible
         assert case.id not in visible
         assert not any(name.startswith(("oracle", "case.toml")) for name in files)
+
+
+def test_no_pull_request_appears_in_two_mined_pairs():
+    """The false-positive interval treats pairs as independent; a shared change would count one trial twice."""
+    mined = [c for c in load_corpus(CORPUS) if c.mined]
+    urls = Counter(tomllib.loads((c.path / "case.toml").read_text())[s]["pr"] for c in mined for s in ("a", "b"))
+    assert [url for url, n in urls.items() if n > 1] == []
+    for case in mined:
+        assert case.label == "clean" and case.expect is None
+        assert case.a.commits[0] == case.base.commit
+
+
+def test_model_scenarios_never_run_on_a_mined_pair(cases, monkeypatch, tmp_path):
+    """Decision 0002: a mined pair's diffs are third-party input, so its scenarios wait for the sandbox."""
+    called = []
+
+    class Recorder:
+        name = "recorder"
+
+        def generate(self, ctx):
+            called.append(ctx)
+            return generators.Scenarios({})
+
+    monkeypatch.setitem(generators.BLIND, "recorder", Recorder)
+    mined = dataclasses.replace(
+        cases[0], id="mined", a=dataclasses.replace(cases[0].a, commits=("0" * 40, "1" * 40))
+    )
+    with pytest.raises(ValueError, match="decision 0002"):
+        bench.run([cases[0], mined], "recorder")
+    with pytest.raises(ValueError, match="decision 0002"):
+        bench.run([mined], "replay", options={"root": tmp_path})
+    assert called == []
+
+
+def test_false_positives_split_the_ways_the_corpus_fixed_in_advance(cases):
+    """A headline rate over easy pairs flatters; each split counts exactly the verified pairs its tags name."""
+    clean = next(c for c in cases if c.label == "clean")
+    mined = dataclasses.replace(
+        clean, id="mined", a=dataclasses.replace(clean.a, commits=("0" * 40, "1" * 40)),
+        conflict_class="mined, same file", runtime=("a",), assisted=("a", "b"),
+    )
+
+    def result(case, verdict):
+        return bench.CaseResult(case, generators.Scenarios({}), verdict, {}, 0.0, 0.0, {})
+
+    unverified = dataclasses.replace(mined, id="unverified", conflict_class="mined, other files")
+    results = [result(clean, "clean"), result(mined, "conflict"), result(unverified, "unverified")]
+    assert bench.false_positive_breakdown(results) == [
+        ("seeded twins", 0, 1),
+        ("mined, same file", 1, 1),
+        ("mined, other files", 0, 0),
+        ("mined, both sides change code", 0, 0),
+        ("mined, no side AI-credited", 0, 0),
+    ]
+    assert bench.false_positive_breakdown([result(clean, "conflict")]) == []

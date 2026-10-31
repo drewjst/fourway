@@ -1,0 +1,34 @@
+base = { repo = "tinydb", commit = "0c3927cc5ae81afeca21edd3d815892cf392143a" }
+label = "clean"
+class = "mined, other files"
+runtime = ["b"]
+assisted = []
+
+[a]
+title = "modify tinydb.operations.py doc annotation err"
+pr = "https://github.com/msiemens/tinydb/pull/337"
+from = "0c3927cc5ae81afeca21edd3d815892cf392143a"
+to = "640534b512d4a1edaa774cceae54e015dbd6eb58"
+body = """
+Hello,
+
+msiemens!
+I see test case file `tests/test_operations.py` and doc `docs/usage.rst`.
+The correct method to call is `db.update(delete('int'), where('char') == 'a')`.
+
+API doc [link](https://tinydb.readthedocs.io/en/stable/api.html#module-tinydb.operations) is error. I initially thought it was something like keyword `assert`.
+
+Thank you.
+"""
+
+[b]
+title = "Fix replace to OrderedDict.move_to_end()  (#338)"
+pr = "https://github.com/msiemens/tinydb/pull/340"
+from = "13d294ad9553d8360cc1bad86cee70a098ba4b93"
+to = "8c3cb2108d1b0d834e442b5bc9c0a0a096a0ae29"
+body = """
+https://github.com/msiemens/tinydb/issues/338
+
+About question three.
+
+"""

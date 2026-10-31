@@ -1,0 +1,88 @@
+{
+  "label": "conflict",
+  "expect": "differential_a",
+  "verdict": "conflict",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 4872,
+    "output_tokens": 2914,
+    "scenarios": {
+      "test_receipts_on_charge.py": {
+        "kind": "intent_a",
+        "rationale": "Change A promises one receipt per successful charge. These tests drive the real charge() publisher rather than publishing the event by hand. receipts.install subscribes to 'charge.succeeded', but change B makes charge() publish 'payment.captured'. On the merge no receipt is ever written, while revenue (whose subscriber B renamed) still counts."
+      },
+      "test_charge_event_consumers.py": {
+        "kind": "invariant",
+        "rationale": "Every consumer that installs itself for successful charges must actually receive the event that charge() publishes. On base and on B only analytics exists, and it is wired correctly. On A both analytics and receipts listen to the name that is published. On the merge, receipts listens to a name that charge() no longer publishes, so the event never reaches that consumer."
+      },
+      "test_payment_captured_event.py": {
+        "kind": "intent_b",
+        "rationale": "Change B renames the success event to 'payment.captured' and updates every subscriber. These tests check that charge() publishes only the new name and that analytics follows it, which is the contract any subscriber added by change A must also follow."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:66fe17e64b2bddfd4b77bc7726f7b93c2401dee0e635b203d05d09522061481c",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "f990b471c314a758fffb0e84e40647fba241cf98",
+      "a": "c99b8c346f651cae94209a459a704c08205619d4",
+      "b": "3012b6faf0dfff6f8b450adb8b42b38675564b00",
+      "ab": "2c019cc8d9faf03e077aaddaebcab1592684a299",
+      "env": "sha256:08438a02fa79787cb15897d80abd9a1c07ca3957887ed6baaca4cb7a291b08e3",
+      "scenarios": "sha256:f4cf7ef5abf6b74db8e8fdd90d498bf5d667de25aa6deeec6e85ac2a5088ccde"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_charge_event_consumers.py::test_every_installed_charge_consumer_receives_each_charge_once": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "emergent"
+      },
+      "fourway_scenarios/test_payment_captured_event.py::test_analytics_listens_to_payment_captured": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_payment_captured_event.py::test_charge_publishes_payment_captured_not_the_old_name": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_receipts_on_charge.py::test_charging_an_order_sends_exactly_one_receipt": {
+        "base": "error",
+        "a": "passed",
+        "b": "error",
+        "ab": "failed",
+        "finding": "differential_a"
+      },
+      "fourway_scenarios/test_receipts_on_charge.py::test_receipts_and_revenue_both_follow_real_charges": {
+        "base": "error",
+        "a": "passed",
+        "b": "error",
+        "ab": "failed",
+        "finding": "differential_a"
+      }
+    },
+    "verdict": "conflict",
+    "recorded_at": "2026-10-31T04:13:05.072938+00:00"
+  }
+}

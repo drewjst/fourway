@@ -1,0 +1,84 @@
+{
+  "label": "conflict",
+  "expect": "differential_a",
+  "verdict": "conflict",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 83723,
+    "output_tokens": 1851,
+    "scenarios": {
+      "test_mru_get_counts_as_use.py": {
+        "kind": "intent_a",
+        "rationale": "Change A adds MRUCache, which tracks use the same way LRUCache does: every read through __getitem__ marks the key as most recently used. On base+A, MRUCache inherits Cache.get, which reads through self[key], so get() counts as a use. Change B rewrites Cache.get to read the private data dict directly, bypassing __getitem__. B adds get() overrides only to the classes it knows about (LRUCache, LFUCache and the timed caches), not to the new MRUCache. In the merge, MRUCache.get() no longer records a use. Eviction and popitem then pick the wrong key."
+      },
+      "test_get_read_tracking_invariant.py": {
+        "kind": "invariant",
+        "rationale": "On every tree, get() on an LRUCache, and on a user subclass that records reads in __getitem__, must keep the read-tracking semantics that eviction relies on. This guards the shared get() path that both changes touch. It holds on base, A, B and the merge for LRUCache. The MRU-specific breakage is covered by the intent scenario."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:bb402eff26a4a20dec9f111a6a193e2141720bd072e9858b507a0edabc79947c",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "2ab68ed14f6f23ad1f0acdeffb0dd12723580114",
+      "a": "b180b491e508957dc1933be8a3b8d41e917f5688",
+      "b": "dfd3c936286987c39632223ef179e3f0c8215fee",
+      "ab": "3d03c7a18f6a43976ddd44b2d5b5e32c2d4639a4",
+      "env": "sha256:08438a02fa79787cb15897d80abd9a1c07ca3957887ed6baaca4cb7a291b08e3",
+      "scenarios": "sha256:0a74d9a867ed9fb76d99902444af75ef4c2e24cbee34ccd8075685330c4d3118"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_get_read_tracking_invariant.py::test_lfu_get_counts_as_use_and_default_on_miss": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_get_read_tracking_invariant.py::test_lru_get_counts_as_use": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_mru_get_counts_as_use.py::test_mru_get_affects_popitem_order": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "failed",
+        "finding": "differential_a"
+      },
+      "fourway_scenarios/test_mru_get_counts_as_use.py::test_mru_get_marks_key_most_recently_used_for_eviction": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "failed",
+        "finding": "differential_a"
+      },
+      "fourway_scenarios/test_mru_get_counts_as_use.py::test_mru_get_matches_getitem_semantics": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "failed",
+        "finding": "differential_a"
+      }
+    },
+    "verdict": "conflict",
+    "recorded_at": "2026-10-31T04:11:43.829927+00:00"
+  }
+}

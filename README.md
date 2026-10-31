@@ -59,6 +59,9 @@ The repository contains the following:
 - A seeded corpus of twelve pairs of changes with known answers: six in a
   small payments app and six in real repositories. For details, see
   [`corpus/README.md`](corpus/README.md).
+- Clean pairs mined from real pull requests: two pull requests that were open
+  at the same time and landed back to back. The mining rule is fixed in
+  `fourway mine` and stated in the corpus README.
 - Three control generators: `null`, `oracle`, and `deranged`.
 - A Claude-backed generator, `claude`, that writes intent and invariant
   scenarios from the base tree, both diffs, and both change descriptions. Each
@@ -88,12 +91,27 @@ Score a generator:
 uv run fourway bench --generator oracle
 ```
 
+Model-written scenarios don't run on mined pairs until the runner is
+sandboxed, so `bench` refuses them unless you pass `--seeded-only`. The
+controls run on the whole corpus.
+
+Mine clean pairs from a pinned repository's history, then check them. The
+corpus README lists the commands that fetch the inputs:
+
+```bash
+uv run fourway mine NAME --clone NAME.git --prs NAME.prs.jsonl --cutoff 2026-10-31
+```
+
+```bash
+uv run fourway check-corpus --prune-mined
+```
+
 Score the Claude generator. This calls the Claude API once per case and needs
 `ANTHROPIC_API_KEY` in the environment. The `--out` directory keeps every
 generated scenario and its four outcomes:
 
 ```bash
-uv run fourway bench --generator claude --repeat 3 --out runs/claude
+uv run fourway bench --generator claude --seeded-only --repeat 3 --out runs/claude
 ```
 
 Rescore the scenarios that an earlier run saved, without calling the API. A

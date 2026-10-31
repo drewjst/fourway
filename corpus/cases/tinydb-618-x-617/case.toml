@@ -1,0 +1,94 @@
+base = { repo = "tinydb", commit = "e70f9b1d91b6145b5083042eebe266ef0e4ccd27" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a"]
+assisted = []
+
+[a]
+title = "fix: freeze unhashable args in Query.test to prevent TypeError"
+pr = "https://github.com/msiemens/tinydb/pull/618"
+from = "e70f9b1d91b6145b5083042eebe266ef0e4ccd27"
+to = "770486ff8217eb50c8fecb6ce9f54c140c8225c5"
+body = """
+## Problem
+
+Passing a `list` or `dict` as an extra argument to `Query().field.test()` raises
+`TypeError: unhashable type: 'list'` (or `'dict'`) the first time TinyDB tries
+to hash the resulting `QueryInstance` for the query cache.
+
+```python
+def in_set(val, allowed):
+    return val in allowed
+
+db.search(Query().x.test(in_set, [1, 2, 3]))  # TypeError: unhashable type: 'list'
+```
+
+Reported in https://github.com/msiemens/tinydb/discussions/514 (issue #517).
+
+## Root cause
+
+`Query.test` builds its cache key tuple as:
+
+```python
+('test', self._path, func, args)
+```
+
+`args` is a raw Python tuple that can contain unhashable objects (`list`,
+`dict`).  Every other query method that accepts caller-supplied values
+(`any`, `all`, `one_of`, `fragment`) already passes them through the
+existing `freeze()` helper before building the hash tuple.  `test` was
+the only method that did not.
+
+## Fix
+
+Apply `freeze()` to each element of `args` before composing the hash
+tuple, matching the pattern used by the sibling methods:
+
+```python
+('test', self._path, func, tuple(freeze(arg) for arg in args))
+```
+
+`freeze()` recursively converts `list` → `tuple`, `dict` → `FrozenDict`,
+and `set` → `frozenset`, so nested unhashable structures are handled too.
+The test function still receives the original (unfrozen) `args` at
+call-time; only the hash key is affected.
+
+## Tests
+
+Added `test_custom_with_unhashable_params` in `tests/test_queries.py`
+covering list args, dict args, same-args hash stability, and different-args
+hash distinctness.
+"""
+
+[b]
+title = "docs: document that search() results share structure with the query cache"
+pr = "https://github.com/msiemens/tinydb/pull/617"
+from = "9afda0c57ba652ebd511558facccac2a5afcbeed"
+to = "8d3f0c7c9c964c16d682de6bea1b49f0d2c6fbc7"
+body = """
+## Update — converted to a docs-only PR
+
+Per discussion below: a deep copy costs 150-4000x on the read hot path, and there's no fix that's both cheap and complete (a shallow top-level copy stops attribute reassignment but not nested mutation). Reverted the code change; the fix is now a docstring note on `Table.search()` plus a test that documents the actual sharing behavior (list is fresh, documents inside it are the cached objects).
+
+## Original problem (#516)
+
+`Table.search` stored and returned shallow copies of the document list, so a returned `Document` is the same object the cache holds. Mutating a key or a nested value in a returned document corrupts what a later identical search returns:
+
+```python
+from tinydb import TinyDB, Query
+from tinydb.storages import MemoryStorage
+
+db = TinyDB(storage=MemoryStorage)
+db.insert({'name': 'Alice', 'tags': ['a', 'b']})
+
+Q = Query()
+results = db.search(Q.name == 'Alice')
+results[0]['tags'].append('c')          # mutate the returned document
+
+print(db.search(Q.name == 'Alice'))     # prints [{'name': 'Alice', 'tags': ['a', 'b', 'c']}]
+```
+
+## Tests
+
+`test_query_cache_documents_are_shared_with_cache` documents the boundary: mutating the returned list is safe, mutating a document inside it is not. 219/219 pass.
+"""

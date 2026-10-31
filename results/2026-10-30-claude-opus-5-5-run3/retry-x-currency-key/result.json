@@ -1,0 +1,88 @@
+{
+  "label": "clean",
+  "expect": "ok",
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 5057,
+    "output_tokens": 3511,
+    "scenarios": {
+      "test_retry_with_currency_keys.py": {
+        "kind": "intent_a",
+        "rationale": "Change A retries gateway timeouts. Change B adds the currency to the idempotency key. Retries are only safe if every attempt reuses the same key. This test charges a non-USD order and injects a timeout after the gateway has already captured. charge() must still return a single capture, publish exactly one event, and send the same key on every attempt."
+      },
+      "test_requote_currency_with_timeouts.py": {
+        "kind": "intent_b",
+        "rationale": "Change B gives a re-quoted order in a new currency its own capture. Change A adds retries inside charge(). This test re-quotes an order in EUR and hits a lost-response timeout on that charge. Whether the retry happens inside charge() or in the caller, the final capture must be the new EUR capture, not the old USD one. Revenue must also count both charges exactly once."
+      },
+      "test_charge_at_most_once.py": {
+        "kind": "invariant",
+        "rationale": "Every tree must keep three properties. A charge attempt that hits a lost-response timeout produces at most one gateway capture per order and currency. The success event is published at most once. When an event is published, it carries the capture the gateway actually made. On the base, charge() raises on the timeout; on the trees with A, it retries. Both paths must keep these properties."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:ff6ab71db0a37d510165665e71e1777a7c2927204f27cfa2556d595c30b093c4",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "f990b471c314a758fffb0e84e40647fba241cf98",
+      "a": "687d63d4883b5aed7c756c4aef79f34b56f6d955",
+      "b": "4dd9e2c448bfeaa8b037f2c52dabe592d8615437",
+      "ab": "a4ed1cb6991899a57fe4acd5bd1d506b9766813a",
+      "env": "sha256:08438a02fa79787cb15897d80abd9a1c07ca3957887ed6baaca4cb7a291b08e3",
+      "scenarios": "sha256:70c0a1717a7126c5e767def1eb1625998637023d6e166f8c1fbe1c8444b21b7a"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_charge_at_most_once.py::test_lost_response_never_double_captures": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_charge_at_most_once.py::test_repeated_lost_responses_capture_once": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_requote_currency_with_timeouts.py::test_requoted_order_gets_own_capture_despite_timeout": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_retry_with_currency_keys.py::test_retry_after_lost_response_captures_once_for_eur_order": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_retry_with_currency_keys.py::test_retry_after_timeout_before_for_eur_order": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T04:13:37.803199+00:00"
+  }
+}

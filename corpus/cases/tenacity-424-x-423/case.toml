@@ -1,0 +1,105 @@
+base = { repo = "tenacity", commit = "b647dcd2ba60711174bf35ca6a2fd365c37af2b4" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "typing: update version compare to support pyright/pylance"
+pr = "https://github.com/jd/tenacity/pull/424"
+from = "b647dcd2ba60711174bf35ca6a2fd365c37af2b4"
+to = "ebee81d31db13e95b3679bf0eebf19342dffdb9f"
+body = """
+The current version comparison works with mypy but pyright doesn't handle it.
+
+Comparing against minor and major version allows it to work with pyright.
+
+related: https://github.com/microsoft/pyright/issues/6639
+"""
+
+[b]
+title = "Add ability to inspect upcoming sleep in `stop` funcs, and add `stop_before_delay`"
+pr = "https://github.com/jd/tenacity/pull/423"
+from = "ebee81d31db13e95b3679bf0eebf19342dffdb9f"
+to = "99e7482e8b027f0521315e0f7830a0badae5c561"
+body = """
+This seeks to solve a specific problem: if using a wait function like `wait_exponential` or `wait_random_exponential`, along with `stop_after_delay`, the overall time spent retrying is >= `max_delay`.
+
+However, in situations where you have a strict deadline and you can't block for longer than `max_delay`, it may be preferable to abort 1 retry attempt early so that you don't exceed that deadline.
+
+This PR seeks to achieve that behavior by implementing `stop_before_delay`, which stops retries if the next attempt would take place after the `max_delay` time has elapsed, thereby ensuring that `max_delay` is never surpassed.
+
+Examples of problem using exponential delays, and a 5 second deadline w/ `stop_after_delay`:
+
+```py
+In [5]: @retry(stop=stop_after_delay(5), wait=wait_exponential())
+   ...: def stop_after_w_e():
+   ...:     print(datetime.now())
+   ...:     raise Exception
+
+In [11]: stop_after_w_e()
+2023-11-08 23:18:12.259584
+2023-11-08 23:18:13.261515
+2023-11-08 23:18:15.262064
+2023-11-08 23:18:19.263860
+---------------------------------------------------------------------------
+Exception                                 Traceback (most recent call last)
+
+```
+
+Note how the execution timestamp is 7 seconds after the initial one, despite the 5 second `max_delay`.
+
+```py
+In [6]: @retry(stop=stop_after_delay(5), wait=wait_random_exponential())
+   ...: def stop_after_w_r_e():
+   ...:     print(datetime.now())
+   ...:     raise Exception
+   ...:
+
+In [12]: stop_after_w_r_e()
+2023-11-08 23:19:02.682304
+2023-11-08 23:19:02.991432
+2023-11-08 23:19:04.510066
+2023-11-08 23:19:07.398501
+2023-11-08 23:19:14.172982
+---------------------------------------------------------------------------
+Exception                                 Traceback (most recent call last)
+```
+Note the same thing w/ random exponential backoff. In this case the final attempt is made 11.49 seconds after the first one, despite a 5 second `max_delay`. That's over 2x the amount of time spent blocking on retries than our strict deadline allows! 
+
+This situation with random exponential backoff is the one that I'm interested in improving upon for my own use case (avoiding thundering herds during connection retries from many parallel clients). This extra time spent waiting after `max_delay` can be quite long with higher amounts exponential backoff. eg. a supposedly 30s `max_delay` that actually blocks for over 1 minute can cause some confusion.
+
+With `stop_before`, the `max_delay` is never exceeded:
+```py
+In [12]: @retry(stop=stop_before_delay(5), wait=wait_exponential())
+    ...: def stop_before_w_e():
+    ...:     print(datetime.now())
+    ...:     raise Exception
+
+In [13]: stop_before_w_e()
+2023-11-08 23:21:56.437116
+2023-11-08 23:21:57.439288
+2023-11-08 23:21:59.441351
+---------------------------------------------------------------------------
+Exception                                 Traceback (most recent call last)
+```
+
+Total elapsed time is < 5 seconds (3 seconds).
+
+```py
+In [14]: @retry(stop=stop_before_delay(5), wait=wait_random_exponential())
+    ...: def stop_before_w_r_e():
+    ...:     print(datetime.now())
+    ...:     raise Exception
+
+In [15]: stop_before_w_r_e()
+2023-11-08 23:23:13.550395
+2023-11-08 23:23:14.344831
+2023-11-08 23:23:15.533050
+2023-11-08 23:23:17.907447
+---------------------------------------------------------------------------
+Exception                                 Traceback (most recent call last)
+```
+
+Total elapsed time is < 5 seconds (4.35).
+"""

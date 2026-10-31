@@ -1,0 +1,81 @@
+{
+  "label": "conflict",
+  "expect": "emergent",
+  "verdict": "conflict",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 5190,
+    "output_tokens": 3963,
+    "scenarios": {
+      "test_timeout_retry_single_capture.py": {
+        "kind": "invariant",
+        "rationale": "A single charge() call must never capture an order more than once. On base and on B alone there is no retry, so a lost-response timeout leaves exactly one capture. On A alone the retry reuses the same key, so the gateway deduplicates. On the merge, every retry computes a fresh random key from B, so the gateway captures again and the customer is charged twice. The same root cause also shows up as the retries within one call using different keys."
+      },
+      "test_retry_recovers_lost_response.py": {
+        "kind": "intent_a",
+        "rationale": "Change A intends a transient timeout to be retried and the charge to succeed. That includes the case where the first capture went through but its response was lost, and recovering should not double-charge. The test fails on base and on B, which raise without retrying. It passes on A, where the retry hits the same key and gets back the original capture. It fails on the merge, where the retry uses a new key and creates a second capture."
+      },
+      "test_fresh_key_after_decline.py": {
+        "kind": "intent_b",
+        "rationale": "Change B intends that calling charge() again after a decline is treated as a new request, rather than replaying the declined outcome the gateway remembered for that key. A small fake that remembers each key's outcome, declines included, shows this. The test fails on base, where the same key replays the decline. It should pass on B and on the merge. A does not retry declines, so the merged code should keep this behavior."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:925bd2542add098d589061257dc3cf3f0e3864ae7ecf93c0d571f54e42be6d67",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "f990b471c314a758fffb0e84e40647fba241cf98",
+      "a": "687d63d4883b5aed7c756c4aef79f34b56f6d955",
+      "b": "aa7209ca4cf4655d905ac2dab620c3022e1a2346",
+      "ab": "c4c784866355bcb1f0f56cc1a9f9f213727a93ad",
+      "env": "sha256:08438a02fa79787cb15897d80abd9a1c07ca3957887ed6baaca4cb7a291b08e3",
+      "scenarios": "sha256:e74b6750541ef5b1b6110effd579a7edb8aabae1e98393157475f4fd0e68d214"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_fresh_key_after_decline.py::test_charge_after_decline_is_a_new_request": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_retry_recovers_lost_response.py::test_retry_after_lost_response_returns_the_single_capture": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "failed",
+        "finding": "differential_a"
+      },
+      "fourway_scenarios/test_timeout_retry_single_capture.py::test_all_requests_in_one_charge_share_one_key": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "emergent"
+      },
+      "fourway_scenarios/test_timeout_retry_single_capture.py::test_lost_response_timeout_never_captures_twice": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "emergent"
+      }
+    },
+    "verdict": "conflict",
+    "recorded_at": "2026-10-31T04:14:13.739460+00:00"
+  }
+}

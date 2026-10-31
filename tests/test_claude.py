@@ -130,7 +130,7 @@ def test_extra_import_roots_reach_the_prompt_only_when_set(ctx):
 
 def test_bench_runs_parsed_scenarios_and_never_sends_the_answer():
     """End to end at the API boundary: what leaves the machine has no oracle and no case id."""
-    cases = load_corpus(CORPUS)
+    cases = [c for c in load_corpus(CORPUS) if not c.mined]  # decision 0002 keeps model scenarios off mined pairs
     client = FakeClient(message({"scenarios": [scenario("test_lost_response.py")]}))
     results = bench.run(cases, "claude", options={"client": client})
 

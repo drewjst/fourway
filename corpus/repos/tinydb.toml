@@ -4,3 +4,4 @@ license = "MIT"
 tests = "tests"
 # pytest.ini adds coverage flags that need pytest-cov, which fourway does not install.
 pytest_args = ["-o", "addopts="]
+packages = ["tinydb/"]

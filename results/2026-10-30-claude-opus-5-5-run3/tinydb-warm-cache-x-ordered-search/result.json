@@ -1,0 +1,95 @@
+{
+  "label": "conflict",
+  "expect": "differential_b",
+  "verdict": "conflict",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 59026,
+    "output_tokens": 3055,
+    "scenarios": {
+      "test_cached_search_id_order_after_insert.py": {
+        "kind": "intent_b",
+        "rationale": "Change B promises search results in document ID order, including results served from the cache. Change A keeps cached results across inserts by appending each new document to the end of every matching cached list. A document inserted afterwards with an explicit lower ID then lands after higher IDs in the cached list. B's ordering promise breaks on the merge only."
+      },
+      "test_cached_search_matches_fresh_search.py": {
+        "kind": "invariant",
+        "rationale": "A search served from the cache must return the same documents in the same order as the same search run fresh from storage. This holds on the base, on A (cached appends follow insertion order, as storage does) and on B (insert clears the cache). On the merge, A's appended entries no longer follow B's sorted order for an explicit lower-ID insert."
+      },
+      "test_insert_keeps_cache_with_explicit_ids.py": {
+        "kind": "intent_a",
+        "rationale": "Change A keeps cached searches across inserts and adds the new document to each matching result. This should also hold for inserts with explicit document IDs, the case B's sorting targets, and must not trigger a storage rescan. Order is ignored here so the test checks only A's intent."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:4edd660696d2b31299025082355bcc71e2cf511e67e3afab903ab72450e0eed6",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "d1e355743a97820d5237b3af65b4acd3ac4f91e3",
+      "a": "8de3eba7ab2c5b2df552fdf4f5862b9a1eea1af1",
+      "b": "541a005d57828c080d5e05af2c71444f3136a0fb",
+      "ab": "db31cce5641cbde0d12adcecc4f044ef84a484f0",
+      "env": "sha256:08438a02fa79787cb15897d80abd9a1c07ca3957887ed6baaca4cb7a291b08e3",
+      "scenarios": "sha256:370cdf4ea75df20ab63ba0a89e0ded0e95672a2e3cf121d807eaf4742ff3bbcb"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_cached_search_id_order_after_insert.py::test_mixed_auto_and_explicit_inserts_after_cached_search": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "differential_b"
+      },
+      "fourway_scenarios/test_cached_search_id_order_after_insert.py::test_search_after_explicit_lower_id_insert_is_id_ordered": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "differential_b"
+      },
+      "fourway_scenarios/test_cached_search_matches_fresh_search.py::test_cached_equals_fresh_after_explicit_id_insert_json": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "emergent"
+      },
+      "fourway_scenarios/test_cached_search_matches_fresh_search.py::test_cached_equals_fresh_after_explicit_id_insert_memory": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "emergent"
+      },
+      "fourway_scenarios/test_insert_keeps_cache_with_explicit_ids.py::test_explicit_id_insert_keeps_and_extends_cache": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_insert_keeps_cache_with_explicit_ids.py::test_explicit_id_insert_served_without_rescan": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "conflict",
+    "recorded_at": "2026-10-31T04:17:31.625727+00:00"
+  }
+}

@@ -1,0 +1,49 @@
+base = { repo = "tinydb", commit = "18d73a15066a04c77f19ae9a8c03d582bd344c0d" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "fix: include regex flags in matches/search query hash"
+pr = "https://github.com/msiemens/tinydb/pull/640"
+from = "18d73a15066a04c77f19ae9a8c03d582bd344c0d"
+to = "e83efcdf7df0a57db52c650f4bdf4fd9ae084f87"
+body = """
+## Summary
+
+`Query.matches` / `Query.search` closed over `flags` but omitted them from the query hash, so the table query cache could return results for the wrong flags.
+
+- Include `flags` in the hash tuple for both methods
+- Add a regression test covering hash inequality and cache isolation
+- Minor docstring fix: `search` flags go to `re.search` (not `re.match`)
+
+Fixes #637
+
+## Test plan
+
+- [x] `uv run py.test tests/test_queries.py -q --mypy`
+- [x] Manual repro from the issue no longer returns `John` for the case-sensitive search after an ignorecase search
+"""
+
+[b]
+title = "fix: persist_empty must not wipe existing table data"
+pr = "https://github.com/msiemens/tinydb/pull/642"
+from = "e83efcdf7df0a57db52c650f4bdf4fd9ae084f87"
+to = "717616bc3a74baa4da4dd75092b6039d427f4f16"
+body = """
+## Summary
+
+`persist_empty=True` always called `table.clear()` on `Table` construction, which wiped documents when reopening an existing non-empty table.
+
+Per #636 option (1): only persist a new empty table when there are no documents yet.
+
+Fixes #636
+
+## Test plan
+
+- [x] `uv run py.test tests/test_tables.py -q --mypy`
+- [x] Existing `test_persist_table` still passes
+- [x] New regression test: reopen with `persist_empty=True` keeps data
+- [x] Manual issue repro no longer wipes
+"""

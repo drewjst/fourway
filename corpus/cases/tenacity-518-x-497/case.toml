@@ -1,0 +1,42 @@
+base = { repo = "tenacity", commit = "212c47c05fec89c3aca8c4fec0b426c9f33036e8" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a"]
+assisted = []
+
+[a]
+title = "fix: return \"Self\" from \"BaseRetrying.copy\""
+pr = "https://github.com/jd/tenacity/pull/518"
+from = "212c47c05fec89c3aca8c4fec0b426c9f33036e8"
+to = "bfbf17314612b8546a650c4b56d6c6438e6857df"
+body = """
+Currently `BaseRetrying.copy` returns `BaseRetrying`, making reusing a \"template\"/base retrying object harder.
+Example usecase:
+```py
+from tenacity import AsyncRetrying
+
+
+class SomeClient:
+    def __init__(self, retry: AsyncRetrying) -> None:
+        self._retry = retry
+
+    async def method(self) -> None:
+        async for attempt in self._retry.copy():
+            with attempt:
+                pass  # Do something
+```
+```sh
+$ mypy main.py 
+main.py:9: error: \"BaseRetrying\" has no attribute \"__aiter__\" (not async iterable)  [attr-defined]
+Found 1 error in 1 file (checked 1 source file)
+```
+"""
+
+[b]
+title = "Add re.Pattern to allowed match types"
+pr = "https://github.com/jd/tenacity/pull/497"
+from = "b4dfa3fe88707f42561d11dea4bca06c45fb5523"
+to = "a44271f3d7d917d81e432ce7f85d448b437b4e41"
+body = """
+Suggested in https://github.com/jd/tenacity/issues/436#issuecomment-1933445424
+"""

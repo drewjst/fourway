@@ -1,0 +1,95 @@
+{
+  "label": "conflict",
+  "expect": "differential_b",
+  "verdict": "conflict",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 4915,
+    "output_tokens": 2891,
+    "scenarios": {
+      "test_set_price_after_read.py": {
+        "kind": "intent_b",
+        "rationale": "Change B lets the admin editor change a price through Catalog.set_price, and the new price must be what the catalog reports afterwards. Change A caches every price the Catalog reads, and B's own test never reads a price before setting it. After the merge, a price read before set_price stays cached, so price() keeps returning the old value. These tests fail on base and on A (no set_price), pass on B, and fail on the merge."
+      },
+      "test_price_cache_with_updates.py": {
+        "kind": "intent_a",
+        "rationale": "Change A promises that repeated price lookups do not keep hitting the slow backend. A correct merge with B's set_price may re-read the backend once after an update, but it must not drop caching. The first test checks one backend read per SKU. The second checks that, when set_price exists, at most one extra backend read happens across repeated lookups after an update. On A, set_price is absent and that part is skipped."
+      },
+      "test_catalog_write_visibility.py": {
+        "kind": "invariant",
+        "rationale": "On every tree, a write made through the Catalog must be visible through the same Catalog. A rejected write must leave the price unchanged. Both tests are guarded on set_price existing, so they pass trivially on base and on A, and they pass on B. On the merge, the stale cache entry from A hides B's update, which breaks update visibility."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:5c211337526029ce03dbc5bde67c655a58f5220d58835d42a3696583f977f7e4",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "f990b471c314a758fffb0e84e40647fba241cf98",
+      "a": "e6a1e6ab999832d3b924bd22374a98a4244915ca",
+      "b": "f468d2d260b6fd95e7a8d431e964acf421b2ad17",
+      "ab": "c151714a75d51d02ae70f98cbfbbf21a7f53637c",
+      "env": "sha256:08438a02fa79787cb15897d80abd9a1c07ca3957887ed6baaca4cb7a291b08e3",
+      "scenarios": "sha256:0580c2b653b3e249571a4183f14672bef5a57d207867d7ca478623270402437d"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_catalog_write_visibility.py::test_price_written_through_catalog_is_what_catalog_reports": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "emergent"
+      },
+      "fourway_scenarios/test_catalog_write_visibility.py::test_rejected_write_leaves_price_unchanged": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_price_cache_with_updates.py::test_cache_still_saves_reads_after_price_update": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_price_cache_with_updates.py::test_repeated_lookups_read_backend_once_per_sku": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_set_price_after_read.py::test_only_the_updated_sku_changes_after_reads": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "differential_b"
+      },
+      "fourway_scenarios/test_set_price_after_read.py::test_price_read_before_set_price_reflects_new_price": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "differential_b"
+      }
+    },
+    "verdict": "conflict",
+    "recorded_at": "2026-10-31T04:11:24.808359+00:00"
+  }
+}

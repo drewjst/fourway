@@ -3,3 +3,4 @@ commit = "505aece98f29a1aca26c4ae5ba57e03a8a3397f3"
 license = "MIT"
 tests = "tests"
 pythonpath = ["src"]
+packages = ["src/cachetools/"]

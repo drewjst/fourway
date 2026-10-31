@@ -1,0 +1,31 @@
+base = { repo = "tenacity", commit = "b42d0777e2da9bc75dc9de6cbd22a095f096eafd" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a"]
+assisted = ["a", "b"]
+
+[a]
+title = "refactor: remove redundant raise before reraise()"
+pr = "https://github.com/jd/tenacity/pull/588"
+from = "b42d0777e2da9bc75dc9de6cbd22a095f096eafd"
+to = "d49d07505812d8f4a8b718db62deb6506ccf6603"
+body = """
+reraise() is typed as NoReturn and always raises internally.
+The outer `raise` keyword was dead code that could never execute,
+and was misleading since it suggested reraise() returns an exception
+rather than raising one directly.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+"""
+
+[b]
+title = "refactor: replace deprecated typing.Pattern with re.Pattern"
+pr = "https://github.com/jd/tenacity/pull/589"
+from = "d49d07505812d8f4a8b718db62deb6506ccf6603"
+to = "fea6430bb22bda4678f35bee1021d244815d04f7"
+body = """
+typing.Pattern has been deprecated since Python 3.9 in favor of
+re.Pattern. Since we require Python >=3.10, use the standard form.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+"""

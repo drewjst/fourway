@@ -1,0 +1,58 @@
+base = { repo = "tenacity", commit = "b3c5a9f9212187aaf96353378daa9a9ebd800742" }
+label = "clean"
+class = "mined, same file"
+runtime = ["b"]
+assisted = ["a", "b"]
+
+[a]
+title = "chore: pin ruff to 0.16.1"
+pr = "https://github.com/jd/tenacity/pull/670"
+from = "b3c5a9f9212187aaf96353378daa9a9ebd800742"
+to = "ac30991d8861f077b1173fd05ae08317ef4616de"
+body = """
+An unpinned ruff means every new ruff release can break CI with newly
+stabilized rules. Pin it to the current version so upgrades are explicit
+and deliberate.
+
+Upgrading to 0.16.1 stabilizes RUF036 (None not at the end of a type
+union); fix the 14 violations in the same commit via ruff's auto-fix so
+the pinned version lints clean. The changes are pure annotation
+reordering with no semantic effect.
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>
+"""
+
+[b]
+title = "Improve inline type annotations"
+pr = "https://github.com/jd/tenacity/pull/664"
+from = "cb884173f9f63d9dd609dc01d3aafe89cb32ba92"
+to = "6fec22548ba654d39028248b7a9f07153a4ef81a"
+body = """
+## Summary
+
+- Add missing `-> None` annotations to `AttemptManager.__init__` and `BaseRetrying.__init__`.
+- Declare the non-trivial `re.Pattern[str] | None` shape of `retry_if_exception_message.match`.
+- Normalize union ordering required by the repository's configured Ruff rules.
+- Preserve runtime behavior and all existing `Any` annotations.
+
+## Annotation audit
+
+The accepted Tenacity 8.1.0 benchmark patch was re-audited against current `main`. Inline field declarations were removed when their type was already evident from:
+
+- literals (`NAME`, `REPR_FIELDS`)
+- conversions such as `float(...)` and `_utils.to_seconds(...)`
+- assignments from typed parameters or varargs
+- direct singleton constructors
+
+Those declarations improved VerifyTypes scoring but did not add an independent API contract or checker guarantee. The retained `match` annotation documents and checks a conditional public field union that is not represented by one simple assignment source.
+
+## Validation
+
+- `uv run poe all` — lint, strict mypy, 172 tests, doctests, and HTML docs passed
+- `uv run --with pyright --with-editable . pyright --verifytypes tenacity --ignoreexternal` — 63.3% (210/332 known exports), measured as informational evidence rather than an optimization target
+- Annotation-stripped AST comparison against `main` — executable AST unchanged
+
+## Port decisions
+
+The Tornado `sleep` annotation and `RetryCallState.__repr__` return type are already present on `main`. Existing `Any` annotations remain unchanged. The benchmark's `get_callback_name(object)`, `Future.construct(..., object, ...)`, and broad `Callable[..., bool]` changes are omitted because current upstream typing is stricter or more precise.
+"""

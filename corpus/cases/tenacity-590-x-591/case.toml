@@ -1,0 +1,33 @@
+base = { repo = "tenacity", commit = "fea6430bb22bda4678f35bee1021d244815d04f7" }
+label = "clean"
+class = "mined, other files"
+runtime = ["b"]
+assisted = ["a", "b"]
+
+[a]
+title = "docs: fix typos in docstrings"
+pr = "https://github.com/jd/tenacity/pull/590"
+from = "fea6430bb22bda4678f35bee1021d244815d04f7"
+to = "6be363b0439bd213dd5ea4cb0c0c184bf616232a"
+body = """
+- \"there existence\" → \"their existence\"
+- \"there own view\" → \"their own view\"
+- \"some what\" → \"somewhat\"
+- \"to wraps for\" → \"to wrap for\"
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+"""
+
+[b]
+title = "fix: guard against None seconds_since_start in after_log"
+pr = "https://github.com/jd/tenacity/pull/591"
+from = "6be363b0439bd213dd5ea4cb0c0c184bf616232a"
+to = "213446e8f5f73ca0d20e22ec8ee38b1f75a45434"
+body = """
+`RetryCallState.seconds_since_start` returns None when
+`outcome_timestamp` is not set. The `%` format operator in `after_log`
+would crash with a TypeError in this case. Fall back to \"?\" when the
+value is None.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+"""

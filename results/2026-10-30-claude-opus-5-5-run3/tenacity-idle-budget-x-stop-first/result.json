@@ -1,0 +1,73 @@
+{
+  "label": "conflict",
+  "expect": "differential_a",
+  "verdict": "conflict",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 91607,
+    "output_tokens": 2531,
+    "scenarios": {
+      "test_stop_before_idle_ordering.py": {
+        "kind": "intent_a",
+        "rationale": "Change A's stop_before_idle reads retry_state.upcoming_sleep, which assumes the wait strategy runs before the stop strategy. Change B moves the wait after the stop unless the stop sets needs_upcoming_sleep. stop_before_idle does not set that flag, so on the merge it reads a stale value: 0 on the first retry, then the previous sleep. The sleep budget then overruns: a first sleep larger than max_idle is taken, and a growing wait is checked against the old, smaller one. These tests fail on base and B, which lack stop_before_idle, pass on A, and fail on the merge."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:4698cf118f5cce2b7fb288f3fdc85fcc7cda17d0cb511da7238c46bb5818372a",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "4cda64c598475f5157231227243ad60ffa9b7294",
+      "a": "3684fb909ac0c3453f2f3f3c1369a3a8cfcd50f0",
+      "b": "dcd32ca0c6a7c04b32c11b5aa048679d6945bdb2",
+      "ab": "a91cc16fb2a9190913a4f085c711cb3a145c94ec",
+      "env": "sha256:08438a02fa79787cb15897d80abd9a1c07ca3957887ed6baaca4cb7a291b08e3",
+      "scenarios": "sha256:73614671268c280cc24721e0423bc7f296bc11c76c15cf63655f1e3cdb5267e7"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_stop_before_idle_ordering.py::test_async_first_sleep_over_budget_is_never_taken": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "failed",
+        "finding": "differential_a"
+      },
+      "fourway_scenarios/test_stop_before_idle_ordering.py::test_combined_with_attempt_limit_respects_idle_budget": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "failed",
+        "finding": "differential_a"
+      },
+      "fourway_scenarios/test_stop_before_idle_ordering.py::test_first_sleep_over_budget_is_never_taken": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "failed",
+        "finding": "differential_a"
+      },
+      "fourway_scenarios/test_stop_before_idle_ordering.py::test_growing_wait_checked_against_its_own_upcoming_sleep": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "failed",
+        "finding": "differential_a"
+      }
+    },
+    "verdict": "conflict",
+    "recorded_at": "2026-10-31T04:15:49.580320+00:00"
+  }
+}

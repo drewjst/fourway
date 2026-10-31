@@ -1,0 +1,25 @@
+base = { repo = "tenacity", commit = "aa6f8f0a2428de696b237d1a86bc131c1cdb707a" }
+label = "clean"
+class = "mined, same file"
+runtime = ["b"]
+assisted = []
+
+[a]
+title = "Add support for async sleep functions in tenacity.retry annotation."
+pr = "https://github.com/jd/tenacity/pull/400"
+from = "aa6f8f0a2428de696b237d1a86bc131c1cdb707a"
+to = "41ed2420cda8ab7650a39900451099f4730266c3"
+body = """
+Fixes https://github.com/jd/tenacity/issues/399
+
+Since tests aren't typechecked I didn't add a test for this, although if you want I could open another PR with tox modifications and `# mypy: disable-error-codes= I added to check it locally.
+"""
+
+[b]
+title = "Preserve function default and kwdefault through retry decorator"
+pr = "https://github.com/jd/tenacity/pull/406"
+from = "a29f494197aec1f28fdb024599afd79f77c58c4b"
+to = "310058274ed22a345e9c3917c97b4afd6363d5a5"
+body = """
+Hello, and thanks for the great package. I noticed that the `retry` decorator uses `functools.wraps`. By default, this means that `__defaults__` and `__kwdefaults__` will always be `None` on the wrapped function. In general this is reasonable behavior, since a wrapper could change these defaults. However, I believe the retry decorator does not, and thus should preserve these attributes. I've created a patch to change this, please let me know what you think :)
+"""

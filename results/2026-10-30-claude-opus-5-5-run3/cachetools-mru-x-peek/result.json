@@ -1,0 +1,84 @@
+{
+  "label": "clean",
+  "expect": "ok",
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 83325,
+    "output_tokens": 2793,
+    "scenarios": {
+      "test_mru_peek.py": {
+        "kind": "intent_b",
+        "rationale": "Change B promises that peek() never counts as a use. Change A adds MRUCache, which inherits peek from Cache. On the merge, peeking at the most recently used key must not change which item MRUCache evicts, must not change popitem order, and must not trigger __missing__. Each test first requires Cache.peek, so it fails on the base and on A. It then skips if MRUCache is absent, as on B alone, and runs fully on the merge."
+      },
+      "test_mru_with_peek_semantics.py": {
+        "kind": "intent_a",
+        "rationale": "Change A promises that MRUCache evicts the most recently used item, where both reads and updates count as a use. On the merge, calls to B's peek() interleaved with real uses must not disturb that order. Each test requires MRUCache first, so it fails on the base and on B. It skips if peek is absent, as on A alone."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:2a2bb72e0eb7faf437194fae49e73ec9370645897fe942206b7ffdaf78d1a421",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "2ab68ed14f6f23ad1f0acdeffb0dd12723580114",
+      "a": "b180b491e508957dc1933be8a3b8d41e917f5688",
+      "b": "a2e1674aefa66ee76a9913b4c10ac5fa3c53d0ac",
+      "ab": "65efdd1c9b6d8ee4c10618ecba39e2a5fb0b20e9",
+      "env": "sha256:08438a02fa79787cb15897d80abd9a1c07ca3957887ed6baaca4cb7a291b08e3",
+      "scenarios": "sha256:59e8377eaa99cd746d09b67f0bb1b0bbc5c15a98864ac048cb6134de38398491"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:8a9d182e1ce280df0bcd2c8200216e4bfd108e1a0378c07af1fc6d801a9f6b98"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_mru_peek.py::test_peek_does_not_count_as_use_in_mru": {
+        "base": "failed",
+        "a": "failed",
+        "b": "skipped",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_mru_peek.py::test_peek_missing_on_mru_does_not_call_missing": {
+        "base": "failed",
+        "a": "failed",
+        "b": "skipped",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_mru_peek.py::test_peek_preserves_mru_popitem_order": {
+        "base": "failed",
+        "a": "failed",
+        "b": "skipped",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_mru_with_peek_semantics.py::test_get_still_counts_as_use_with_peeks_interleaved": {
+        "base": "failed",
+        "a": "skipped",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_mru_with_peek_semantics.py::test_update_counts_as_use_after_peek": {
+        "base": "failed",
+        "a": "skipped",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T04:12:10.277497+00:00"
+  }
+}

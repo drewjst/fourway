@@ -1,0 +1,46 @@
+base = { repo = "tinydb", commit = "4d9e2b456f3205a125231a286f68cee114f06de8" }
+label = "clean"
+class = "mined, same file"
+runtime = ["b"]
+assisted = []
+
+[a]
+title = "Minor function docstring typo corrections"
+pr = "https://github.com/msiemens/tinydb/pull/449"
+from = "4d9e2b456f3205a125231a286f68cee114f06de8"
+to = "e6112c7f35e055242f825a9eb44a25466492881d"
+body = """
+Hi @msiemens!
+
+Congratulations on creating a fantastic open-source project, TinyDB looks very interesting!
+
+This PR fixes a couple of minor typos I noticed in function docstrings.
+
+Best,
+Abhishek
+"""
+
+[b]
+title = "Support adding callables to path"
+pr = "https://github.com/msiemens/tinydb/pull/445"
+from = "e6112c7f35e055242f825a9eb44a25466492881d"
+to = "f200118e1401cf49df009915d29475cca8920dbc"
+body = """
+Attempt to solve #423. The idea comes from lenses in general, and more specifically from Elixir's `Access` module and its kernel companion functions `get_in` and friends.
+
+```py
+query = Query().field.map(callable) == expected
+query = Query()['field'].map(callable) == expected
+```
+
+---
+
+Maybe it would be even better to avoid an extra method altogether and use `__getitem__`:
+
+```py
+query = Query().field[callable] == expected
+query = Query()['field'][callable] == expected
+```
+
+WDYT?
+"""

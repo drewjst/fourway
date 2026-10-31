@@ -1,0 +1,32 @@
+base = { repo = "tenacity", commit = "a4a725245b264fb71bb0d217bfad867d5da08082" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a"]
+assisted = ["a", "b"]
+
+[a]
+title = "fix: use typing.Self on Python 3.11+ instead of typing_extensions"
+pr = "https://github.com/jd/tenacity/pull/576"
+from = "a4a725245b264fb71bb0d217bfad867d5da08082"
+to = "7efa2fe4bd27f3e1c759482114b8d2dc9df9ff04"
+body = """
+On Python 3.11+, Self is available in the standard typing module.
+Only fall back to typing_extensions for Python 3.10 (under
+TYPE_CHECKING only, so no runtime dependency added).
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+"""
+
+[b]
+title = "refactor: remove stale noqa comments from __init__.py"
+pr = "https://github.com/jd/tenacity/pull/577"
+from = "56950aef92728e74f6611983ca7373f1cf085474"
+to = "14f0d8ac74c375ebcb1ef6a361595332ce4de4e7"
+body = """
+The __all__ list already declares public exports, making the F401
+noqa comments on re-export imports unnecessary. Also remove bare
+noqa on iter/begin_iter (was suppressing UP007) and fix the Union
+type annotation to use X | Y syntax.
+
+Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+"""

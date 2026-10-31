@@ -1,0 +1,61 @@
+base = { repo = "tinydb", commit = "a7174d1bf711d1f59455f8f363a5ccee2ebdf8e7" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "fix: prevent FileNotFoundError when storages.touch() is called with a…"
+pr = "https://github.com/msiemens/tinydb/pull/619"
+from = "a7174d1bf711d1f59455f8f363a5ccee2ebdf8e7"
+to = "59ee5933d64f6f6094c5877ca3cc5fb17af4e5b6"
+body = """
+Hi, the `touch` function in storages.py calls `os.makedirs` if `create_dirs` is `True`, but a user may unknowingly pass `create_dirs` as True even when the JSON file to be created is in the current working directory, in which case, the file's directory would be an empty string and `FileNotFoundError` would be raised by `os.makedirs`.
+
+```python
+from tinydb import TinyDB
+
+TinyDB(\"some.json\", create_dirs=True)
+```
+Traceback (most recent call last):
+  File \"<stdin>\", line 1, in <module>
+    TinyDB('some.json', create_dirs=True)
+    ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File \"/home/nitesh/Desktop/programming/open-source/tinydb/tinydb/database.py\", line 95, in __init__
+    self._storage: Storage = storage(*args, **kwargs)
+                             ~~~~~~~^^^^^^^^^^^^^^^^^
+  File \"/home/nitesh/Desktop/programming/open-source/tinydb/tinydb/storages.py\", line 117, in __init__
+    touch(path, create_dirs=create_dirs)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File \"/home/nitesh/Desktop/programming/open-source/tinydb/tinydb/storages.py\", line 28, in touch
+    os.makedirs(base_dir)
+    ~~~~~~~~~~~^^^^^^^^^^
+  File \"<frozen os>\", line 236, in makedirs
+FileNotFoundError: [Errno 2] No such file or directory: ''
+"""
+
+[b]
+title = "fix: correct Table.update transform type hints"
+pr = "https://github.com/msiemens/tinydb/pull/621"
+from = "59ee5933d64f6f6094c5877ca3cc5fb17af4e5b6"
+to = "e70f9b1d91b6145b5083042eebe266ef0e4ccd27"
+body = """
+`Table.update` and `Table.update_multiple` annotated transform callables as
+`Callable[[Mapping], None]`, but transforms mutate documents in place (e.g.
+`tinydb.operations.delete` uses `del doc[field]`). `Mapping` has no
+`__delitem__`, so the hints were inaccurate.
+
+## Changes
+
+- Change callable parameter to `Callable[[MutableMapping], None]` in
+  `Table.update` and `Table.update_multiple`
+- Add `test_update_custom_transform_callable` for custom transforms and
+  `tinydb.operations` helpers
+
+## Verification
+
+- `uv run py.test -v --cov=tinydb` — 218 passed
+- `uv run py.test -v --pycodestyle` — not run (pre-existing failures on master)
+
+Related: #598
+"""

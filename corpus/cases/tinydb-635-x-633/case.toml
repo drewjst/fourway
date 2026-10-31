@@ -1,0 +1,31 @@
+base = { repo = "tinydb", commit = "4aa53111d72c9cbaafcdc039211caf49f4face6f" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Fix LRUCache treating a stored None as a missing key"
+pr = "https://github.com/msiemens/tinydb/pull/635"
+from = "4aa53111d72c9cbaafcdc039211caf49f4face6f"
+to = "19066e03139e904c24410e23901e4b069d715a2e"
+body = """
+Closes #632.
+
+`LRUCache.__getitem__` and `get()` both use `value is not None` as their presence check, which conflates \"the key holds None\" with \"the key isn't here at all\". So caching a None result gives you a KeyError on read, `get()` silently hands back the default instead of None, and the entry never gets bumped to the MRU end on access even though it's sitting right there in the OrderedDict.
+
+Fixed by checking against a module-level sentinel instead of None, both in `__getitem__` (now looks the key up directly against `self.cache` rather than going through `get()`) and in `get()` itself. Added `test_lru_cache_none_value` covering the KeyError case, the `get()` default case, and that a None entry still moves to the front of the LRU order on access.
+
+Ran the full suite plus a fresh mypy pass over `tinydb/` afterward, both clean.
+"""
+
+[b]
+title = "Don't reuse IDs in mixed insert_multiple batches"
+pr = "https://github.com/msiemens/tinydb/pull/633"
+from = "19066e03139e904c24410e23901e4b069d715a2e"
+to = "bd034d0e95d64a1da0e86387daa950eed3534fff"
+body = """
+`insert()` resets `_next_id` after a Document with an explicit ID. `insert_multiple()` didn't, and auto-ids in the same batch were still allocated from storage, so `[Document(..., 1), {...}]` overwrote id 1.
+
+Fixes #629
+"""

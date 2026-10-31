@@ -1,0 +1,141 @@
+base = { repo = "tinydb", commit = "0428e3375e961a5f9f6c00d96d6750de8eb66de8" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Docs & Typing: Improve upsert docs, add operations type hints, test J…"
+pr = "https://github.com/msiemens/tinydb/pull/606"
+from = "0428e3375e961a5f9f6c00d96d6750de8eb66de8"
+to = "8a2dc204c265c07ce8506a3599a28e720b6dcdd7"
+body = """
+## Summary
+
+This PR introduces three maintenance-focused improvements to the TinyDB codebase:
+- Adds precise type hints to operation helpers
+- Improves documentation clarity for `upsert`
+- Adds a regression test for unsafe `JSONStorage` initialization
+
+All changes align with TinyDB’s maintenance-mode guidelines and focus on correctness, clarity, and developer experience.
+
+---
+
+## Changes
+
+### 1. Type Hints for Operations  
+**File:** `tinydb/operations.py`
+
+- Added explicit type annotations (`Callable`, `Mapping`, `Any`, etc.) to all operation functions:
+  - `delete`
+  - `add`
+  - `subtract`
+  - `set`
+  - `increment`
+  - `decrement`
+- Improves IDE autocompletion, static analysis, and readability.
+- No runtime behavior changes.
+
+---
+
+### 2. Documentation Improvement for `upsert`  
+**File:** `tinydb/table.py`
+
+- Updated the `upsert` docstring to clearly state that **all matching documents are updated**, not just a single document.
+- Helps prevent misunderstandings for users coming from other databases where `upsert` semantics differ.
+
+---
+
+### 3. New Test Case for `JSONStorage` Warnings  
+**File:** `tests/test_storages.py`
+
+- Added `test_json_invalid_mode_warning`.
+- Verifies that `JSONStorage` emits a `UserWarning` when initialized with an unsafe access mode (e.g. `'w'`).
+- Ensures this safety behavior remains enforced through future changes.
+
+---
+
+## Verification
+
+- Ran `pytest` locally — all tests pass, including the newly added test.
+- Manually validated type hints against standard `typing` usage.
+- No breaking changes introduced.
+
+---
+
+## Type of Change
+
+- [x] Documentation improvement  
+- [x] Typing / developer-experience improvement  
+- [x] Test coverage improvement  
+- [ ] New feature  
+- [ ] Breaking change
+
+"""
+
+[b]
+title = "Skip missing doc_ids in Table.update and Table.remove (fixes #591)"
+pr = "https://github.com/msiemens/tinydb/pull/616"
+from = "8a2dc204c265c07ce8506a3599a28e720b6dcdd7"
+to = "76d21d26c682e1ca6ca25bd8e81edf9f609ac52f"
+body = """
+Fixes #591.
+
+## What this changes
+
+`Table.get(doc_id=N)` and `Table.get(doc_ids=[N])` already return silently when the requested document doesn't exist (returning `None` and `[]` respectively), but `Table.update(doc_ids=[N])` and `Table.remove(doc_ids=[N])` raise `KeyError`. The four code paths are documented and named symmetrically, so the asymmetric behaviour is surprising — that's the inconsistency #591 reported.
+
+There's also a subtler correctness issue: when a mix of existing and missing IDs is passed to `update`, the first existing documents get mutated in place before the `KeyError` is raised. `_update_table` skips the storage write on the exception path, but the document dicts inside the table are shared by reference with the in-memory mapping, so subsequent reads still observe the half-applied update. Repro on `master`:
+
+```python
+>>> from tinydb import TinyDB
+>>> from tinydb.storages import MemoryStorage
+>>> db = TinyDB(storage=MemoryStorage)
+>>> db.insert({'a': 1}); db.insert({'a': 2})
+>>> db.update({'a': 99}, doc_ids=[1, 99])
+KeyError: 99
+>>> db.all()
+[{'a': 99}, {'a': 2}]   # doc 1 was modified, the operation was not atomic
+```
+
+## Approach
+
+Filter the requested IDs against the live table **inside** the updater, before performing any side effects, then return only the IDs that were actually affected. This:
+
+- Makes the four `get` / `update` / `remove` paths consistent — all four silently skip missing IDs.
+- Makes both operations atomic: either every existing target is affected, or none is. No partial state on failure.
+- Lets `upsert` drop its now-unreachable `except KeyError` branch — `update` simply returns `[]` when nothing matched, which already falls through the existing `if updated_docs:` guard into the insert path.
+
+I considered the alternative of making `get(doc_id=N)` raise too. Rejected because `get`'s docstring explicitly promises `Returns None if the document doesn't exist`, so changing it would be a real breaking change to a documented contract. The behaviour added here matches the existing `get(doc_ids=...)` filtering convention.
+
+## Behaviour after this PR
+
+```python
+>>> db.get(doc_id=99)               # already
+None
+>>> db.get(doc_ids=[99])            # already
+[]
+>>> db.update({'a': 9}, doc_ids=[99])   # was KeyError, now:
+[]
+>>> db.remove(doc_ids=[99])             # was KeyError, now:
+[]
+
+>>> db.update({'a': 9}, doc_ids=[1, 99])  # was partial + KeyError, now atomic:
+[1]
+```
+
+## Compatibility
+
+User code that catches `KeyError` around `update(doc_ids=...)` / `remove(doc_ids=...)` to detect missing IDs will need to switch to inspecting the returned list (e.g. `if len(db.update(..., doc_ids=ids)) != len(ids): ...`). That seems strictly better — the returned list is the documented and forward-compatible signal — and it lines up with how `get(doc_ids=...)` already works.
+
+## Tests
+
+Added regression tests in `tests/test_tinydb.py` (each runs against both `MemoryStorage` and `JSONStorage` via the existing `db` fixture):
+
+- `test_remove_ids_missing` / `test_update_ids_missing` — single missing ID returns `[]`, no exception, no state change.
+- `test_remove_ids_mixed` / `test_update_ids_mixed` — mix of existing and missing IDs only affects the existing ones (atomic).
+- `test_doc_id_missing_consistency` — `get`, `update` and `remove` all return without raising for a missing ID.
+
+Full suite: `pytest tests/` → 215 passed (was 205). Type check: `pytest --mypy -m mypy tinydb tests` → clean.
+
+"""
