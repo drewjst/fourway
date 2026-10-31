@@ -4,6 +4,7 @@ Next:     owner picks how to grow the corpus — the false-positive bar needs at
 Blockers: owner decision on corpus growth (who writes the cases, from which repos); owner ruling on #6 (how `missing` is classified)
 Decisions this session:
 - Phase 0 is a benchmark only — no recall number exists to put behind an integration — rejected: GitHub App first (docs/decisions/0001)
+- Merge-layer direction written up as a proposal in docs/design/merge-layer.md: grow the detector into the layer that decides what lands together, on top of Git — Git already handles storage below Anthropic's scale; verification is the open problem — rejected: replacing Git storage. Recommendation only; the owner has not ruled. Positioning and Coldworks fit are in hq (IDEAS.md, 2026-10-30 entry, branch ideas/fourway-merge-layer), never here
 - Scenarios run as local subprocesses only on the seeded corpus — generated code from attacker-controlled diffs is a prompt-injection path to code execution — rejected: declarative scenarios, filtered-env local runner (docs/decisions/0002)
 - Conflict cases get a clean twin that makes the same change A and changes only side B; tests/test_bench.py checks twins share A — stops a generator from scoring by matching on touched files — rejected: unrelated clean controls. receipt-x-event-rename has no twin yet (#5)
 - A pair with no usable scenario is `unverified`, never `clean` — an agent asking "was this verified?" must not hear yes when nothing ran — rejected: empty result reads as clean
