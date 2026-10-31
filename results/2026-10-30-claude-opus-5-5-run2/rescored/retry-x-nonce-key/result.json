@@ -1,0 +1,103 @@
+{
+  "label": "conflict",
+  "expect": "emergent",
+  "verdict": "conflict",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 5190,
+    "output_tokens": 4330,
+    "scenarios": {
+      "test_retry_idempotency.py": {
+        "kind": "invariant",
+        "rationale": "Change A retries charge() after a GatewayTimeout, but it builds the idempotency key inside the retry loop. Change B makes idempotency_key() return a new key on every call. After the merge, a timeout whose response was lost ('timeout_after') is retried under a new key, and the gateway captures the money a second time. On base and B there is no retry, and on A the retry reuses the key and is deduplicated. So at most one capture, and one key per charge() call, should hold on every tree except the merge."
+      },
+      "test_retry_lost_response.py": {
+        "kind": "intent_a",
+        "rationale": "Change A says a timeout that would succeed on a second try should not fail checkout. When the first response is lost after the gateway captured ('timeout_after'), the retry should return that same capture and should not create a new one. With B's per-call keys, the retry creates a second capture, so this check fails on the merge."
+      },
+      "test_fresh_keys_after_decline.py": {
+        "kind": "intent_b",
+        "rationale": "Change B lets a customer retry checkout after a decline, because each charge() call sends a key the gateway has not seen. This uses a fake gateway that remembers a decline per key. A second charge() call for the same order should succeed. Separate charge() calls should send different keys, and each key should still name the order."
+      }
+    },
+    "replayed_from": "results/2026-10-30-claude-opus-5-5-run2"
+  },
+  "evidence": {
+    "id": "sha256:a8187aee6445e9cb517b8734d726717b41b67274338db12deb0f17dbb1d5cc5d",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "f990b471c314a758fffb0e84e40647fba241cf98",
+      "a": "687d63d4883b5aed7c756c4aef79f34b56f6d955",
+      "b": "aa7209ca4cf4655d905ac2dab620c3022e1a2346",
+      "ab": "c4c784866355bcb1f0f56cc1a9f9f213727a93ad",
+      "env": "sha256:08438a02fa79787cb15897d80abd9a1c07ca3957887ed6baaca4cb7a291b08e3",
+      "scenarios": "sha256:a62f3c1040fbd7ccce522127138c40eb7bd80b076c653053c24d188c5314d667"
+    },
+    "generator": {
+      "name": "replay",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:d09f65aab36846d18b9d8545a1d22dd4d336e7506a3a216f5f94c9f204efbb22"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_fresh_keys_after_decline.py::test_charge_after_decline_succeeds": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_fresh_keys_after_decline.py::test_separate_charges_send_distinct_keys_naming_the_order": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_retry_idempotency.py::test_all_requests_of_one_charge_share_a_key": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "emergent"
+      },
+      "fourway_scenarios/test_retry_idempotency.py::test_lost_response_never_captures_twice": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "emergent"
+      },
+      "fourway_scenarios/test_retry_idempotency.py::test_money_captured_never_exceeds_order_amount_with_events": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "emergent"
+      },
+      "fourway_scenarios/test_retry_lost_response.py::test_retry_after_lost_response_publishes_once_for_one_capture": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "failed",
+        "finding": "differential_a"
+      },
+      "fourway_scenarios/test_retry_lost_response.py::test_retry_after_lost_response_returns_the_single_capture": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "failed",
+        "finding": "differential_a"
+      }
+    },
+    "verdict": "conflict",
+    "recorded_at": "2026-10-31T02:51:49.427223+00:00"
+  }
+}

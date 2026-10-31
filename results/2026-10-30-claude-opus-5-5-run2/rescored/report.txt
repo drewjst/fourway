@@ -1,0 +1,14 @@
+case                            label     expect          verdict     findings                                  secs
+cache-x-quote                   clean     ok              clean       ok (6)                                    2.0
+cache-x-set-price               conflict  differential_b  conflict    differential_b (2), ok (4)                2.0
+free-order-skip-x-money-format  clean     regression_a    regression  ok (4), regression_a (2)                  2.0
+receipt-x-event-rename          conflict  differential_a  conflict    differential_a (3), ok (2)                2.0
+retry-x-currency-key            clean     ok              clean       ok (10)                                   2.0
+retry-x-nonce-key               conflict  emergent        conflict    differential_a (2), emergent (3), ok (2)  2.1
+
+generator        replay claude-opus-5-5
+recall           3/3  (95% CI 44% to 100%)
+false positives  0/3  (95% CI 0% to 56%)
+unverified       0/6
+generator errors 0/6
+cost             $0.00 total, $0.00 per pair

@@ -55,8 +55,8 @@ The repository contains the following:
   answers. For details, see [`corpus/README.md`](corpus/README.md).
 - Three control generators: `null`, `oracle`, and `deranged`.
 - A Claude-backed generator, `claude`, that writes intent and invariant
-  scenarios from the base tree, both diffs, and both change descriptions. Run 1
-  is recorded in [`results/`](results/).
+  scenarios from the base tree, both diffs, and both change descriptions. Each
+  scored run is recorded in [`results/`](results/).
 
 It doesn't contain cases seeded into real repositories or a sandboxed runner.
 

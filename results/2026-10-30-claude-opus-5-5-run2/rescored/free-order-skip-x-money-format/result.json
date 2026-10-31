@@ -1,0 +1,96 @@
+{
+  "label": "clean",
+  "expect": "regression_a",
+  "verdict": "regression",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 4601,
+    "output_tokens": 3405,
+    "scenarios": {
+      "test_free_order_events.py": {
+        "kind": "intent_a",
+        "rationale": "Change A's goal is that zero-amount (free trial) orders are still captured but publish no charge.succeeded event and do not count as revenue. The second test uses a JPY order, the multi-currency case that change B introduces. These tests fail on base and on B, where free orders still publish."
+      },
+      "test_small_paid_charges.py": {
+        "kind": "invariant",
+        "rationale": "Every real, non-free charge must reach the charge.succeeded consumers (receipts, revenue). Change A judges 'free' with a USD-cents threshold of amount_cents >= 100. Change B makes explicit that JPY has no minor unit, so 50 means 50 yen, a genuine paid charge. A 50-yen charge therefore silently loses its success event and revenue under A's threshold. These tests pass on base and on B, and fail where A's threshold is present."
+      },
+      "test_receipt_formatting.py": {
+        "kind": "intent_b",
+        "rationale": "Change B adds format_amount, which renders minor-unit amounts with the correct number of decimals for each currency. The first test drives formatting through the charge.succeeded event path that change A modifies, rendering a JPY receipt from the published capture. The second test checks that small amounts format as whole yen but as fractional dollars. Both fail on trees without B."
+      }
+    },
+    "replayed_from": "results/2026-10-30-claude-opus-5-5-run2"
+  },
+  "evidence": {
+    "id": "sha256:e39067f7a0cd99263c315a43777ed3e9317ffacd2c45ccbd7eabb34ea35a6672",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "f990b471c314a758fffb0e84e40647fba241cf98",
+      "a": "f969925ead1d01c9c2c05383233b8830a6d3bfd1",
+      "b": "eee152c7954f96f92a29f2e859165130742ef990",
+      "ab": "9a4a0899ee0f738adfb43e59c58518e99dd20c4e",
+      "env": "sha256:08438a02fa79787cb15897d80abd9a1c07ca3957887ed6baaca4cb7a291b08e3",
+      "scenarios": "sha256:de7ee4b747cd3819de55fef7b0b4bff1c1a3527d3aba7cb5aee9cfa6849b2959"
+    },
+    "generator": {
+      "name": "replay",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:d09f65aab36846d18b9d8545a1d22dd4d336e7506a3a216f5f94c9f204efbb22"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_free_order_events.py::test_free_jpy_order_does_not_count_as_revenue": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_free_order_events.py::test_free_usd_order_is_captured_but_not_published": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_receipt_formatting.py::test_small_amounts_format_per_currency": {
+        "base": "error",
+        "a": "error",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_receipt_formatting.py::test_yen_receipt_from_success_event": {
+        "base": "error",
+        "a": "error",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_small_paid_charges.py::test_small_yen_charge_counts_as_revenue": {
+        "base": "passed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "regression_a"
+      },
+      "fourway_scenarios/test_small_paid_charges.py::test_small_yen_charge_publishes_success_event": {
+        "base": "passed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "regression_a"
+      }
+    },
+    "verdict": "regression",
+    "recorded_at": "2026-10-31T02:51:43.293408+00:00"
+  }
+}

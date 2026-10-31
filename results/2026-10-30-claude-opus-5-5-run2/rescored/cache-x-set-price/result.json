@@ -1,0 +1,100 @@
+{
+  "label": "conflict",
+  "expect": "differential_b",
+  "verdict": "conflict",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 4915,
+    "output_tokens": 2226,
+    "scenarios": {
+      "test_set_price_after_cached_read.py": {
+        "kind": "intent_b",
+        "rationale": "Change B promises that Catalog.set_price changes the price that Catalog.price returns. Change A makes Catalog keep every price it reads and never invalidates that store. On the merge, a price read before set_price is still served from the cache, so the admin's change is invisible. Base and A lack set_price, so these tests fail there; they pass on B and fail only on the merge."
+      },
+      "test_set_price_rejection_keeps_price.py": {
+        "kind": "intent_b",
+        "rationale": "Change B rejects prices of zero or less, and a rejected change must leave the price as it was, including when that price was already read and possibly cached by change A. This scenario also covers set_price on a SKU that was never read before."
+      },
+      "test_price_cache_reads.py": {
+        "kind": "intent_a",
+        "rationale": "Change A promises that repeated price lookups hit the slow backend only once per SKU. This must still hold on the merge, where Catalog also gains set_price. The test avoids set_price so that it runs on the A tree too. It fails on base and B, where every lookup reads the backend."
+      },
+      "test_price_reads_current_backend.py": {
+        "kind": "invariant",
+        "rationale": "Holds on every tree. When nobody writes a price, Catalog returns the backend's value and lists the backend's SKUs, whether or not change A caches reads. This guards the merged Catalog against breaking plain lookups."
+      }
+    },
+    "replayed_from": "results/2026-10-30-claude-opus-5-5-run2"
+  },
+  "evidence": {
+    "id": "sha256:2ced2038a2b353698026b5c822e17665266ee8021727ff9df57274bfef1efb6a",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "f990b471c314a758fffb0e84e40647fba241cf98",
+      "a": "e6a1e6ab999832d3b924bd22374a98a4244915ca",
+      "b": "f468d2d260b6fd95e7a8d431e964acf421b2ad17",
+      "ab": "c151714a75d51d02ae70f98cbfbbf21a7f53637c",
+      "env": "sha256:08438a02fa79787cb15897d80abd9a1c07ca3957887ed6baaca4cb7a291b08e3",
+      "scenarios": "sha256:f974b90619edfce6284036499ff7a4ae9569e22a13337a7e1af6414edfbf972a"
+    },
+    "generator": {
+      "name": "replay",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:d09f65aab36846d18b9d8545a1d22dd4d336e7506a3a216f5f94c9f204efbb22"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_price_cache_reads.py::test_interleaved_lookups_read_each_sku_once": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_price_reads_current_backend.py::test_lookups_match_backend_values": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_set_price_after_cached_read.py::test_price_read_before_set_price_reflects_the_new_price": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "differential_b"
+      },
+      "fourway_scenarios/test_set_price_after_cached_read.py::test_successive_price_changes_are_each_visible": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "failed",
+        "finding": "differential_b"
+      },
+      "fourway_scenarios/test_set_price_rejection_keeps_price.py::test_rejected_price_leaves_previously_read_price_unchanged": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_set_price_rejection_keeps_price.py::test_set_price_on_unread_sku_is_visible": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "conflict",
+    "recorded_at": "2026-10-31T02:51:41.249341+00:00"
+  }
+}

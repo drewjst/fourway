@@ -1,0 +1,95 @@
+{
+  "label": "clean",
+  "expect": "ok",
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 4675,
+    "output_tokens": 2583,
+    "scenarios": {
+      "test_quote_counts_cached_prices.py": {
+        "kind": "intent_b",
+        "rationale": "Change B promises that a SKU listed twice in a basket counts twice. Change A adds a price cache, so on the merge quote() reads repeated SKUs from the cache rather than the backend. These tests check that the total still counts every occurrence once prices are cached."
+      },
+      "test_cache_covers_basket_quotes.py": {
+        "kind": "intent_a",
+        "rationale": "Change A says each SKU's price is read from the slow backend only once. Change B adds quote(), which looks up repeated SKUs within a single basket. These tests check that basket pricing reads each distinct SKU from the backend only once. When quote() is absent, the tests fall back to summing price() calls, so the scenario also holds on A alone."
+      },
+      "test_basket_total_consistency.py": {
+        "kind": "invariant",
+        "rationale": "On every tree, a basket total must equal the sum of the individual SKU prices, and each price must match the backend value, whether or not caching or quote() is present. When quote() is absent, the tests fall back to summing price() calls, so the scenario holds on the base tree too."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:aef4e9855ffb2437544543baa170fbd4075db8ed4408a4aed3bb78cb136b9c4e",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "f990b471c314a758fffb0e84e40647fba241cf98",
+      "a": "e6a1e6ab999832d3b924bd22374a98a4244915ca",
+      "b": "746cbb14d5183b6b56eeac81fe1c07a373f074a0",
+      "ab": "e23c533d05d55b50c0ca3c2b56f7f1e0bdd96211",
+      "env": "sha256:08438a02fa79787cb15897d80abd9a1c07ca3957887ed6baaca4cb7a291b08e3",
+      "scenarios": "sha256:f7652e7c6d80ffdaf5df2782f9bd222549a175c6a453705bb75a6c506986277f"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:d09f65aab36846d18b9d8545a1d22dd4d336e7506a3a216f5f94c9f204efbb22"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_basket_total_consistency.py::test_basket_total_matches_sum_of_prices": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_basket_total_consistency.py::test_prices_match_backend_and_skus_unchanged": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_cache_covers_basket_quotes.py::test_basket_with_repeats_reads_each_sku_once": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_cache_covers_basket_quotes.py::test_prices_read_before_a_basket_are_not_read_again": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_quote_counts_cached_prices.py::test_quote_counts_repeated_skus_after_prices_were_looked_up": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_quote_counts_cached_prices.py::test_repeated_quotes_give_the_same_total": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T02:42:51.680773+00:00"
+  }
+}

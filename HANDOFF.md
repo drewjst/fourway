@@ -1,7 +1,7 @@
 # HANDOFF — fourway
-State:    review — corpus v2 ready (cache-x-quote fixed by owner ruling); run 1 stays on record as a v1 run
-Next:     on owner approval, paid run 2 on corpus v2 (`uv run fourway bench --generator claude --repeat 3 --out runs/claude-2`, about $0.51), adjudicated by the rules in corpus/README.md and committed as results/<date>-claude-opus-5-5-run2/
-Blockers: owner approval to spend on run 2
+State:    review — run 2 done (results/2026-10-30-claude-opus-5-5-run2/): recall 3/3; false positives 1/3 as recorded, 0/3 rescored after the collection-abort fix (3b1893c); $0.08 per pair
+Next:     owner picks how to grow the corpus — the false-positive bar needs at least 73 clean pairs with none flagged to show under 5% at 95% confidence, and the corpus has 3; candidates are #3 (real repos, cases not written by Claude) and #5 (receipt twin)
+Blockers: owner decision on corpus growth (who writes the cases, from which repos); owner ruling on #6 (how `missing` is classified)
 Decisions this session:
 - Phase 0 is a benchmark only — no recall number exists to put behind an integration — rejected: GitHub App first (docs/decisions/0001)
 - Scenarios run as local subprocesses only on the seeded corpus — generated code from attacker-controlled diffs is a prompt-injection path to code execution — rejected: declarative scenarios, filtered-env local runner (docs/decisions/0002)
@@ -18,5 +18,7 @@ Decisions this session:
 - Every false positive is read and adjudicated before it is counted as generator error — run 1's only false positive was the corpus's mistake — rejected: scoring false positives mechanically
 - cache-x-quote fixed by removing `InMemoryPrices.write()` from the base; set-price's B adds it, and change A says prices change only on a redeploy (owner ruling 2026-10-30, corpus v2) — without the stated premise, a test backend whose prices move still made the clean twin a differential_b — rejected: relabeling cache-x-quote as a conflict
 - False-positive adjudication rules were written into corpus/README.md before run 2: descriptions are true, and state reached through a private attribute is unreachable — a rule written after seeing a score manufactures the score — rejected: adjudicating run 2 case by case afterward
+- pytest runs with `--continue-on-collection-errors` — one scenario importing B's new module stopped the session on base, so a regression in A read as differential_b (run 2's false conflict) — rejected: leaving it and adjudicating by hand. How the classifier reads a residual `missing` is #6
+- A run's score of record is the one recorded; a fix the run exposes is scored by replaying the saved scenarios (`bench --generator replay --from DIR`) and reported beside it — keeps the generated files fixed, so the change comes from the fix alone — rejected: a fresh paid run (new scenarios and the fix at once)
 - The `--corpus` default resolves to the checkout, so `uv run --project ~/Projects/fourway fourway ...` works from any directory — the first paid run failed from ~/Projects — rejected: documenting "cd first"
-Pointers: main · github.com/drewjst/fourway (public) · issues #1–#4 hold deferred work · `uv run pytest -q` (49 tests, about 35 s, no network) · src/fourway/claude.py · `fourway bench --generator claude|oracle|null|deranged` · corpus/README.md · docs/decisions/
+Pointers: main · github.com/drewjst/fourway (public) · issues #1–#4 hold deferred work · `uv run pytest -q` (51 tests, about 50 s, no network) · src/fourway/claude.py · `fourway bench --generator claude|oracle|null|deranged` · corpus/README.md · docs/decisions/

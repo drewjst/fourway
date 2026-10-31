@@ -1,0 +1,123 @@
+{
+  "label": "clean",
+  "expect": "ok",
+  "verdict": "clean",
+  "notes": {
+    "stop_reason": "end_turn",
+    "served_by": "claude-opus-5-5",
+    "input_tokens": 5057,
+    "output_tokens": 3148,
+    "scenarios": {
+      "test_retry_with_currency_keys.py": {
+        "kind": "intent_a",
+        "rationale": "Change A retries gateway timeouts. Each retry must reuse the same idempotency key so that a lost response is deduplicated rather than charged twice. Change B moves the currency into the key, so these tests run the retry on a non-USD order. On the merge, a single capture, a single event and the right call count confirm the retries still send a stable key. Trees without A fail because the first timeout is raised."
+      },
+      "test_requoted_currency.py": {
+        "kind": "intent_b",
+        "rationale": "Change B makes a re-quoted order in another currency get its own capture instead of receiving the earlier capture back. This test charges the same order id in USD and then in EUR, and checks that the gateway records two captures with distinct keys and that revenue counts both charges. Change A rewrote the charge path that builds the key, so the merge must keep this behavior. On the base tree the second charge returns the USD capture, so the test fails there."
+      },
+      "test_charge_at_most_once.py": {
+        "kind": "invariant",
+        "rationale": "Whatever the retry policy or key format, a single order in a single currency must never be captured more than once. The success event must also be published at most once, and only for a capture that really exists. The test injects lost-response timeouts and also repeats the charge call. These properties hold on the base and on each change alone, and the merge must keep them."
+      }
+    }
+  },
+  "evidence": {
+    "id": "sha256:087c7bff45b8140575a1ff7e5d805a8ec0a52f42695188c11d296eb1809f35be",
+    "schema": "fourway.evidence/v0",
+    "guards": {
+      "base": "f990b471c314a758fffb0e84e40647fba241cf98",
+      "a": "687d63d4883b5aed7c756c4aef79f34b56f6d955",
+      "b": "4dd9e2c448bfeaa8b037f2c52dabe592d8615437",
+      "ab": "a4ed1cb6991899a57fe4acd5bd1d506b9766813a",
+      "env": "sha256:08438a02fa79787cb15897d80abd9a1c07ca3957887ed6baaca4cb7a291b08e3",
+      "scenarios": "sha256:088ece4b812399f1d324567dbca4202dbe3cc38d1b34d9dfa948eaae4ce44f2a"
+    },
+    "generator": {
+      "name": "claude",
+      "models": [
+        "claude-opus-5-5"
+      ],
+      "config": {
+        "model": "claude-opus-5-5",
+        "effort": "high",
+        "prompt": "sha256:d09f65aab36846d18b9d8545a1d22dd4d336e7506a3a216f5f94c9f204efbb22"
+      }
+    },
+    "repeat": 3,
+    "tests": {
+      "fourway_scenarios/test_charge_at_most_once.py::test_charging_same_order_twice_captures_once": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_charge_at_most_once.py::test_lost_responses_never_double_capture[faults0-EUR]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_charge_at_most_once.py::test_lost_responses_never_double_capture[faults0-USD]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_charge_at_most_once.py::test_lost_responses_never_double_capture[faults1-EUR]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_charge_at_most_once.py::test_lost_responses_never_double_capture[faults1-USD]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_charge_at_most_once.py::test_lost_responses_never_double_capture[faults2-EUR]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_charge_at_most_once.py::test_lost_responses_never_double_capture[faults2-USD]": {
+        "base": "passed",
+        "a": "passed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_requoted_currency.py::test_requoted_order_gets_a_capture_per_currency": {
+        "base": "failed",
+        "a": "failed",
+        "b": "passed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_retry_with_currency_keys.py::test_retry_after_lost_response_yields_one_capture_for_eur_order": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      },
+      "fourway_scenarios/test_retry_with_currency_keys.py::test_retry_gives_up_after_three_timeouts_for_eur_order": {
+        "base": "failed",
+        "a": "passed",
+        "b": "failed",
+        "ab": "passed",
+        "finding": "ok"
+      }
+    },
+    "verdict": "clean",
+    "recorded_at": "2026-10-31T02:44:36.357671+00:00"
+  }
+}
