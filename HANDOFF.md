@@ -1,11 +1,11 @@
 # HANDOFF — fourway
-State:    review — run 1 done (results/2026-10-30-claude-opus-5-5-run1/): recall 3/3, false positives 1/3, $0.08 per pair; the false positive is a corpus labeling error
-Next:     after the owner rules on cache-x-quote, apply the ruling to the corpus and rerun as run 2 (`uv run fourway bench --generator claude --repeat 3 --out runs/claude-2`), reported separately from run 1
-Blockers: owner ruling on cache-x-quote — base `InMemoryPrices.write()` lets A's cache go stale on its own, so the "clean" twin holds a real differential_b. Proposed fix: drop `write()` from the base so B's `set_price` adds the only write path. Not mine to make: the corpus and the generator share an author (Claude)
+State:    review — corpus v2 ready (cache-x-quote fixed by owner ruling); run 1 stays on record as a v1 run
+Next:     on owner approval, paid run 2 on corpus v2 (`uv run fourway bench --generator claude --repeat 3 --out runs/claude-2`, about $0.51), adjudicated by the rules in corpus/README.md and committed as results/<date>-claude-opus-5-5-run2/
+Blockers: owner approval to spend on run 2
 Decisions this session:
 - Phase 0 is a benchmark only — no recall number exists to put behind an integration — rejected: GitHub App first (docs/decisions/0001)
 - Scenarios run as local subprocesses only on the seeded corpus — generated code from attacker-controlled diffs is a prompt-injection path to code execution — rejected: declarative scenarios, filtered-env local runner (docs/decisions/0002)
-- Every conflict case has a clean twin that changes only side B — stops a generator from scoring by matching on touched files — rejected: unrelated clean controls
+- Conflict cases get a clean twin that makes the same change A and changes only side B; tests/test_bench.py checks twins share A — stops a generator from scoring by matching on touched files — rejected: unrelated clean controls. receipt-x-event-rename has no twin yet (#5)
 - A pair with no usable scenario is `unverified`, never `clean` — an agent asking "was this verified?" must not hear yes when nothing ran — rejected: empty result reads as clean
 - Corpus check allows a test that is missing from a tree — a side may delete a test; only a red test would alert CI — rejected: requiring every test to exist on the merge
 - Corpus files are copied with fresh mtimes — copy2 kept source mtimes, so on a fresh CI checkout git's stat cache skipped same-size overlay files and a seeded conflict read as clean (caught by check-corpus on CI; tests/test_case.py) — rejected: forcing `git add --renormalize` on every commit (re-hashes every tracked file in real repos)
@@ -16,5 +16,7 @@ Decisions this session:
 - Python stays for Phase 0; Go is the recommended language for the sandboxed runner (#2) — language does not change recall, and container orchestration and single-binary install are where Go pays off — rejected: porting before the recall number exists. Recommendation only; the owner has not ruled
 - Benchmark evidence is committed under results/<date>-<model>-runN/ with a README naming what flatters the numbers; a corpus change after a run is reported as a new run, never folded into the old one — a label fixed after seeing the score is the easiest way to manufacture recall — rejected: keeping runs only in the gitignored runs/ directory
 - Every false positive is read and adjudicated before it is counted as generator error — run 1's only false positive was the corpus's mistake — rejected: scoring false positives mechanically
+- cache-x-quote fixed by removing `InMemoryPrices.write()` from the base; set-price's B adds it, and change A says prices change only on a redeploy (owner ruling 2026-10-30, corpus v2) — without the stated premise, a test backend whose prices move still made the clean twin a differential_b — rejected: relabeling cache-x-quote as a conflict
+- False-positive adjudication rules were written into corpus/README.md before run 2: descriptions are true, and state reached through a private attribute is unreachable — a rule written after seeing a score manufactures the score — rejected: adjudicating run 2 case by case afterward
 - The `--corpus` default resolves to the checkout, so `uv run --project ~/Projects/fourway fourway ...` works from any directory — the first paid run failed from ~/Projects — rejected: documenting "cd first"
-Pointers: main · github.com/drewjst/fourway (public) · issues #1–#4 hold deferred work · `uv run pytest -q` (48 tests, about 35 s, no network) · src/fourway/claude.py · `fourway bench --generator claude|oracle|null|deranged` · corpus/README.md · docs/decisions/
+Pointers: main · github.com/drewjst/fourway (public) · issues #1–#4 hold deferred work · `uv run pytest -q` (49 tests, about 35 s, no network) · src/fourway/claude.py · `fourway bench --generator claude|oracle|null|deranged` · corpus/README.md · docs/decisions/

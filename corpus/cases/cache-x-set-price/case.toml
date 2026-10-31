@@ -7,12 +7,14 @@ class = "cache x invalidation"
 title = "Cache prices in Catalog"
 body = """
 The pricing service takes about 80 ms per read, and the cart page reads each
-SKU several times. Catalog now keeps every price it has read.
+SKU several times. Prices change only when the price list is redeployed, so
+Catalog now keeps every price it has read.
 """
 
 [b]
 title = "Add Catalog.set_price for the admin price editor"
 body = """
-The admin price editor wrote to the pricing backend directly. It now goes
-through Catalog.set_price, which rejects prices of zero or less.
+Changing a price took a redeploy of the price list. The admin price editor
+now changes a price through Catalog.set_price, which rejects prices of zero
+or less.
 """

@@ -7,7 +7,8 @@ class = "cache x invalidation"
 title = "Cache prices in Catalog"
 body = """
 The pricing service takes about 80 ms per read, and the cart page reads each
-SKU several times. Catalog now keeps every price it has read.
+SKU several times. Prices change only when the price list is redeployed, so
+Catalog now keeps every price it has read.
 """
 
 [b]

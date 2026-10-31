@@ -12,9 +12,6 @@ class InMemoryPrices:
         self.reads += 1
         return self._prices[sku]
 
-    def write(self, sku, cents):
-        self._prices[sku] = cents
-
     def skus(self):
         return sorted(self._prices)
 

@@ -30,8 +30,9 @@ stale. The generator wrote a test that `quote()` reflects a backend write, which
 fails on the merge and is a valid `differential_b` finding by the table's
 definition. The same flaw underlies part of `cache-x-set-price`.
 
-The corpus has not been changed after this run. Fixing the label or the base
-tree is open, and any fix must be followed by a rerun reported separately.
+After this run, the owner ruled to remove `write()` from the base tree. Corpus
+v2 holds that fix, as described in [`corpus/README.md`](../../corpus/README.md).
+The numbers on this page are v1 numbers and stay as recorded.
 
 ## Why these numbers flatter the generator
 

@@ -33,6 +33,25 @@ def test_every_case_matches_its_answer_key(cases, case_id):
     assert bench.check_case(case) == []
 
 
+def test_twins_make_the_same_change_a(cases):
+    """A clean twin controls for change A only if A is identical; otherwise a generator can score by telling the A sides apart."""
+    by_class: dict[str, list] = {}
+    for case in cases:
+        by_class.setdefault(case.conflict_class, []).append(case)
+    twins = [group for group in by_class.values() if len(group) > 1]
+    assert twins
+    for group in twins:
+        assert sorted(c.label for c in group) == ["clean", "conflict"]
+        first, second = group
+
+        def files(side):
+            return {p.relative_to(side.overlay): p.read_bytes() for p in side.overlay.rglob("*") if p.is_file()}
+
+        assert first.a.intent == second.a.intent
+        assert first.a.deleted == second.a.deleted
+        assert files(first.a) == files(second.a)
+
+
 def test_check_rejects_a_mislabeled_case(cases):
     case = next(c for c in cases if c.label == "conflict")
     problems = bench.check_case(dataclasses.replace(case, label="clean"))

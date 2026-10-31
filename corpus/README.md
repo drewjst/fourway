@@ -16,8 +16,11 @@ cases/<id>/oracle/        the hidden scenario that demonstrates the answer
 
 ## Cases
 
-The following table lists the cases. Each conflict case has a clean twin that
-makes the same change A and a different change B:
+The following table lists the cases. A clean twin makes the same change A as a
+conflict case and a different change B, so a generator can't score by matching
+on the files a pair touches. Two of the three conflict cases have a twin, and
+`tests/test_bench.py` checks that twins share change A. The twin for
+`receipt-x-event-rename` is tracked in issue #5.
 
 | Case | Label | Oracle finding | What happens on the merge |
 |---|---|---|---|
@@ -41,6 +44,34 @@ makes the same change A and a different change B:
    It never mentions the other change or the interaction.
 5. Nothing a generator can see names the case, the label, or the oracle.
    `tests/test_bench.py` checks this for the oracle source and the case id.
+
+## Adjudicate a false positive
+
+A false positive is read before it counts. It counts against the generator
+unless the scenario shows that the label is wrong. A wrong label is fixed in a
+new corpus version and measured by a new run. The following rules were set
+before run 2:
+
+- Descriptions are true statements about the code. A scenario that contradicts
+  one counts against the generator. For example, in `cache-x-quote`, change A
+  says that prices change only when the price list is redeployed, so a test
+  backend whose prices change while the app runs contradicts it.
+- A scenario that reaches a state through a private attribute, for example by
+  assigning to `InMemoryPrices._prices`, tests a state that the app can't
+  enter. It counts against the generator.
+
+## Versions
+
+Runs on different corpus versions are reported separately and never pooled.
+
+- **v2, 2026-10-30**: The base `InMemoryPrices` has no `write()`, so the base
+  app can't change a price while it runs. In `cache-x-set-price`, change B adds
+  `write()` along with `set_price`, and its description no longer says that the
+  admin editor wrote to the backend directly. Change A in both cache cases says
+  that prices change only when the price list is redeployed. Run 1 showed that
+  in v1, change A's cache went stale by itself, so `cache-x-quote` held a real
+  `differential_b` and wasn't clean.
+- **v1, 2026-10-30**: The first six cases. Run 1 used this version.
 
 ## Known limits
 
