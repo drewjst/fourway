@@ -63,14 +63,20 @@ def check_case(case: Case) -> list[str]:
             _, trees = pipeline.build_trees(pair.repo, pair.base, pair.a, pair.b, work / "suite")
         except gitops.MergeConflict as e:
             return [str(e)]
-        suite = runner.run_four_way(trees, "tests", work / "suite-reports")
+        suite = runner.run_four_way(trees, case.suite.tests, work / "suite-reports", suite=case.suite)
+        if not suite:
+            problems.append(f"existing suite: no tests ran from {case.suite.tests!r}")
         for test, by_variant in suite.items():
             for variant, outcome in by_variant.items():
                 # "missing" means the tree does not have the test, for example
-                # because one side deleted it. Only a red test would alert CI.
-                if outcome not in ("passed", "missing"):
+                # because one side deleted it, and a real repository skips tests
+                # whose optional dependencies are absent. Only a red test would
+                # alert CI.
+                if outcome not in ("passed", "missing", "skipped"):
                     problems.append(f"existing suite: {test} is {outcome} on {variant}")
-        result = pipeline.verify(pair.repo, pair.base, pair.a, pair.b, oracle, work / "oracle")
+        result = pipeline.verify(
+            pair.repo, pair.base, pair.a, pair.b, oracle, work / "oracle", suite=case.suite
+        )
     if case.expect not in result.findings.values():
         problems.append(f"oracle findings {sorted(set(result.findings.values()))} lack {case.expect!r}")
     if (result.verdict == "conflict") != (case.label == "conflict"):
@@ -122,11 +128,12 @@ def run(
                 diff_b=gitops.diff(pair.repo, pair.base, pair.b),
                 intent_a=case.a.intent,
                 intent_b=case.b.intent,
+                pythonpath=case.suite.pythonpath,
             )
             scenarios = source(case, ctx)
             result = pipeline.verify(
                 pair.repo, pair.base, pair.a, pair.b, scenarios.files, work / "run",
-                repeat=repeat, timeout=timeout,
+                repeat=repeat, timeout=timeout, suite=case.suite,
             )
         rec = ledger.record(
             result, scenarios.files, generator=generator, models=scenarios.models,

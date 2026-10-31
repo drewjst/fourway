@@ -40,6 +40,22 @@ class RunReport:
         return "missing"
 
 
+@dataclass(frozen=True)
+class Suite:
+    """How pytest runs in a tree of one repository.
+
+    ``tests`` holds the repository's own test suite. ``pythonpath`` lists
+    directories put on sys.path after the tree root, such as ``src`` for a
+    src-layout package. ``args`` are extra pytest flags for every run in the
+    repository, scenario runs included, for example to drop an ``addopts``
+    that needs a plugin fourway does not install.
+    """
+
+    tests: str = "tests"
+    pythonpath: tuple[str, ...] = ()
+    args: tuple[str, ...] = ()
+
+
 def install_scenarios(tree: Path, scenarios: Mapping[str, str]) -> None:
     target = tree / SCENARIO_DIR
     target.mkdir()
@@ -49,11 +65,11 @@ def install_scenarios(tree: Path, scenarios: Mapping[str, str]) -> None:
         (target / name).write_text(source)
 
 
-def run_pytest(tree: Path, target: str, report: Path, timeout: float) -> RunReport:
+def run_pytest(tree: Path, target: str, report: Path, timeout: float, suite: Suite = Suite()) -> RunReport:
     env = {
         "PATH": os.environ.get("PATH", ""),
         "HOME": os.environ.get("HOME", ""),
-        "PYTHONPATH": str(tree),
+        "PYTHONPATH": os.pathsep.join(str(tree / p) for p in (".", *suite.pythonpath)),
         "PYTHONHASHSEED": "0",
         "PYTHONDONTWRITEBYTECODE": "1",
         "FOURWAY_REPORT": str(report),
@@ -67,6 +83,7 @@ def run_pytest(tree: Path, target: str, report: Path, timeout: float) -> RunRepo
         # other scenario reads as "missing" on that tree. A scenario that imports
         # a module only one side adds does exactly that on the other trees.
         "--continue-on-collection-errors",
+        *suite.args,
     ]
     try:
         subprocess.run(cmd, cwd=tree, env=env, capture_output=True, timeout=timeout)
@@ -85,6 +102,7 @@ def run_four_way(
     *,
     repeat: int = 1,
     timeout: float = 120.0,
+    suite: Suite = Suite(),
 ) -> dict[str, dict[str, str]]:
     """Run ``target`` on each tree ``repeat`` times. Return {test id: {variant: outcome}}.
 
@@ -96,7 +114,7 @@ def run_four_way(
 
     def run_variant(variant: str) -> list[RunReport]:
         return [
-            run_pytest(trees[variant], target, reports_dir / f"{variant}-{i}.json", timeout)
+            run_pytest(trees[variant], target, reports_dir / f"{variant}-{i}.json", timeout, suite)
             for i in range(repeat)
         ]
 

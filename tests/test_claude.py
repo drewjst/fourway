@@ -111,6 +111,23 @@ def test_a_tree_too_large_for_the_prompt_fails_loudly(tmp_path):
         claude.render_tree(tmp_path)
 
 
+def test_the_tree_shows_python_and_the_root_readme_only(tmp_path):
+    """A real repository's docs and lock files would crowd its code out of the prompt budget."""
+    for name in ("README.md", "src/pkg/core.py", "docs/README.md", "uv.lock", "docs/guide.rst"):
+        (tmp_path / name).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / name).write_text(f"contents of {name}\n")
+    shown = claude.render_tree(tmp_path)
+    assert 'path="README.md"' in shown and 'path="src/pkg/core.py"' in shown
+    assert "docs/" not in shown and "uv.lock" not in shown
+
+
+def test_extra_import_roots_reach_the_prompt_only_when_set(ctx):
+    """A src-layout package is not importable from the root; the model must know where to import from."""
+    assert "also on sys.path" not in claude.render_prompt(ctx)
+    src_layout = PairContext(ctx.base_tree, ctx.diff_a, ctx.diff_b, ctx.intent_a, ctx.intent_b, ("src",))
+    assert "These directories are also on sys.path: src." in claude.render_prompt(src_layout)
+
+
 def test_bench_runs_parsed_scenarios_and_never_sends_the_answer():
     """End to end at the API boundary: what leaves the machine has no oracle and no case id."""
     cases = load_corpus(CORPUS)

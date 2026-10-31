@@ -7,12 +7,45 @@ a `conflict` verdict on the conflict cases and not on the clean ones.
 ## Layout
 
 ```
-apps/payments/            base tree shared by every case
+apps/payments/            base tree shared by the toy cases
+repos/<name>.toml         a real repository pinned to one commit
 cases/<id>/case.toml      label, expected oracle finding, class, and each side's description
-cases/<id>/a/             files change A adds or replaces
-cases/<id>/b/             files change B adds or replaces
+cases/<id>/a/, b/         files change A or B adds or replaces
+cases/<id>/a.patch, b.patch  a diff change A or B applies, for cases in a real repository
 cases/<id>/oracle/        the hidden scenario that demonstrates the answer
 ```
+
+A case's `base` is either a path to a directory, such as
+`"../../apps/payments"`, or a table that names a pinned repository, such as
+`{ repo = "cachetools" }`.
+
+## Real repositories
+
+A file in `repos/` pins one commit of a real repository and says how its
+tests run:
+
+```toml
+url = "https://github.com/OWNER/NAME"
+commit = "FULL_40_CHARACTER_SHA"
+license = "MIT"
+tests = "tests"                  # the repository's own suite
+pythonpath = ["src"]             # added to sys.path after the repository root
+pytest_args = ["-o", "addopts="] # added to every pytest run in the repository
+```
+
+fourway fetches the commit once into `~/.cache/fourway`, or into
+`$FOURWAY_CACHE` when it is set, and builds every case from that copy. It
+refuses a short SHA, a commit the URL doesn't provide, and a repository whose
+`.gitattributes` uses `export-ignore` or `export-subst`.
+
+Cases in a real repository change it with patches, not whole files, so the
+corpus carries only the seeded lines of upstream code. An upstream test that
+is skipped, for example because an optional dependency is absent, doesn't
+count as red.
+
+Building these cases runs the upstream repository's code: its test suite on
+four trees, and every scenario against its modules. Pin only commits of
+projects you would install.
 
 ## Cases
 

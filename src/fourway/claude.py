@@ -87,8 +87,12 @@ SCHEMA = {
     "additionalProperties": False,
 }
 
+# What render_tree shows the model. Part of the digest, so evidence records
+# which view of the repository a run used.
+TREE_RULE = "Python files, plus a README at the repository root"
+
 PROMPT_DIGEST = "sha256:" + hashlib.sha256(
-    (SYSTEM + json.dumps(SCHEMA, sort_keys=True)).encode()
+    (SYSTEM + json.dumps(SCHEMA, sort_keys=True) + TREE_RULE).encode()
 ).hexdigest()
 
 
@@ -96,10 +100,16 @@ class TreeTooLarge(ValueError):
     """The base tree does not fit the prompt. Selecting files is not built yet."""
 
 
+def _shown(path: Path, root: Path) -> bool:
+    rel = path.relative_to(root)
+    return path.suffix == ".py" or (len(rel.parts) == 1 and rel.name.upper().startswith("README"))
+
+
 def render_tree(root: Path) -> str:
+    """Render the files TREE_RULE names. Docs, lock files, and data stay out to fit the budget."""
     parts = []
     total = 0
-    for path in sorted(p for p in root.rglob("*") if p.is_file()):
+    for path in sorted(p for p in root.rglob("*") if p.is_file() and _shown(p, root)):
         try:
             text = path.read_text()
         except UnicodeDecodeError:
@@ -118,7 +128,10 @@ def render_prompt(ctx: PairContext) -> str:
             f'<change name="{name}">\n<title>{intent.title}</title>\n'
             f"<description>\n{intent.body}\n</description>\n<diff>\n{diff}</diff>\n</change>"
         )
-    return "\n\n".join([render_tree(ctx.base_tree), *changes, "Write the scenarios."])
+    path_note = []
+    if ctx.pythonpath:
+        path_note = [f"These directories are also on sys.path: {', '.join(ctx.pythonpath)}."]
+    return "\n\n".join([render_tree(ctx.base_tree), *path_note, *changes, "Write the scenarios."])
 
 
 def _safe_name(raw: str, taken: dict[str, str]) -> str:

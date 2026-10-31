@@ -46,8 +46,10 @@ def test_twins_make_the_same_change_a(cases):
         first, second = group
 
         def files(side):
-            return {p.relative_to(side.overlay): p.read_bytes() for p in side.overlay.rglob("*") if p.is_file()}
+            overlay = {p.relative_to(side.overlay): p.read_bytes() for p in side.overlay.rglob("*") if p.is_file()}
+            return overlay, side.patch.read_bytes() if side.patch else None
 
+        assert first.base == second.base
         assert first.a.intent == second.a.intent
         assert first.a.deleted == second.a.deleted
         assert files(first.a) == files(second.a)
@@ -98,7 +100,7 @@ def test_blind_generators_never_see_the_answer(cases, monkeypatch):
         name = "recorder"
 
         def generate(self, ctx):
-            files = {p.relative_to(ctx.base_tree).as_posix(): p.read_text()
+            files = {p.relative_to(ctx.base_tree).as_posix(): p.read_bytes().decode(errors="replace")
                      for p in ctx.base_tree.rglob("*") if p.is_file()}
             seen.append((ctx, files))
             return generators.Scenarios({})

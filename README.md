@@ -58,7 +58,9 @@ The repository contains the following:
   scenarios from the base tree, both diffs, and both change descriptions. Each
   scored run is recorded in [`results/`](results/).
 
-It doesn't contain cases seeded into real repositories or a sandboxed runner.
+A case can pin a commit of a real repository and change it with patches.
+The corpus has no cases in real repositories yet, and the runner isn't
+sandboxed.
 
 ## Usage
 

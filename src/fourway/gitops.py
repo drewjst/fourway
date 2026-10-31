@@ -78,6 +78,10 @@ def resolve(repo: Path, ref: str) -> str:
     return git(repo, "rev-parse", "--verify", f"{ref}^{{commit}}")
 
 
+def has_commit(repo: Path, sha: str) -> bool:
+    return _run(repo, "cat-file", "-e", f"{sha}^{{commit}}", check=False).returncode == 0
+
+
 def merge(repo: Path, a: str, b: str) -> str:
     """Return the SHA of a merge commit of A and B, or raise MergeConflict."""
     proc = _run(repo, "merge-tree", "--write-tree", "--name-only", a, b, check=False)

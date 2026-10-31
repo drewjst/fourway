@@ -31,6 +31,7 @@ class PairContext:
     diff_b: str
     intent_a: Intent
     intent_b: Intent
+    pythonpath: tuple[str, ...] = ()  # directories on sys.path after the repository root
 
 
 @dataclass(frozen=True)
