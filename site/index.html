@@ -682,44 +682,44 @@ def test_lost_response_never_captures_twice():
       <ul class="measures">
         <li class="measure">
           <span class="name">Conflicts found</span>
-          <span class="value">3 of 3<span>seeded conflicts</span></span>
-          <div class="track" role="img" aria-label="Recall 3 of 3. The 95 percent interval runs from 44 to 100 percent. The bar is 50 percent.">
+          <span class="value">6 of 6<span>seeded conflicts</span></span>
+          <div class="track" role="img" aria-label="Recall 6 of 6. The 95 percent interval runs from 61 to 100 percent. The bar is 50 percent.">
             <div class="rail"></div>
-            <div class="interval" style="left: 44%; width: 56%"></div>
+            <div class="interval" style="left: 61%; width: 39%"></div>
             <div class="point" style="left: 100%"></div>
             <div class="bar" style="left: 50%"></div>
             <span class="bar-label" style="left: 50%">Bar: 50% or more</span>
             <span class="end end-l">0%</span><span class="end end-r">100%</span>
           </div>
-          <div class="verdict"><span class="tag tag-exploring">Not proven yet</span><p>The 95% interval is 44% to 100%. Three cases can't rule out recall below the bar.</p></div>
+          <div class="verdict"><span class="tag tag-next">Above the bar</span><p>The 95% interval, 61% to 100%, is above the bar. Claude wrote both the cases and the tests, so they might share blind spots.</p></div>
         </li>
         <li class="measure">
           <span class="name">False alarms</span>
-          <span class="value">1 of 3<span>clean pairs, as recorded</span></span>
-          <div class="track" role="img" aria-label="False alarms 1 of 3. The 95 percent interval runs from 6 to 79 percent. The bar is under 5 percent.">
+          <span class="value">1 of 6<span>clean pairs</span></span>
+          <div class="track" role="img" aria-label="False alarms 1 of 6. The 95 percent interval runs from 3 to 56 percent. The bar is under 5 percent.">
             <div class="rail"></div>
-            <div class="interval" style="left: 6%; width: 73%"></div>
-            <div class="point" style="left: 33.3%"></div>
+            <div class="interval" style="left: 3%; width: 53%"></div>
+            <div class="point" style="left: 16.7%"></div>
             <div class="bar" style="left: 5%"></div>
             <span class="bar-label bar-start" style="left: 0">Bar: under 5%</span>
             <span class="end end-l">0%</span><span class="end end-r">100%</span>
           </div>
-          <div class="verdict"><span class="tag tag-exploring">Not proven yet</span><p>The false alarm was a bug in fourway's runner. After the fix, the same tests flag 0 of 3. Proving under 5% takes at least 73 clean pairs with none flagged.</p></div>
+          <div class="verdict"><span class="tag tag-exploring">Not proven yet</span><p>The flagged pair has a real bug in one change alone. A test that also used the other change's new code made it read as a conflict, and the rules count that as fourway's error. Proving under 5% takes at least 73 clean pairs with none flagged.</p></div>
         </li>
         <li class="measure">
           <span class="name">Model cost</span>
-          <span class="value">$0.08<span>per pair</span></span>
-          <div class="track" role="img" aria-label="Cost 8 cents per pair. The bar is under 5 dollars.">
+          <span class="value">$0.24<span>per pair</span></span>
+          <div class="track" role="img" aria-label="Cost 24 cents per pair. The bar is under 5 dollars.">
             <div class="rail"></div>
-            <div class="point" style="left: 1.4%"></div>
+            <div class="point" style="left: 4%"></div>
             <div class="bar" style="left: 83.3%"></div>
             <span class="bar-label bar-end" style="left: 83.3%">Bar: under $5</span>
             <span class="end end-l">$0</span><span class="end end-r">$6</span>
           </div>
-          <div class="verdict"><span class="tag tag-built">Clears the bar</span><p>$0.47 in total for six pairs, with one model call per pair.</p></div>
+          <div class="verdict"><span class="tag tag-built">Clears the bar</span><p>$2.82 in total for twelve pairs, with one model call per pair. Pairs in real repositories averaged $0.39, and none cost more than $0.50.</p></div>
         </li>
       </ul>
-      <p class="bench-foot">Run 2, Claude Opus 5.5, 2026-10-30, on six cases: three conflicts and three clean pairs. The benchmark has since grown to twelve cases, six of them seeded into real open-source repositories, and run 3 on that set isn't scored yet. Published test-generation research found about a third of semantic conflicts (SAM detected 9 of 29).</p>
+      <p class="bench-foot"><a href="https://github.com/drewjst/fourway/tree/main/results/2026-10-30-claude-opus-5-5-run3">Run 3</a>, Claude Opus 5.5, 2026-10-30, on twelve cases: six conflicts and six clean pairs, half of each seeded into real open-source repositories. Published test-generation research found about a third of semantic conflicts (SAM detected 9 of 29).</p>
     </div>
   </section>
 
