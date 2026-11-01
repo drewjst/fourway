@@ -1,0 +1,33 @@
+base = { repo = "mistune", commit = "c3b9f704bd5c6d792fc070c59721a4ca572c9e77" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Preserve escaped pipes in Markdown table code spans"
+pr = "https://github.com/lepture/mistune/pull/500"
+from = "c3b9f704bd5c6d792fc070c59721a4ca572c9e77"
+to = "59ca945af3c0190dcac72dcd9ae0620691aae62d"
+body = """
+Reformatting a table whose code span contains an escaped pipe adds another backslash, so parsing the output treats the table as a paragraph. Keep existing escape pairs when escaping cell separators. Regression tests cover code spans in headers and body cells, multiple escaped pipes, and ordinary escaped text pipes.
+
+Validation: six new subcases fail against unchanged main. With the fix, the full suite passes (1160 tests and 12 subtests on Python 3.11.5); Ruff lint and formatting checks and Mypy (38 source files) pass. Table regressions also pass on Python 3.12.11. The full supported-Python CI matrix has not been run locally.
+
+Prepared with OpenAI Codex assistance.
+
+"""
+
+[b]
+title = "Prefer longer registered abbreviation matches"
+pr = "https://github.com/lepture/mistune/pull/497"
+from = "59ca945af3c0190dcac72dcd9ae0620691aae62d"
+to = "26e544f9d3a28735ce6c3a58732b35829a470990"
+body = """
+When a shorter abbreviation is defined first, it shadows a longer abbreviation sharing its prefix. For example, defining both `HTML` and `HTML5` wraps only `HTML` inside the text `HTML5` and uses the wrong expansion.
+
+Build the abbreviation alternatives from longest to shortest so every defined longer label can be selected. Keep existing partial-word expansion behavior. Fixtures cover simple and multiword overlapping labels plus the reverse definition order, across both HTML renderer modes.
+
+Validation: all 1164 tests pass with 93% source coverage. Full Ruff checks and strict Mypy pass (38 source files); changed source formatting passes. Four new fixture cases fail before the change.
+
+"""

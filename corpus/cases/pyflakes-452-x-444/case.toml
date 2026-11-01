@@ -1,0 +1,28 @@
+base = { repo = "pyflakes", commit = "4a807d45f9dd47266c82035bf6e04508a77f0258" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Fix NoneType has no attribute parent when handling doctests"
+pr = "https://github.com/PyCQA/pyflakes/pull/452"
+from = "4a807d45f9dd47266c82035bf6e04508a77f0258"
+to = "2136e1e9f4559930114c82ba316daada7d31836a"
+body = """
+Do not define a special `_` name in doctest scope when the global scope already has a `_`.  This mirrors the way doctests actually work: the special `_` value is assigned only when a global of that name doesn't
+already exist.
+
+Fixes #421.
+"""
+
+[b]
+title = "namespace pyflakes's node monkeypatches"
+pr = "https://github.com/PyCQA/pyflakes/pull/444"
+from = "8545604e73feb75fc4ec5668e4a1bbc11771fa6a"
+to = "2107445338793544e7d9be80b63ae03d4295c994"
+body = """
+See https://gitlab.com/pycqa/flake8/issues/536 for full explanation
+
+Basically bandit *also* monkeypatches `astnode.parent` which confuses `pyflakes`.  This manifests when running both of the tools as plugins inside of flake8.
+"""

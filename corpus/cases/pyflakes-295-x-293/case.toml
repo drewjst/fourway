@@ -1,0 +1,32 @@
+base = { repo = "pyflakes", commit = "6a9fcbca1ed92f6db4f356c3de23bd33538db5c9" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Make `pyflakes` happy about its our own code"
+pr = "https://github.com/PyCQA/pyflakes/pull/295"
+from = "6a9fcbca1ed92f6db4f356c3de23bd33538db5c9"
+to = "111538679d461f51db682d6d1d705b95b7b95ce5"
+body = """
+From https://github.com/PyCQA/pyflakes/issues/246#issuecomment-330001086:
+
+> It does seem unfortunate that `pyflakes` doesn't run cleanly on its own codebase. I run into this every time I edit `pyflakes/checker.py`.
+>
+> ```
+> $ pyflakes .
+> ./pyflakes/checker.py:40: undefined name 'unicode'
+> ```
+
+*Note that Travis CI's `pypy3` will fail for an unrelated reason. Fixing that requires merging #294.*
+"""
+
+[b]
+title = "Add check for unused exception binding in except: block"
+pr = "https://github.com/PyCQA/pyflakes/pull/293"
+from = "da2dd4a09f41661bcd67afdd0696b97bc8e2a54f"
+to = "ef6f4383b69d2acfedefb261c6cf2a79e9ec7968"
+body = """
+
+"""

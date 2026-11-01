@@ -30,6 +30,7 @@ url = "https://github.com/OWNER/NAME"
 commit = "FULL_40_CHARACTER_SHA"
 license = "MIT"
 tests = "tests"                  # the repository's own suite
+former_tests = ["testsuite"]     # where the suite lived before, for fourway mine
 pythonpath = ["src"]             # added to sys.path after the repository root
 pytest_args = ["-o", "addopts="] # added to every pytest run in the repository
 packages = ["src/NAME/"]         # where the package's code lives, for fourway mine
@@ -62,10 +63,17 @@ seeded. It uses the same case format, with three differences:
   the diff between them. The corpus carries no upstream code, only commit
   SHAs and each pull request's title, link, and description.
 - The `base` table names the base commit.
-- It has no `oracle/` and no `expect`. Its label is always `clean`, and the
-  label rests on history: the project merged both changes and reverted
-  neither. That is an assumption, not a verified fact. A latent conflict that
-  nobody noticed still carries the clean label.
+- It has no `oracle/` and no `expect`. Its label is `clean`, and the label
+  rests on history: the project merged both changes and reverted neither.
+  That is an assumption, not a verified fact. A latent conflict that nobody
+  noticed still carries the clean label.
+
+When a run shows that a mined pair holds a conflict the history missed, and
+the owner rules that it does, a new corpus version relabels it `conflict` and
+adds an `oracle/` and an `expect` written by the corpus author. The sides
+still name upstream commits. `check-corpus --prune-mined` never deletes a pair
+that has an oracle, so a relabeled pair that stops building fails the check
+instead of disappearing.
 
 ### The mining rule
 
@@ -80,7 +88,7 @@ was fixed on 2026-10-31, before any generator ran on a mined pair:
    rebase merge spreads a pull request over commits that the history can't
    delimit, so it is skipped.
 3. A landing is code if it changes a Python file in the package, outside test
-   directories and `test_*` files.
+   directories (`tests/` or `test/`) and `test_*` files.
 4. Walk the code landings in order. Pair each one with the next if that pull
    request was opened before the first one merged. A pull request joins at
    most one pair, so the pairs count as independent trials.
@@ -230,18 +238,44 @@ parser or container change with a rendering change in the same subsystem.
 Five of the ten sampled pairs are in the corpus only because of the exception
 in rule 7, which ignores tests that fail alike on all four trees.
 
+For v6, the corpus author read 10 of the 72 pairs that v6 adds, drawn the same
+way from their sorted ids. Every label holds.
+
+| Pair | Change A | Change B |
+|---|---|---|
+| `mistune-467-x-466` | Rejects a table whose second row isn't a delimiter row | Treats a backslash in a link destination as an escape only before punctuation |
+| `mistune-486-x-499` | Escapes literal hashes at the end of a heading in the Markdown renderer | Parses task markers only when a list item starts with a paragraph |
+| `mistune-506-x-505` | Accepts definition-list markers indented by up to three spaces | Splits rendered list items only on LF |
+| `pycodestyle-1019-x-1003` | Lets a typed `__all__` precede imports | Treats a soft keyword before `*` as a pattern, not an operand |
+| `pycodestyle-1154-x-1086` | Rewrites E231 over tokens, so f-string format specs pass on 3.12 | Allows `is` and `is not` in type comparisons (E721) |
+| `pycodestyle-1254-x-1255` | Builds a check's arguments with a list comprehension | Strips three trailing characters in one `rstrip` call |
+| `pycodestyle-697-x-663` | Fixes the quoting in E722's message | Lets a `verbose` option override `-v` |
+| `pycodestyle-919-x-918` | Allows fewer blank lines before the first top-level statement | Accepts `/` before `)` and `):` for positional-only parameters (E225) |
+| `pyflakes-544-x-535` | Reads tuple concatenation in `__all__` (F822) | Treats an annotation without a value as unbound |
+| `pyflakes-698-x-694` | Binds an assignment expression in a comprehension in the enclosing scope | Checks `try`/`except*` like `try` |
+
+The sample showed two things:
+
+- `pycodestyle` is a single module, so every one of its pairs changes the same
+  file, and most pair two unrelated checks. They're easier to call clean than
+  their `same file` class suggests.
+- Both sides of `pycodestyle-1254-x-1255` are refactors that keep behavior,
+  but the `runtime` tag counts both, because the syntax tree changes. The tag
+  catches docstring, annotation, and layout changes, not refactors.
+
 ## Cases
 
 The following table lists the cases. A clean twin makes the same change A as a
 conflict case and a different change B, so a generator can't score by matching
-on the files a pair touches. Five of the six conflict cases have a twin, and
-`tests/test_bench.py` checks that twins share change A. The twin for
-`receipt-x-event-rename` is tracked in issue #5.
+on the files a pair touches. Five of the six seeded conflict cases have a
+twin, and `tests/test_bench.py` checks that twins share change A. The twin for
+`receipt-x-event-rename` is tracked in issue #5. The mined conflict has none,
+because history supplies no change B to swap in.
 
 The first six cases share the toy payments app in `apps/payments/`. The other
 six seed changes into pinned commits of three real repositories, listed in
-`repos/`. The mined pairs aren't listed here; each one's `case.toml` links its
-two pull requests.
+`repos/`. The mined pairs aren't listed here, except the one relabeled as a
+conflict; each one's `case.toml` links its two pull requests.
 
 | Case | Label | Oracle finding | What happens on the merge |
 |---|---|---|---|
@@ -257,6 +291,7 @@ two pull requests.
 | `tenacity-idle-budget-x-sleep-override` | clean | `ok` | B changes only the accounting after `before_sleep`, so the budget check is unchanged. |
 | `tinydb-warm-cache-x-ordered-search` | conflict | `differential_b` | A appends an inserted document to cached results, so a cached search loses B's document ID order. |
 | `tinydb-warm-cache-x-cached-count` | clean | `ok` | `count()` reads the cached result that A keeps up to date. |
+| `tenacity-351-x-342` | conflict | `differential_b` | B makes every wait strategy accept a `timedelta`, but A's new `wait_exponential_jitter` compares a `timedelta` maximum with a float and raises `TypeError`. Mined, not seeded. |
 
 ## Rules for a case
 
@@ -292,6 +327,26 @@ before run 2:
 
 Runs on different corpus versions are reported separately and never pooled.
 
+- **v6, 2026-10-31**: Relabels `tenacity-351-x-342` as a conflict, with
+  expect `differential_b` and an oracle that checks every wait strategy with a
+  `max` parameter accepts a `timedelta`. Run 4 found the conflict, and the owner
+  ruled on 2026-10-31 to relabel it
+  ([drewjst/fourway#12](https://github.com/drewjst/fourway/issues/12)). It is
+  the first conflict in the corpus that nobody seeded, and it has no clean
+  twin. v6 also adds 72 mined clean pairs from six more repositories, which
+  the owner approved on 2026-11-01: `pycodestyle` 26, `pyflakes` 20,
+  `mistune` 16, `parse` 9, and `tomli` 1. `markupsafe` gave one candidate,
+  and it dropped. Of 93 candidates, 21 dropped out: 14 whose change B doesn't
+  apply to the base by itself, 6 whose suites aren't green on all four
+  trees, and 1 textual conflict; one more pair was dropped by rule 5,
+  because a later commit reverts a side. Every candidate's suites ran in the
+  sandbox. Of the 72, 55 change the same file, 69 change runtime code on both
+  sides, and none credits an AI assistant. Two changes to the mining code came
+  before these pairs were mined: rule 3 treats `test/` as a test directory,
+  as it already did `tests/`, and a repository file can list
+  `former_tests`, where its suite lived before. No v5 pair touches a `test/`
+  directory, so no v5 pair changes. v6 has 7 conflicts and 153 clean pairs,
+  147 of them mined from 11 repositories.
 - **v5, 2026-10-31**: Adds 52 mined clean pairs, for 76 mined pairs and 82
   clean pairs in all. The owner approved mining `tomlkit`, `python-semver`,
   `toolz`, and `python-dotenv` on 2026-10-31. Mined pairs by repository:
@@ -344,11 +399,19 @@ differential findings. None is emergent, and each twin's change B touches the
 same file as the conflict's change B. Recall on these cases is still an upper
 bound on recall against conflicts nobody seeded.
 
+`tenacity-351-x-342` is the one conflict that nobody seeded. Real authors
+wrote both changes, but a generator found it, and the corpus author, who
+shares the generator's model family, wrote its oracle. It has the same shape
+as the three seeded real-repository conflicts, so it adds one trial, not a new
+conflict class.
+
 Mined pairs reduce the shared-author problem for clean pairs, but they have
 limits of their own. History vouches for a clean label only as far as nobody
 noticed a problem. Tree B alone is a tree nobody shipped. The rule drops pairs
 whose suites need a dependency fourway doesn't install, pairs whose base trees
 exceed the generator's budget, and pairs from Python versions older than the
 one fourway runs on, so the mined pairs lean toward recent, small
-repositories. They come from six repositories, and `tomlkit` and `tenacity`
-supply 48 of the 76.
+repositories. They come from 11 repositories, and `tomlkit`, `pycodestyle`,
+and `pyflakes` supply 74 of the 147. Five of the 11 parse or check text:
+`tomlkit`, `tomli`, `mistune`, `pycodestyle`, and `pyflakes`. The corpus leans
+toward that domain.

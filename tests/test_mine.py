@@ -8,7 +8,7 @@ import pytest
 from fourway import gitops
 from fourway.case import load_case
 from fourway.mine import (
-    Landing, case_toml, changes_runtime, is_assisted, is_code, is_reverted, landings, mine, pairs,
+    Landing, case_toml, changes_runtime, is_assisted, is_code, is_reverted, landings, mine, pairs, suite_tests,
 )
 
 T = "2026-01-0{}T00:00:00Z"
@@ -48,6 +48,7 @@ def test_only_package_python_outside_tests_is_code():
     packages = ("pkg/", "src/pkg/")
     assert is_code("pkg/core.py", packages) and is_code("src/pkg/sub/x.py", packages)
     assert not is_code("pkg/tests/test_core.py", packages)
+    assert not is_code("pkg/test/harness.py", packages)  # pyflakes keeps its suite in pyflakes/test/
     assert not is_code("pkg/test_core.py", packages)
     assert not is_code("docs/conf.py", packages)
     assert not is_code("pkg/data.json", packages)
@@ -203,3 +204,19 @@ def test_a_pair_whose_trees_git_archive_would_rewrite_is_reported_not_written(tm
     [(case_id, problems)] = mine(corpus, "pkg", repo, prs, cutoff=T.format(9))
     assert case_id == "pkg-1-x-2" and "export attributes" in problems[0]
     assert not (corpus / "cases" / case_id).exists()
+
+
+def test_a_case_names_where_the_suite_lived_at_its_base(tmp_path):
+    """pycodestyle's suite was testsuite/ before it was tests/; the default path would run no tests at all."""
+    repo = gitops.init(tmp_path / "repo")
+    (repo / "testsuite").mkdir()
+    (repo / "testsuite" / "test_all.py").write_text("")
+    (repo / "test_mod.py").write_text("")
+    old = gitops.commit_all(repo, "old layout")
+    meta = {"packages": ["mod.py"], "former_tests": ["testsuite", "test_mod.py"]}
+    assert suite_tests(repo, old, meta) == "testsuite"
+    (repo / "testsuite" / "test_all.py").unlink()
+    assert suite_tests(repo, gitops.commit_all(repo, "single file"), meta) == "test_mod.py"
+    (repo / "tests").mkdir()
+    (repo / "tests" / "test_all.py").write_text("")
+    assert suite_tests(repo, gitops.commit_all(repo, "new layout"), meta) is None

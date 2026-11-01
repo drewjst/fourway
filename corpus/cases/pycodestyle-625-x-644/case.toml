@@ -1,0 +1,31 @@
+base = { repo = "pycodestyle", commit = "727dc51ed5f47e2ade2869f0d994fa8410e6b8c1", tests = "testsuite" }
+label = "clean"
+class = "mined, same file"
+runtime = ["b"]
+assisted = []
+
+[a]
+title = "Python 3.6 invalid escape sequence deprecation fix"
+pr = "https://github.com/PyCQA/pycodestyle/pull/625"
+from = "727dc51ed5f47e2ade2869f0d994fa8410e6b8c1"
+to = "dec2f3fcc95c60a6d33935f5a8e16aedadcc8d5b"
+body = """
+
+"""
+
+[b]
+title = "Fix issue #643: Optimize noqa() with an lru_cache for Python 3.2+."
+pr = "https://github.com/PyCQA/pycodestyle/pull/644"
+from = "f913dfc041bab577cdea34e261153545b98d3e4c"
+to = "454e035fd969ee5d6da76fcc169ee028933f391e"
+body = """
+Fixes https://github.com/PyCQA/pycodestyle/issues/643 for Python 3.2+.
+
+
+Had to catch a \"No signature found for builtin <built-in method
+search of _sre.SRE_Pattern object at 0x...>\" in 3.4:
+
+In python3.4 the search was not detected as a function, now that it's
+wrapped in an lru_cache it is, yet it still has no signature (it has
+in 3.5+).
+"""

@@ -1,0 +1,78 @@
+base = { repo = "mistune", commit = "534127f933f4b6a0efc2c8b9142fcd59853a1ebe" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Preserve multi-line setext headings in MarkdownRenderer"
+pr = "https://github.com/lepture/mistune/pull/469"
+from = "534127f933f4b6a0efc2c8b9142fcd59853a1ebe"
+to = "d3f22af45e43435f62777652b649678e4173badb"
+body = """
+Reformatting a multi-line setext heading through MarkdownRenderer changes its meaning. A heading like
+
+    Foo
+    Bar
+    ===
+
+comes back as \"## Foo\" plus a separate \"Bar\" paragraph, because the renderer always emits an ATX heading (\"# ...\") and an ATX heading is a single line, so every line after the first drops out of the heading on a re-parse.
+
+The `heading` method now emits setext form (\"===\" / \"---\" underline) when the rendered text spans multiple lines. Only levels 1 and 2 can reach that case, since an ATX heading never contains a line break. Added a round-trip test covering plain and emphasis-spanning multi-line headings.
+"""
+
+[b]
+title = "fix(def_list): a tab after the ':' marker no longer makes the definition a code block"
+pr = "https://github.com/lepture/mistune/pull/468"
+from = "d3f22af45e43435f62777652b649678e4173badb"
+to = "b3a2a7a99b0da72209806ba6d0bf4df66a317232"
+body = """
+## The bug
+
+A definition whose `:` marker is followed by a **tab** renders as a code block instead of a definition:
+
+```python
+import mistune
+md = mistune.create_markdown(plugins=['def_list'])
+print(md(\"Term\\n:\\tTab-marked def\\n\"))
+```
+
+Today:
+
+```html
+<dl>
+<dt>Term</dt>
+<dd><pre><code>Tab-marked def</code></pre>
+</dd>
+</dl>
+```
+
+`DD_START_RE` (`^:[ \\t]+`) explicitly accepts a tab as the marker separator, so this is meant to be an ordinary definition.
+
+## Cause
+
+`_collect_definitions` strips the marker with `src[start:pos].replace(\":\", \" \", 1)` and then de-indents each line with `TRIM_RE = re.compile(r\"^ {0,4}\")` — **spaces only**. For `:\\tdef`, replacing the colon leaves `\" \\tdef\"`; `TRIM_RE` removes the one leading space but not the tab, so the line starts with a tab and is parsed as an indented code block.
+
+## Fix
+
+Drop the `:` marker together with its trailing space **or tab** in one step:
+
+```python
+DD_MARKER_RE = re.compile(r\"^:[ \\t]\")
+...
+text = DD_MARKER_RE.sub(\"  \", src[start:pos], count=1)
+```
+
+For space markers this produces exactly the same string as before, so their output is unchanged. `TRIM_RE` is left alone, so continuation lines — including intentional tab-indented code blocks inside a definition — are untouched.
+
+## Verification
+
+- Added a `tests/fixtures/def_list.txt` example (a tab-marked definition). It fails on `main` and passes with this change, across the plain and `speedup` variants.
+- Full suite green: `1137 passed`. Existing space-marked definitions, multi-line continuations, blank-line (loose) definitions, and tab-indented code blocks inside a definition all render as before.
+- `ruff check` clean.
+
+---
+
+*Disclosure:* this PR was authored by an AI coding agent (Claude Code) running on this account: the AI found the bug, ran the repro, wrote the tests, and wrote this description. The human account holder reviews every change and is accountable for it. The verification above is real and re-runnable from the diff. If this isn't the kind of contribution you want, say so and I'll close it.
+
+"""

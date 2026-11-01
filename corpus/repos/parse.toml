@@ -1,0 +1,8 @@
+url = "https://github.com/r1chardj0n3s/parse"
+license = "MIT"
+tests = "tests"
+# Before 2024 the suite was one file at the root.
+former_tests = ["test_parse.py"]
+# addopts adds coverage flags that need pytest-cov, and doctests over the README.
+pytest_args = ["-o", "addopts="]
+packages = ["parse.py", "parse/"]

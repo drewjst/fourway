@@ -1,0 +1,34 @@
+base = { repo = "mistune", commit = "e9e7b4e9611a71204dd12aca1aed033f9e98c601" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Keep images with URL alt text from becoming autolinks"
+pr = "https://github.com/lepture/mistune/pull/485"
+from = "e9e7b4e9611a71204dd12aca1aed033f9e98c601"
+to = "e9975d4693c4a95b7f63671f8ff2dfe5a60d2cee"
+body = """
+When an image’s alt text equals its URL (or the address in a mailto URL), MarkdownRenderer emits `!<url>`. Re-parsing turns the image into a literal exclamation mark and a link. Restrict autolink shorthand to link tokens so images keep image syntax.
+
+Found during round-trip testing. All three image regressions fail on the original renderer, including a linked image. Full suite: **1,160 passed, 9 subtests passed** on Python 3.12/macOS. Existing link shorthand remains covered; Ruff lint/format and strict Mypy pass.
+
+Implemented and tested using Codex under the submitting account's authorization.
+
+"""
+
+[b]
+title = "fix: preserve leading blank lines in MarkdownRenderer"
+pr = "https://github.com/lepture/mistune/pull/481"
+from = "e9975d4693c4a95b7f63671f8ff2dfe5a60d2cee"
+to = "5569f20ae7f16690377ff6d1d5c1a667643f850a"
+body = """
+Fixes #366.
+
+`MarkdownRenderer` dropped start-of-document blank lines, so a parse-then-markdown round trip of `\"\\n\\n\\n\\nabc\"` became `'abc\\n'`.
+
+The parser now records the leading newline count on the first `blank_line` token (`cursor == 0`). The renderer emits those newlines when reformatting. Mid-document blanks are unchanged. The renderer still ends with a newline via `strip_end`, matching the rest of `MarkdownRenderer`.
+
+Test: `tests/test_renderers.py::TestMarkdownRendererRoundTrip::test_leading_blank_lines_preserved`.
+"""

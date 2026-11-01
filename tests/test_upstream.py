@@ -1,5 +1,6 @@
 """Cases whose base is a pinned commit of another repository, built from a local stand-in for it."""
 
+import shutil
 from pathlib import Path
 
 import pytest
@@ -168,7 +169,7 @@ def test_only_a_clean_pair_from_history_goes_without_an_oracle(tmp_path):
 
 
 def test_pruning_deletes_only_failing_mined_pairs(tmp_path, capsys):
-    """A seeded case encodes an answer someone wrote by hand; pruning may never delete one."""
+    """A seeded case or a mined conflict encodes an answer someone wrote by hand; pruning may never delete one."""
     from fourway.cli import main
 
     upstream, base = make_upstream(tmp_path / "upstream")
@@ -182,11 +183,16 @@ def test_pruning_deletes_only_failing_mined_pairs(tmp_path, capsys):
         f'base = {{ repo = "pkg", commit = "{base}" }}\nlabel = "clean"\nexpect = "ok"\nclass = "s"\n\n'
         '[a]\ntitle = "A"\nbody = ""\n\n[b]\ntitle = "B"\nbody = ""\n'
     )  # no oracle files, so the check fails
+    relabeled = corpus / "cases" / "pkg-3-x-4"
+    shutil.copytree(broken_mined, relabeled)
+    text = (relabeled / "case.toml").read_text()
+    (relabeled / "case.toml").write_text(text.replace('label = "clean"', 'label = "conflict"\nexpect = "differential_b"'))
+    (relabeled / "oracle").mkdir()  # likewise empty
 
     assert main(["check-corpus", "--corpus", str(corpus), "--prune-mined"]) == 1
-    assert not broken_mined.exists() and seeded.exists()
+    assert not broken_mined.exists() and seeded.exists() and relabeled.exists()
     out = capsys.readouterr().out
-    assert f"drop  {broken_mined.name}" in out and "FAIL  seeded" in out
+    assert f"drop  {broken_mined.name}" in out and "FAIL  seeded" in out and f"FAIL  {relabeled.name}" in out
 
 
 def test_only_a_test_that_fails_alike_on_all_four_trees_is_ignored(tmp_path):

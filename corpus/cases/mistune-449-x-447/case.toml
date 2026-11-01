@@ -1,0 +1,85 @@
+base = { repo = "mistune", commit = "f21a29b451e85a9452ebc97ff1882d90c5953804" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Escape leading block markers in MarkdownRenderer"
+pr = "https://github.com/lepture/mistune/pull/449"
+from = "f21a29b451e85a9452ebc97ff1882d90c5953804"
+to = "803d9e1dd8a86750fdbde4dbf20c7d5298bbf931"
+body = """
+`MarkdownRenderer` is meant to round-trip Markdown, but it silently changes the
+meaning of text whose leading punctuation was backslash-escaped in the source.
+The escape gets dropped during rendering, so the bare marker is re-parsed as a
+new block:
+
+```python
+import mistune
+from mistune.renderers.markdown import MarkdownRenderer
+
+reformat = mistune.create_markdown(renderer=MarkdownRenderer())
+print(reformat(r\"\\* literal\"))   # -> \"* literal\"  (now a list on re-parse)
+print(reformat(r\"\\# text\"))      # -> \"# text\"     (now a heading)
+print(reformat(\"para\\n\\\\* x\"))   # -> the second line becomes a <ul>
+```
+
+So a paragraph turns into a list, heading, or block quote after a round-trip.
+The same happens on continuation lines and inside list items, and an escaped
+backtick comes back as a code span.
+
+I re-escape a leading list/heading/block-quote marker on each rendered line and
+keep backticks escaped in `text()`. Real list/heading/quote syntax still flows
+through its own tokens, so it is unaffected, and ordinary prose
+(`snake_case`, hyphens, `C#`, `a.b.c`) is left alone.
+
+Added round-trip tests that assert the reformatted source renders to the same
+HTML as the original. Full suite and `mypy --strict` are green.
+
+"""
+
+[b]
+title = "fix(math): reject currency patterns and cross-line matches in inline math"
+pr = "https://github.com/lepture/mistune/pull/447"
+from = "803d9e1dd8a86750fdbde4dbf20c7d5298bbf931"
+to = "74608f5dd883c1cc85b6ec38ba459ea436a9cef4"
+body = """
+## Summary
+
+Mistune's `INLINE_MATH_PATTERN` has bugs that cause false-positive inline math detection on currency values like `$51,300`. This PR fixes them directly in the upstream regex.
+
+## Root Cause
+
+Three issues in the current regex `\\$(?!\\s)(?P<math_text>(?:[^$\\\\]|\\\\.)+?)(?!\\s)\\$`:
+
+1. **Broken lookahead**: The second `(?!\\s)` checks the closing `$` delimiter (which is never whitespace), not the preceding content character. It's a no-op.
+2. **Cross-line matching**: `[^$\\\\]` allows newlines, so `$` signs on different lines can pair as math delimiters.
+3. **No digit boundary**: Closing `$` followed by a digit (e.g. `$51,300`) is accepted, matching currency as math.
+
+Additionally, no `(?!\\$)` guard prevents partial matching of `$$` block delimiters as inline math.
+
+## Fix
+
+New pattern: `\\$(?!\\$)(?!\\s)(?P<math_text>(?:[^$\\\\\\n]|\\\\.)+?)\\$(?!\\d)`
+
+Changes:
+- `(?!\\$)`: reject `$$` block delimiter starts
+- `[^$\\\\\\n]`: disallow newlines in inline math (single-line only)
+- `(?!\\d)`: closing `$` cannot precede a digit (GFM-compatible, rejects currency)
+- Remove broken `(?!\\s)` before closing `$` (was always a no-op)
+
+## Tests
+
+New fixture test cases added covering:
+- Valid math: `$x^2$`, `$n$th`, trailing punctuation
+- Currency rejection: `$51,300` pairs, single `$1.6T`
+- Cross-line rejection
+
+All 978 existing tests pass with no regressions.
+
+## Credit
+
+Bug identified via [geopanther/mdfluence#70](https://github.com/geopanther/mdfluence/pull/70).
+
+"""

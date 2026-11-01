@@ -1,0 +1,23 @@
+base = { repo = "pycodestyle", commit = "c5308a75adb2c98a00228083ebe7cd87445a8c36", tests = "testsuite" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "remove some leftover python 2 compat"
+pr = "https://github.com/PyCQA/pycodestyle/pull/1124"
+from = "c5308a75adb2c98a00228083ebe7cd87445a8c36"
+to = "7498309c2d59ff2ac69e6fae264f507a4ee2feb3"
+body = """
+
+"""
+
+[b]
+title = "fix ambiguous identifiers in lambda bodies inside braces"
+pr = "https://github.com/PyCQA/pycodestyle/pull/1123"
+from = "7498309c2d59ff2ac69e6fae264f507a4ee2feb3"
+to = "b38878283c6e4898df7bf438fb4dc03cd204ca14"
+body = """
+
+"""

@@ -1,0 +1,23 @@
+base = { repo = "pycodestyle", commit = "d12e2ea39745bd3bb9e819d7342e4c1d73dbb008", tests = "testsuite" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Fix E305 regression in 2.1.0 due to fix for #400"
+pr = "https://github.com/PyCQA/pycodestyle/pull/593"
+from = "d12e2ea39745bd3bb9e819d7342e4c1d73dbb008"
+to = "e5411e15e7fb919c3bdcc08e37e9d4134e255ed3"
+body = """
+The fix used in #400 did not account for usage of \"def\" or \"class\" at the beginning of variables such as \"default\" or \"classify\". This PR looks for a space at the end of these keywords.
+"""
+
+[b]
+title = "Warn about bare except clause"
+pr = "https://github.com/PyCQA/pycodestyle/pull/592"
+from = "fcc8f58f3d805e7529cfef1005285fdef1107917"
+to = "d7d61542bf579a41dd33f2920f3214c62c49fd47"
+body = """
+Solves #579 
+"""

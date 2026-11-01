@@ -1,0 +1,6 @@
+url = "https://github.com/PyCQA/pycodestyle"
+license = "MIT"
+tests = "tests"
+# Until 2023-07 the suite was testsuite/, whose test_all.py runs the data-driven checks.
+former_tests = ["testsuite"]
+packages = ["pycodestyle.py"]

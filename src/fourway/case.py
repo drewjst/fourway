@@ -11,8 +11,9 @@ A case directory holds:
 The base tree is a directory in the corpus, or a pinned commit of a real
 repository described in repos/<name>.toml. A pair mined from that repository's
 history names its changes as upstream commits instead of carrying them, and
-has no oracle: its clean label rests on the history, not on a scenario. Only
-the base tree, the diffs, and the descriptions reach a generator.
+has no oracle: its clean label rests on the history, not on a scenario. A mined
+pair relabeled as a conflict gets an oracle like a seeded case. Only the base
+tree, the diffs, and the descriptions reach a generator.
 """
 
 from __future__ import annotations
@@ -124,7 +125,7 @@ class Case:
     path: Path
     base: Path | Upstream
     label: str  # "conflict" or "clean": what a generator is scored against
-    expect: str | None  # the finding the oracle must produce; None for a mined pair, which has no oracle
+    expect: str | None  # the finding the oracle must produce; None for a mined clean pair, which has no oracle
     conflict_class: str  # for measuring whether conflicts recur in classes
     a: Side
     b: Side
