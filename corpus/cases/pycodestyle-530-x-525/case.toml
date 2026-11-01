@@ -1,0 +1,29 @@
+base = { repo = "pycodestyle", commit = "b02d7687ee4de8f501195644bc9dc7fac523e52e", tests = "testsuite" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Change all references to the pep8 project to say pycodestyle"
+pr = "https://github.com/PyCQA/pycodestyle/pull/530"
+from = "b02d7687ee4de8f501195644bc9dc7fac523e52e"
+to = "77f5543658dabdb939d65028ccaa743ca210c7c4"
+body = """
+This fixes issue #518, pep8 still referenced in the cli help command
+As a side effect,  in setup.cfg now becomes
+Also, changed the path for the config file from ~/.config/pep8 to ~/.config/pycodestyle
+These feel like changes that should have come with the jump to version 2.0.0, as they are breaking,
+but support for  as a name can still be added if it's desired enough
+
+"""
+
+[b]
+title = "Detect single letter variable names enumerated in PEP-0008"
+pr = "https://github.com/PyCQA/pycodestyle/pull/525"
+from = "60859d6408d1479ec40d80f73f37d34d914704f1"
+to = "4ccdc55324ccdb848fb41e33b346405acd6c2114"
+body = """
+Fix for #341. Could be improved further to include named parameters, maybe other cases I can't think of where names are declared.
+
+"""

@@ -1,0 +1,26 @@
+base = { repo = "pyflakes", commit = "acbb2557b870cd4b7dc4056496d392fd184ec8ad" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "simplify handleStringAnnotation"
+pr = "https://github.com/PyCQA/pyflakes/pull/867"
+from = "acbb2557b870cd4b7dc4056496d392fd184ec8ad"
+to = "e1da468046fc6d6415ecf521426b705294884d47"
+body = """
+other caller was removed in 04ecb0c324ef3b61124e2f80f9e1af6c3a4c7b26
+"""
+
+[b]
+title = "add new errors for lazy imports"
+pr = "https://github.com/PyCQA/pyflakes/pull/864"
+from = "e1da468046fc6d6415ecf521426b705294884d47"
+to = "d539458de5d7d4ee2c154cd6077db56de7935c2c"
+body = """
+- error if a lazy import is eagerly used at the module scope
+- error for `lazy from ... import *`
+- (no new code needed) error for `lazy from __future__ import ...`
+- error for `lazy` import not at module scope
+"""

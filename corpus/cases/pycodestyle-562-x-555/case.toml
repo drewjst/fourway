@@ -1,0 +1,28 @@
+base = { repo = "pycodestyle", commit = "0babee523197a3a2f6d8dd9e0f5ab2f6166b0ce5", tests = "testsuite" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Stop checking for string option type"
+pr = "https://github.com/PyCQA/pycodestyle/pull/562"
+from = "0babee523197a3a2f6d8dd9e0f5ab2f6166b0ce5"
+to = "1e710127635f7374923ef59db937fc391e7436bd"
+body = """
+There's no need to explicitly check for a string type when parsing the
+configuration file. When it's neither an integer or a boolean, the only
+value it can logically be is string-like.
+
+Closes gh-561
+
+"""
+
+[b]
+title = "Special case for nested functions and classes (fixes #28)"
+pr = "https://github.com/PyCQA/pycodestyle/pull/555"
+from = "66e43b4fea8c5b99c1bb146b7bdc0b6d3980854c"
+to = "39e57186620c8d8c87eaf4b0f3b00ff90b716f7e"
+body = """
+
+"""

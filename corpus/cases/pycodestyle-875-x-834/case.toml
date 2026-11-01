@@ -1,0 +1,23 @@
+base = { repo = "pycodestyle", commit = "3b258c375c6392b1475a487c0961cf7dbe03f838", tests = "testsuite" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Ellipsis is not a binary operator"
+pr = "https://github.com/PyCQA/pycodestyle/pull/875"
+from = "3b258c375c6392b1475a487c0961cf7dbe03f838"
+to = "9726e10004e5615c432f126530ee0540b9903f6e"
+body = """
+Resolves #874
+"""
+
+[b]
+title = "E402: Add \"with\" statement to allowed keywords"
+pr = "https://github.com/PyCQA/pycodestyle/pull/834"
+from = "9726e10004e5615c432f126530ee0540b9903f6e"
+to = "b93125aa67ce201e9194445472fcf54a5a925db9"
+body = """
+Resolves #833
+"""

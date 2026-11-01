@@ -1,0 +1,26 @@
+base = { repo = "pyflakes", commit = "43541ee1dd394ec4691625e7295f701b3b073dca" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Fix: Named types incorrectly raising UndefinedName inside annotated subscript"
+pr = "https://github.com/PyCQA/pyflakes/pull/609"
+from = "43541ee1dd394ec4691625e7295f701b3b073dca"
+to = "e3f26593eac942435c3e8e114506172678d58ce1"
+body = """
+Hi,
+this PR closes #575
+
+When inside an annotated subscript, named types (NamedTuple and TypedDict) and their string arguments are flagged as a forward reference which should not be the case.
+"""
+
+[b]
+title = "Release 2.3.0"
+pr = "https://github.com/PyCQA/pyflakes/pull/608"
+from = "e3f26593eac942435c3e8e114506172678d58ce1"
+to = "40e6dc23a8fc48f814e0c81fdcd936321ab9c023"
+body = """
+putting this up to review -- will probably adjust date and apply directly to master when releasing
+"""

@@ -1,0 +1,25 @@
+base = { repo = "pycodestyle", commit = "aa3417b6a51f5912e32d9c8c879e1b9dd660d5f8", tests = "testsuite" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Fix E225 for lambdas with all positional-only arguments"
+pr = "https://github.com/PyCQA/pycodestyle/pull/1012"
+from = "aa3417b6a51f5912e32d9c8c879e1b9dd660d5f8"
+to = "94af2a9ef804319f950d7feee7ba68e94991e317"
+body = """
+Following #867 and #918.
+
+I was going to make a bug report, but it looked easy enough to propose a fix instead 🙂 
+"""
+
+[b]
+title = "remove indent_size_str"
+pr = "https://github.com/PyCQA/pycodestyle/pull/995"
+from = "94af2a9ef804319f950d7feee7ba68e94991e317"
+to = "bf0c5bc6e61cf728047b2fe43bd8e993581ff16c"
+body = """
+
+"""

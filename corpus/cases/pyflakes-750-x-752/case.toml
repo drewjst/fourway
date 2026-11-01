@@ -1,0 +1,23 @@
+base = { repo = "pyflakes", commit = "3c70084704044f47441fbe1e5d953110dfcd4df0" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "fold unused checks into final scope checking"
+pr = "https://github.com/PyCQA/pyflakes/pull/750"
+from = "3c70084704044f47441fbe1e5d953110dfcd4df0"
+to = "37f203ed6ec9c54ea4ded0b8480846ac750a1747"
+body = """
+this doesn't fix #749 -- but it makes it much easier to reason about
+"""
+
+[b]
+title = "pyflakes: python3.8+"
+pr = "https://github.com/PyCQA/pyflakes/pull/752"
+from = "37f203ed6ec9c54ea4ded0b8480846ac750a1747"
+to = "98d4fa33ccacf74c62c5a17cc35ce572fd35b223"
+body = """
+needed for #751
+"""

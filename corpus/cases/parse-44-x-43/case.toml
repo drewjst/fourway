@@ -1,0 +1,27 @@
+base = { repo = "parse", commit = "fb0a132c6ed8d3d780c284cf14b101bdbdde96bc", tests = "test_parse.py" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Unicode support"
+pr = "https://github.com/r1chardj0n3s/parse/pull/44"
+from = "fb0a132c6ed8d3d780c284cf14b101bdbdde96bc"
+to = "43f86c3475e792d01452eb2fc2f00a9ffe6d02b6"
+body = """
+
+"""
+
+[b]
+title = "Clarify error message on invalid format spec"
+pr = "https://github.com/r1chardj0n3s/parse/pull/43"
+from = "43f86c3475e792d01452eb2fc2f00a9ffe6d02b6"
+to = "f2a9c9b6e3d5748a201fd25cba79f04790435197"
+body = """
+The error message I got this morning was a little bit cryptic:
+
+>>> ValueError: type ' 5>d' not recognised
+
+I suggest changing it to be a little clearer. \"type not recognized\" seems to be saying that \"d\" isn't a valid type. However the problem in my case was just that I had inadvertently swapped two characters (the correct format spec is \" >5d\").
+"""

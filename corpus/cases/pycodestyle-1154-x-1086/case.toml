@@ -1,0 +1,26 @@
+base = { repo = "pycodestyle", commit = "0aca13d843a4e8985f8754709c3944993153bf87", tests = "testsuite" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "3.12: format specs are not an error"
+pr = "https://github.com/PyCQA/pycodestyle/pull/1154"
+from = "0aca13d843a4e8985f8754709c3944993153bf87"
+to = "e4d9349ca5523464aad46d6d4317bc99507f0496"
+body = """
+
+"""
+
+[b]
+title = "allow `is` and `is not` for type comparisons (E721)"
+pr = "https://github.com/PyCQA/pycodestyle/pull/1086"
+from = "9a0da24c4eab1a290f8c63db4df962e9721061e1"
+to = "2326e168e0a667fd847f2a06f9a303131e081b60"
+body = """
+see #1084 and #1041 for more details
+
+resolves #1084 
+resolves #830
+"""

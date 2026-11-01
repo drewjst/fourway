@@ -1,0 +1,64 @@
+base = { repo = "mistune", commit = "a1b50bc12e066e5707ff797f821829bfcdab03b5" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "fix: avoid quadratic inline footnote membership checks"
+pr = "https://github.com/lepture/mistune/pull/478"
+from = "a1b50bc12e066e5707ff797f821829bfcdab03b5"
+to = "4c4e57ed1b1588dc159fdf474e0e9e2b547a9c70"
+body = """
+## Summary
+
+Inline footnote parsing already maintained a `footnote_indexes` mapping, but still checked `key not in notes`. That scanned a growing list for every new reference and made documents with many distinct footnotes quadratic.
+
+This PR:
+
+- uses the existing index mapping for O(1) membership checks;
+- preserves the ordered `footnotes` list and rendered numbering;
+- adds a deterministic regression test that fails if the parser falls back to list membership.
+
+## Regression coverage
+
+`tests/test_security_footnotes.py` supplies a list whose `__contains__` raises. The patched implementation passes because it checks `footnote_indexes`; temporarily restoring the old `key not in notes` line makes the test fail at that exact membership operation.
+
+This replaces the former wall-clock doubling-ladder test, which could false-positive under host load.
+
+## Verification
+
+- `uv run --locked --group lint ruff check .` — passed
+- `uv run --locked --group lint mypy` — passed, 38 source files
+- Python 3.13.13: `uv run --locked --group test pytest --cov=mistune --cov-branch --cov-report=xml` — 766 passed
+- Python 3.14.3: the same test command in an isolated uv environment — 766 passed
+
+## Provenance and sealed evidence
+
+This contribution was originally prepared by [blackhole-agent](https://github.com/susyimes/blackhole-agent) and was amended after review feedback. The evidence below was regenerated after synchronizing with upstream `main` and matches the reopened PR exactly.
+
+- upstream base: `a1b50bc12e066e5707ff797f821829bfcdab03b5`
+- PR head: `019af68ae9847f7adebc07a12fb762c9d50a0baa`
+- Git tree: `e8ae33bfda9f74f623dead368778d23c83d731fa`
+- PR diff SHA256: `25e0875d9ae6c3b31f6622ca4373ba290d1c2ec067b557558d29411329e7af26`
+- `src/mistune/plugins/footnotes.py` blob SHA256: `3f1229e3a3fe221dd1038a765184d1626559bbd78acdab40d4845f721b96b474`
+- `tests/test_security_footnotes.py` blob SHA256: `790d457821de4913e6b95b7755ab65b4875983c92ce2a9da9bb5bca45919bcfc`
+
+The PR diff digest is the SHA256 of GitHub's `application/vnd.github.diff` response for PR #478; it matches the locally generated base-to-head diff byte-for-byte.
+"""
+
+[b]
+title = "Preserve code blocks containing indented fence lines"
+pr = "https://github.com/lepture/mistune/pull/488"
+from = "4c4e57ed1b1588dc159fdf474e0e9e2b547a9c70"
+to = "76e00bd1a89057a1483b3603480ecca03aea3e00"
+body = """
+When converting an indented code block to fenced Markdown, `_get_fenced_marker()` only checks fence characters at column zero. A line such as `  ``` ` (without the trailing space) is a valid closing fence, so the generated Markdown can close the code block early and turn the remaining code into paragraphs.
+
+Allow up to three leading spaces when checking the code for existing fence runs. The captured run still excludes indentation, so choosing a longer fence uses its actual delimiter length.
+
+The regression test reformats indented code containing backtick and tilde fences at zero to three spaces of indentation, then checks that parsing the result yields exactly one code block with the complete content. Nine subcases fail before the fix.
+
+Validation on Linux / Python 3.14.2: 1159 tests and 22 subtests pass with branch coverage enabled; repository-configured Ruff and strict Mypy checks pass, as does `git diff --check`.
+
+"""

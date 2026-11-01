@@ -34,7 +34,8 @@ def _check_corpus(args: argparse.Namespace) -> int:
     sandbox = _sandbox(args.sandbox)
     for case in load_corpus(args.corpus):
         problems = bench.check_case(case, sandbox)
-        prune = bool(problems) and args.prune_mined and case.mined
+        # A mined pair with an oracle was relabeled by hand; pruning would delete its answer key.
+        prune = bool(problems) and args.prune_mined and case.mined and case.expect is None
         print(f"{'ok  ' if not problems else 'drop' if prune else 'FAIL'}  {case.id}")
         for problem in problems:
             print(f"      {problem}")
@@ -149,7 +150,7 @@ def main(argv: list[str] | None = None) -> int:
     check.add_argument("--corpus", type=Path, default=DEFAULT_CORPUS)
     check.add_argument("--sandbox", action="store_true", help="run every test suite in the sandbox container")
     check.add_argument("--prune-mined", action="store_true",
-                       help="delete mined pairs that fail instead of failing; seeded cases still fail")
+                       help="delete mined clean pairs that fail instead of failing; cases with an oracle still fail")
     check.set_defaults(func=_check_corpus)
 
     dig = sub.add_parser("mine", help="add clean pairs from a pinned repository's merged pull requests")

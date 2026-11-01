@@ -1,0 +1,37 @@
+base = { repo = "pyflakes", commit = "598eb1695b03aca23dad10a833fb95e7ed7c7cee" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Deprecate optparse in favor of argparse"
+pr = "https://github.com/PyCQA/pyflakes/pull/499"
+from = "598eb1695b03aca23dad10a833fb95e7ed7c7cee"
+to = "ef3c5cb31e06e9f094294353c3c83a9decc0fe57"
+body = """
+According to [the official docs](https://docs.python.org/3.8/library/optparse.html), the optparse standard library has been deprecated since Python 3.2, in favor of the argparse standard library.
+
+This pull request includes a commit that removes usage of optparse from pyflakes and uses argparse in its place. It also adds a couple of short descriptive strings for pyflakes usage via the command-line: a very brief one-liner describing pyflakes (taken from the README) and some information about the (optional) command-line arguments. Feel free to improve them, of course.
+
+Note: this is my first fork, my first pull request, my first real usage of GitHub. I'm also relatively new to git and Python. Let me know if anything in my code or in the way I'm collaborating/etc. should be changed. I'm always trying to improve. (And happy new year!)
+"""
+
+[b]
+title = "Fix quoted type annotations in unusual contexts"
+pr = "https://github.com/PyCQA/pyflakes/pull/516"
+from = "ef3c5cb31e06e9f094294353c3c83a9decc0fe57"
+to = "76416437ef22077b5e2949e78fa3000b3580e319"
+body = """
+This aims to fix #510.
+
+There is a case which this doesn't fix, which might need a slightly different approach -- that of a quoted annotation within a generic subscript for a user-defined type (which is inherently not part of the `typing` module).
+For this reason I'm tempted to break out the subscript case from the `cast` case. Currently this would be fairly easy to do (the `cast` case is handled by the first two commits here, the latter commits relate to the subscript case).
+
+Do we want to solve the general generics case now, or is this useful enough as it is?
+~If we do want to solve this now, suggestions on how to approach it would be useful. I can see a couple of routes:~
+- ~try to walk the parents of the type we find to see if this subscript should be read as an annotation (likely somewhat involved because I don't think `pyflakes` has anything approaching this at the moment?)~
+- ~try to parse the subscript _both_ as an annotation and otherwise; this feels like it could result in some false results, but might be easier to get working. If this approach is preferred, do we have some examples of this sort of thing?~
+
+Conclusion: we'll ignore this case for now.
+"""

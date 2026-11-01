@@ -1,0 +1,78 @@
+base = { repo = "pycodestyle", commit = "f4f6e556faea76809b70413fea9f496288d56713", tests = "testsuite" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Change the position pointed out by W504"
+pr = "https://github.com/PyCQA/pycodestyle/pull/751"
+from = "f4f6e556faea76809b70413fea9f496288d56713"
+to = "036461879fbfdb4ddbb689163e968d7f00ded66f"
+body = """
+test environment:
+```
+$ python -V
+Python 3.6.5
+$ pycodestyle --version
+2.4.0
+$ pycodestyle --select=W --show-source target.py
+```
+
+input:
+```python
+var = (1 &     # comment
+       ~2)
+(width == 0 and
+ height == 0)
+```
+
+before:
+```
+target.py:1:8: W504 line break after binary operator
+var = (1 &     # comment
+       ^
+target.py:3:2: W504 line break after binary operator
+(width == 0 and
+ ^
+```
+
+after:
+```
+target.py:1:10: W504 line break after binary operator
+var = (1 &     # comment
+         ^
+target.py:3:13: W504 line break after binary operator
+(width == 0 and
+            ^
+```
+
+Thanks
+"""
+
+[b]
+title = "Remove support for EOL Python 2.6 and 3.3"
+pr = "https://github.com/PyCQA/pycodestyle/pull/720"
+from = "036461879fbfdb4ddbb689163e968d7f00ded66f"
+to = "05bb61572824eb0b83f1186742318728d880d749"
+body = """
+Python 2.6 an 3.3 are end of life. They are no longer receiving bug fixes, including for security issues. Python 2.6 went EOL on 2013-10-29 and 3.3 on 2017-09-29. For additional details on support Python versions, see: https://devguide.python.org/#status-of-python-branches
+    
+Removing support for EOL Pythons will reduce testing and maintenance resources. Removed all workarounds for older Pythons.
+    
+Updated trove classifiers and documentation to better communicate supported Python versions.
+    
+Additionally, pass python_requires argument to setuptools. Helps pip decide what version of the library to install. 
+    
+https://packaging.python.org/tutorials/distributing-packages/#python-requires
+    
+> If your project only runs on certain Python versions, setting the python_requires argument to the appropriate PEP 440 version specifier string will prevent pip from installing the project on other Python versions.
+    
+https://setuptools.readthedocs.io/en/latest/setuptools.html#new-and-changed-setup-keywords
+    
+> python_requires
+>
+> A string corresponding to a version specifier (as defined in PEP 440) for the Python version, used to specify the Requires-Python defined in PEP 345.
+    
+Can now use more modern Python syntax including dictionary comprehension as well as more generators.
+"""
