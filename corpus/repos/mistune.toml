@@ -2,5 +2,34 @@ url = "https://github.com/lepture/mistune"
 license = "BSD-3-Clause"
 tests = "tests"
 pythonpath = ["src"]
+# These tests time a render against the clock or against a smaller render. The
+# four trees run at once, so the timings measure contention: on CI,
+# test_dense_emphasis_is_near_linear failed on a different set of trees in each
+# of two runs. Exact node IDs, not -k, because pytest_args also reaches
+# generated scenarios. Three of the recurse_forever tests time a render only at
+# some commits; elsewhere they check token depth, and that check goes too.
+pytest_args = [
+    "--deselect=tests/test_misc.py::TestMiscCases::test_deeply_indented_list_does_not_scale_quadratically",
+    "--deselect=tests/test_security_edge_cases.py::TestEdgeCaseSecurity::test_blank_list_continuations_are_near_linear",
+    "--deselect=tests/test_security_edge_cases.py::TestEdgeCaseSecurity::test_dense_emphasis_is_near_linear",
+    "--deselect=tests/test_security_edge_cases.py::TestEdgeCaseSecurity::test_malformed_images_are_near_linear",
+    "--deselect=tests/test_security_edge_cases.py::TestEdgeCaseSecurity::test_mixed_emphasis_delimiters_are_near_linear",
+    "--deselect=tests/test_security_edge_cases.py::TestEdgeCaseSecurity::test_unclosed_link_destinations_are_near_linear",
+    "--deselect=tests/test_security_formatting.py::TestFormattingSecurity::test_repeated_formatting_pairs_return_quickly",
+    "--deselect=tests/test_security_formatting.py::TestFormattingSecurity::test_repeated_unclosed_formatting_markers_are_near_linear",
+    "--deselect=tests/test_security_inline.py::TestInlineParserSecurity::test_adjacent_ruby_tokens_do_not_recurse_forever",
+    "--deselect=tests/test_security_inline.py::TestInlineParserSecurity::test_deep_emphasis_input_does_not_recurse_forever",
+    "--deselect=tests/test_security_inline.py::TestInlineParserSecurity::test_deep_image_input_does_not_recurse_forever",
+    "--deselect=tests/test_security_inline.py::TestInlineParserSecurity::test_deep_link_input_does_not_recurse_forever",
+    "--deselect=tests/test_security_inline.py::TestInlineParserSecurity::test_failed_reference_after_nested_brackets_returns_quickly",
+    "--deselect=tests/test_security_inline.py::TestInlineParserSecurity::test_link_title_redos_payload_returns_quickly",
+    "--deselect=tests/test_security_inline.py::TestInlineParserSecurity::test_link_with_deep_image_input_does_not_recurse_forever",
+    "--deselect=tests/test_security_inline.py::TestInlineParserSecurity::test_nested_bracket_link_input_does_not_recurse_forever",
+    "--deselect=tests/test_security_inline.py::TestInlineParserSecurity::test_repeated_link_suffixes_are_near_linear",
+    "--deselect=tests/test_security_inline.py::TestInlineParserSecurity::test_repeated_unclosed_inline_spoilers_are_near_linear",
+    "--deselect=tests/test_security_inline.py::TestInlineParserSecurity::test_unmatched_bracket_input_returns_quickly",
+    "--deselect=tests/test_security_math.py::TestMathSecurity::test_repeated_inline_math_openers_are_near_linear",
+    "--deselect=tests/test_security_ref_links.py::TestRefLinkSecurity::test_many_reference_links_return_quickly",
+]
 # A single module, then a package at the root, then a src layout.
 packages = ["mistune.py", "mistune/", "src/mistune/"]

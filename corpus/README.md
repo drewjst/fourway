@@ -346,7 +346,11 @@ Runs on different corpus versions are reported separately and never pooled.
   as it already did `tests/`, and a repository file can list
   `former_tests`, where its suite lived before. No v5 pair touches a `test/`
   directory, so no v5 pair changes. v6 has 7 conflicts and 153 clean pairs,
-  147 of them mined from 11 repositories.
+  147 of them mined from 11 repositories. After the merge and before any run,
+  `repos/mistune.toml` deselects 21 tests that time a render, because the four
+  trees run at once and the timings measured contention: CI's
+  `check-corpus` failed twice on `mistune-467-x-466`, on a different set of
+  trees each time. All 16 `mistune` pairs pass with the deselect.
 - **v5, 2026-10-31**: Adds 52 mined clean pairs, for 76 mined pairs and 82
   clean pairs in all. The owner approved mining `tomlkit`, `python-semver`,
   `toolz`, and `python-dotenv` on 2026-10-31. Mined pairs by repository:
