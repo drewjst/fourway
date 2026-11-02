@@ -1,0 +1,24 @@
+base = { repo = "pycodestyle", commit = "19a3925a89c71d422b98363d9ccfa8903a65b707", tests = "testsuite" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Allow N-and-fewer blank lines before the first top level thing"
+pr = "https://github.com/PyCQA/pycodestyle/pull/919"
+from = "19a3925a89c71d422b98363d9ccfa8903a65b707"
+to = "a9e8ebcf821b99c7587cc0b566396fc3f1c9d81b"
+body = """
+Resolves #412
+Resolves #473
+"""
+
+[b]
+title = "Fix E225 for PEP 570 all positional-only arguments"
+pr = "https://github.com/PyCQA/pycodestyle/pull/918"
+from = "a9e8ebcf821b99c7587cc0b566396fc3f1c9d81b"
+to = "0e0b95883313b53d377c2df51349bf10d9571cfb"
+body = """
+Resolves #867
+"""

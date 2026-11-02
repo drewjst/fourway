@@ -1,0 +1,23 @@
+base = { repo = "pyflakes", commit = "72bf8cc9998c2e6af838b3bbae61a2d2a79fb809" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Fix typing.overload check to only check imported names"
+pr = "https://github.com/PyCQA/pyflakes/pull/423"
+from = "72bf8cc9998c2e6af838b3bbae61a2d2a79fb809"
+to = "2c29431eaeb9c5b681f1615bf568fc68c6469486"
+body = """
+Resolves #422 
+"""
+
+[b]
+title = "Fix line number of comment syntax error message"
+pr = "https://github.com/PyCQA/pyflakes/pull/420"
+from = "2c29431eaeb9c5b681f1615bf568fc68c6469486"
+to = "ba64624f38a55f162b90120b4c0ba62018c6fd08"
+body = """
+Resolves #419
+"""

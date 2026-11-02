@@ -1,0 +1,23 @@
+base = { repo = "pyflakes", commit = "4756a379502d8692cc5023f1b19aa92d190bfb3d" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "improve startup time by ~50ms (65%)"
+pr = "https://github.com/PyCQA/pyflakes/pull/905"
+from = "4756a379502d8692cc5023f1b19aa92d190bfb3d"
+to = "8d33e0eba43fb3e71a918f8e7dc1c0c21fede8c6"
+body = """
+doctest is _rarely_ used and most of the startup of pyflakes.  on smaller codebases this import alone is more than the entire program execution
+"""
+
+[b]
+title = "optimize futuresAllowed"
+pr = "https://github.com/PyCQA/pyflakes/pull/904"
+from = "8d33e0eba43fb3e71a918f8e7dc1c0c21fede8c6"
+to = "9f0a7f9c8feb4d086a918a708bb778b38ce7a248"
+body = """
+about a 2-3% improvement running pyflakes on itself
+"""

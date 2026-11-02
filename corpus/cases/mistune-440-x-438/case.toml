@@ -1,0 +1,72 @@
+base = { repo = "mistune", commit = "2855622d7fe235c6c805716edff943b5945d1eea" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "fix: remove double-encoding of image alt text"
+pr = "https://github.com/lepture/mistune/pull/440"
+from = "2855622d7fe235c6c805716edff943b5945d1eea"
+to = "71ec9477ebfcf8dab0068804baf2c77461d77fbb"
+body = """
+Fixes #432
+
+## Problem
+
+Image alt attributes are double-encoded. For example:
+
+```python
+>>> mistune.html(\"![dogs & cats](dogs.png)\")
+'<p><img src=\"dogs.png\" alt=\"dogs &amp;amp; cats\" /></p>\\n'
+#                                    ^^^^^^^^^ should be &amp;
+```
+
+## Cause
+
+In `HTMLRenderer.image()`, the `text` parameter arrives already HTML-escaped from the rendering pipeline (`render_tokens` → `text()` → `escape_text()`). Calling `escape_text(striptags(text))` escapes entities a second time.
+
+## Fix
+
+Remove the redundant `escape_text()` call. `striptags()` only strips HTML tags and preserves existing entities, so its output is already safe for use in an HTML attribute.
+
+## Before / After
+
+| Input | Before | After |
+|-------|--------|-------|
+| `![dogs & cats](d.png)` | `alt=\"dogs &amp;amp; cats\"` | `alt=\"dogs &amp; cats\"` |
+| `![dogs > cats](d.png)` | `alt=\"dogs &amp;gt; cats\"` | `alt=\"dogs &gt; cats\"` |
+| `![\"quoted\"](d.png)` | `alt=\"&amp;quot;quoted&amp;quot;\"` | `alt=\"&quot;quoted&quot;\"` |
+
+## Validation
+
+All 959 tests pass (including 596 CommonMark spec tests). A regression test is included.
+"""
+
+[b]
+title = "fix: handle escaped dollar signs in inline math"
+pr = "https://github.com/lepture/mistune/pull/438"
+from = "8d0cb7539a9ac82e633b98476b9922632eb8b948"
+to = "bf5503067a7d8c3b065fb143f67a3a08eca77bb6"
+body = """
+## Bug
+[Issue #370](https://github.com/lepture/mistune/issues/370) — Escaped `$` in inline math expressions are incorrectly parsed, causing the math expression to be split at the escaped dollar sign.
+
+## Problem
+The current inline math pattern `r\"$(?!\\s)(?P<math_text>.+?)(?!\\s)$\"` uses a simple non-greedy match that doesn't handle escaped characters. For input like `$x=\\$$`, it incorrectly parses as:
+- Math content: `x=\\`
+- Text content: `$`
+
+## Solution
+Updated the pattern to `r\"$(?!\\s)(?P<math_text>(?:[^$\\\\]|\\\\.)+?)(?!\\s)$\"` which:
+- Matches non-dollar, non-backslash characters: `[^$\\\\]`
+- Matches escaped sequences: `\\\\.`
+- Ensures escaped `\\$` characters are treated as literal content within math expressions
+
+## Testing
+- Added test case for escaped dollar signs in math expressions
+- All existing math tests continue to pass
+- Verified the fix handles `$x=\\$$` correctly as a single math expression `x=\\$`
+
+Greetings, saschabuehrle
+"""

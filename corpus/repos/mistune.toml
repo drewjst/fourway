@@ -1,0 +1,6 @@
+url = "https://github.com/lepture/mistune"
+license = "BSD-3-Clause"
+tests = "tests"
+pythonpath = ["src"]
+# A single module, then a package at the root, then a src layout.
+packages = ["mistune.py", "mistune/", "src/mistune/"]

@@ -1,0 +1,44 @@
+base = { repo = "mistune", commit = "44cc62b922847c743c002ad810192b0a77b7732f" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Fix typo \"axt\" used instead of ATX"
+pr = "https://github.com/lepture/mistune/pull/359"
+from = "44cc62b922847c743c002ad810192b0a77b7732f"
+to = "46043f795d274296a17d77ea4e448dc72ae31e3c"
+body = """
+Hello,
+
+When rendering the abstract syntax tree of headings, I found out there is a typo which names ATX headings (see <https://spec.commonmark.org/0.30/#atx-headings>) `\"axt\"`.
+
+I have created a pull request containing the changes from `axt` to `atx` in any form throughout the repository.
+
+I have not considered what to do about other projects potentially depending on the exact heading style `axt`, yet.
+
+Greetings
+Martin
+"""
+
+[b]
+title = "fix list parsing edge case"
+pr = "https://github.com/lepture/mistune/pull/358"
+from = "46043f795d274296a17d77ea4e448dc72ae31e3c"
+to = "5820e47d183f10f1d2acb3fd34f4a24be5e927de"
+body = """
+fix an incorrect list parsing (text dropped) in situations like:
+
+```
+1. item 1
+2. \\xA0 item 2
+```
+
+The second list item text is dropped because first non-space character happens to match `\\s` regex pattern.
+
+There are alternative fixes:
+
+* change regex to `( *)[^ ]`.
+* use `text.isspace()` and `text.lstrip()` instead of regex matching.
+"""

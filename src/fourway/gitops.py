@@ -28,6 +28,10 @@ _CONFIG = (
     "-c", "commit.gpgsign=false",
     "-c", f"core.hooksPath={os.devnull}",
     "-c", "core.autocrlf=false",
+    # Automatic maintenance detaches and keeps writing to .git, so deleting a
+    # work directory right after a commit fails with "Directory not empty".
+    "-c", "maintenance.auto=false",
+    "-c", "gc.auto=0",
 )
 
 

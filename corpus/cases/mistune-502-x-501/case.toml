@@ -1,0 +1,31 @@
+base = { repo = "mistune", commit = "397bade9aa6b8babacfa35bfd7cb19fa7f6526c5" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Fix CommonMark 0.31.2 inline HTML comment recognition"
+pr = "https://github.com/lepture/mistune/pull/502"
+from = "397bade9aa6b8babacfa35bfd7cb19fa7f6526c5"
+to = "a25baf6fe6e532d9bba29198fa810c8e9cb91250"
+body = """
+Inline comments allowed by CommonMark 0.31.2 were escaped even with `HTMLRenderer(escape=False)`: the comment pattern rejected `<!-->`, `<!--->`, and comment bodies containing internal double hyphens. Recognize those forms while stopping at the first `-->` terminator. Default HTML escaping remains covered by the new regressions.
+
+The checked-in CommonMark corpus matches 0.30. This updates only the two affected expected outputs and adds regressions for [0.31.2 examples 625 and 626](https://spec.commonmark.org/0.31.2/#example-625); it does not replace the corpus. The complete official 0.31.2 corpus was also checked separately: all 652 examples pass after the change.
+
+Validation on Windows / Python 3.14.6: full suite 774 passed; Ruff and mypy passed. Independent checks cover adjacent comments, the first closing delimiter, internal line breaks, unterminated openers, and continued default escaping.
+
+"""
+
+[b]
+title = "Render strikethrough, mark and insert in MarkdownRenderer"
+pr = "https://github.com/lepture/mistune/pull/501"
+from = "a25baf6fe6e532d9bba29198fa810c8e9cb91250"
+to = "c3b9f704bd5c6d792fc070c59721a4ca572c9e77"
+body = """
+With the `strikethrough`, `mark` or `insert` plugin enabled, `MarkdownRenderer` raised `AttributeError: No renderer 'strikethrough'` (and the same for `mark` and `insert`), because these plugins only register an HTML renderer. Since tables and task lists gained Markdown rendering in 3.3.0, these were the remaining common inline plugins that broke a Markdown round trip.
+
+`MarkdownRenderer` now writes them back with their delimiters (`~~`, `==`, `^^`), including nested formatting such as `~~a **b** c~~`. Re-parsing the output gives the same HTML as the original. Superscript and subscript are left out here, since their syntax needs spaces escaped. Added `test_formatting_plugins_markdown`.
+
+"""

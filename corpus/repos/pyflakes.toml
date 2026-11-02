@@ -1,0 +1,5 @@
+url = "https://github.com/PyCQA/pyflakes"
+license = "MIT"
+# The suite is unittest classes inside the package; pytest collects them.
+tests = "pyflakes/test"
+packages = ["pyflakes/"]

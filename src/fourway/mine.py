@@ -56,7 +56,7 @@ def is_code(path: str, packages: tuple[str, ...]) -> bool:
     parts = path.split("/")
     return (
         path.endswith(".py") and path.startswith(packages)
-        and "tests" not in parts[:-1] and not parts[-1].startswith("test_")
+        and not {"tests", "test"} & set(parts[:-1]) and not parts[-1].startswith("test_")
     )
 
 
@@ -205,9 +205,13 @@ def case_toml(
 
 
 def suite_tests(repo: Path, commit: str, meta: dict) -> str | None:
-    """Return where the suite lives at ``commit`` if it moved from the repository default, else None."""
+    """Return where the suite lives at ``commit`` if it moved from the repository default, else None.
+
+    ``former_tests`` in repos/<name>.toml lists where the suite lived before,
+    a directory or a single file, tried after the default.
+    """
     default = meta.get("tests", "tests")
-    for candidate in (default, *(f"{p.rstrip('/')}/tests" for p in meta["packages"])):
+    for candidate in (default, *meta.get("former_tests", ()), *(f"{p.rstrip('/')}/tests" for p in meta["packages"])):
         if gitops.has_path(repo, commit, candidate):
             return None if candidate == default else candidate
     return None

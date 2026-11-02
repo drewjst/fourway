@@ -1,0 +1,41 @@
+base = { repo = "pycodestyle", commit = "68cc24fbe60ce31e2f9b40dc6dd484b2abf3a705", tests = "testsuite" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Support visual indent of continuation lines after with/assert/raise."
+pr = "https://github.com/PyCQA/pycodestyle/pull/912"
+from = "68cc24fbe60ce31e2f9b40dc6dd484b2abf3a705"
+to = "686c84b44029bee9bb5ccb6002990e758834b311"
+body = """
+\"with\" is likely the most common case, and this indentation is
+explicitly given as example by PEP8 (under \"maximum line length\").
+
+Closes #569.
+"""
+
+[b]
+title = "Correctly allow *two* blank lines after a block of one-liners."
+pr = "https://github.com/PyCQA/pycodestyle/pull/913"
+from = "686c84b44029bee9bb5ccb6002990e758834b311"
+to = "19a3925a89c71d422b98363d9ccfa8903a65b707"
+body = """
+Previously
+```
+def oneliner(): pass
+def otheroneliner(): pass
+
+def really_long_func():
+    with_some_contents
+```
+would raise an \"E302: expected 2 blank lines, found zero\" at the last
+line of the one liner.  Ultimately, this is due to `expand_indent` being
+passed a line whose contents are just a newline and nothing else, and
+`expand_indent` thinking that the line is indented by 1 character (the
+newline), which is wrong.
+
+Fix that by just stripping the newline, and modify a test to cover this
+case.
+"""

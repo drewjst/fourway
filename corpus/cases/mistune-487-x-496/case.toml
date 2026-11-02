@@ -1,0 +1,41 @@
+base = { repo = "mistune", commit = "799bd312e5b15dd569f2596079d47c515be806f2" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "fix: preserve empty reference destinations in MarkdownRenderer"
+pr = "https://github.com/lepture/mistune/pull/487"
+from = "799bd312e5b15dd569f2596079d47c515be806f2"
+to = "c9ea85cae2dc4d5e91ed138368bd6608eabc5337"
+body = """
+## Summary
+
+`MarkdownRenderer` drops the angle brackets from empty reference destinations. Reformatting `[text][r]` with `[r]: <>` therefore turns a valid link into plain text. With a title, the title can be reinterpreted as the URL.
+
+Emit `<>` for empty reference URLs while preserving the stored URL and the existing formatting for nonempty destinations. Tests cover full, collapsed and shortcut references, reference images, titles, and unused definitions.
+
+## Validation
+
+- Regression tests fail on the base revision and pass with the fix.
+- macOS Python 3.13.13: 1,162 tests passed; locked Ruff, mypy, and wheel/sdist build passed.
+- Linux Python 3.13.15: 1,162 tests passed; locked Ruff, mypy, and wheel/sdist build passed. The installed wheel passed 10 API/CLI smoke checks.
+
+"""
+
+[b]
+title = "Preserve literal inline syntax in Markdown round trips"
+pr = "https://github.com/lepture/mistune/pull/496"
+from = "c9ea85cae2dc4d5e91ed138368bd6608eabc5337"
+to = "95923f1fec6ca4bc5bcc7bb8a14fc2221c491556"
+body = """
+`MarkdownRenderer` can turn literal inline text into new markup on a round trip: an escaped `!` before a link becomes an image, an escaped backslash swallows the following emphasis delimiter, and literal HTML/autolink/entity prefixes regain their special meaning.
+
+Escape those characters in text tokens while retaining complete entity references already present in a token. Existing link, image, code, HTML and autolink renderers retain their output. Tests cover the affected literal forms, named/decimal/hex entity-looking text, ordinary punctuation and real markup controls.
+
+This change is independent of block-prefix handling in #495. It does not change square-bracket escaping covered by the closed #492.
+
+Validation: seven new literal round-trip cases fail before the fix. After the fix, the full suite passes (1160 tests and 20 subtests); strict mypy passes for all 38 source files; Ruff lint/format and `git diff --check` pass. Tested locally on Linux/CPython 3.12; other runtimes await CI.
+
+"""

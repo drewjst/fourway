@@ -1,0 +1,57 @@
+base = { repo = "pyflakes", commit = "c0193b288daf817a113fe4b16fa12d8e6be6fec8" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "String formatting linting"
+pr = "https://github.com/PyCQA/pyflakes/pull/443"
+from = "c0193b288daf817a113fe4b16fa12d8e6be6fec8"
+to = "eeb626328dafd600a30a79c3a37e8b8f4387a187"
+body = """
+There's three classes of lint messages added here -- I'm happy to split out / reorder / etc. these commits as fit.   Also please suggest better names / messages -- these were my first-pass attempt at the messages 😆 
+
+Resolves #148 
+
+Supersedes #370 (CC @fperrin)
+
+### f-strings
+
+- f-strings without placeholders
+
+### `'...'.format(...)`
+
+- `'{}'.format(1, 2)` -- extra positional arguments
+- `'{foo}'.format(foo=1, bar=2)` -- extra named arguments
+- `'{} {}'.format(1)` -- placeholder missing argument (positional)
+- `'{foo} {bar}'.format(foo=1)` -- placeholder missing argument (named)
+- `'{} {1}'.format(1, 2)` -- switching between manual / automatic numbering
+- `'{0} {}'.format(1, 2)` -- switching between manual / automatic numbering
+- `'{'.format(1)` -- invalid format string
+
+### `'...' % ...`
+
+- `'%(foo)' % ()` -- invalid format string (missing the conversion type)
+- `'%j' % ()` -- invalid format specifier (`j` is not a valid conversion type)
+- `'%s %s' % (1, 2, 3)` -- positional count mismatch (too many args)
+- `'%s %s' % (1,)` -- positional count mismatch (too few args)
+- `'%(bar)s' % {'bar': 1, 'baz': 2}` -- extra named argument supplied
+- `'%(bar)s %(baz)s' % {'bar': 1}` -- missing named argument
+- `'%(bar)s' % (1, 2, 3)` -- expected mapping, but got sequence
+- `'%s %s' % {'baz': 1}` -- expected sequence, got mapping
+
+---
+
+- Code for parsing `.format()` uses [`string.Formatter.parse`](https://docs.python.org/3/library/string.html#string.Formatter.parse)
+- Code for parsing `%` format is lifted from [pyupgrade](https://github.com/asottile/pyupgrade): [here](https://github.com/asottile/pyupgrade/blob/cf4555014f9332ac06aebbca9dccfe75090be3d7/pyupgrade.py#L521-L578)
+"""
+
+[b]
+title = "Shebang detection improvements"
+pr = "https://github.com/PyCQA/pyflakes/pull/438"
+from = "eeb626328dafd600a30a79c3a37e8b8f4387a187"
+to = "ff442891ea6b1f663dae3ce91d871d2ab50cc68c"
+body = """
+
+"""

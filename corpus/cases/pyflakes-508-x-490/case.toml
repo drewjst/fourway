@@ -1,0 +1,60 @@
+base = { repo = "pyflakes", commit = "1911c203a13826d2eb03d582d60874b91e36f4fc" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Fix annotation of posonlyarg"
+pr = "https://github.com/PyCQA/pyflakes/pull/508"
+from = "1911c203a13826d2eb03d582d60874b91e36f4fc"
+to = "be88036019005b769596ca82fb7b82dfdffdca0f"
+body = """
+Resolves #507
+"""
+
+[b]
+title = "Make pyflakes more resistant to syntax additions"
+pr = "https://github.com/PyCQA/pyflakes/pull/490"
+from = "be88036019005b769596ca82fb7b82dfdffdca0f"
+to = "4ed1ba41d1406dbb6c9ffbd369c2f523c2dc48f3"
+body = """
+For example, if I comment out `JOINEDSTR`
+
+```console
+$ python3 -m pyflakes /dev/stdin <<< 'f\"{1}\"'
+$ echo $?
+0
+$ PYFLAKES_ERROR_UNKNOWN=1 python3 -m pyflakes /dev/stdin <<< 'f\"{1}\"'
+Traceback (most recent call last):
+  File \"/usr/lib/python3.6/runpy.py\", line 193, in _run_module_as_main
+    \"__main__\", mod_spec)
+  File \"/usr/lib/python3.6/runpy.py\", line 85, in _run_code
+    exec(code, run_globals)
+  File \"/tmp/pyflakes/pyflakes/__main__.py\", line 5, in <module>
+    main(prog='pyflakes')
+  File \"/tmp/pyflakes/pyflakes/api.py\", line 206, in main
+    warnings = checkRecursive(args, reporter)
+  File \"/tmp/pyflakes/pyflakes/api.py\", line 155, in checkRecursive
+    warnings += checkPath(sourcePath, reporter)
+  File \"/tmp/pyflakes/pyflakes/api.py\", line 99, in checkPath
+    return check(codestr, filename, reporter)
+  File \"/tmp/pyflakes/pyflakes/api.py\", line 74, in check
+    w = checker.Checker(tree, file_tokens=file_tokens, filename=filename)
+  File \"/tmp/pyflakes/pyflakes/checker.py\", line 771, in __init__
+    self.handleChildren(tree)
+  File \"/tmp/pyflakes/pyflakes/checker.py\", line 1198, in handleChildren
+    self.handleNode(node, tree)
+  File \"/tmp/pyflakes/pyflakes/checker.py\", line 1245, in handleNode
+    handler(node)
+  File \"/tmp/pyflakes/pyflakes/checker.py\", line 1198, in handleChildren
+    self.handleNode(node, tree)
+  File \"/tmp/pyflakes/pyflakes/checker.py\", line 1245, in handleNode
+    handler(node)
+  File \"/tmp/pyflakes/pyflakes/checker.py\", line 1023, in _unknown_handler
+    raise NotImplementedError('Unexpected type: {}'.format(type(node)))
+NotImplementedError: Unexpected type: <class '_ast.JoinedStr'>
+```
+
+this should _hopefully_ reduce the \"could you make a release\" comments that we get after every python version release
+"""

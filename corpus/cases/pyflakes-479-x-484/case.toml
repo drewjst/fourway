@@ -1,0 +1,28 @@
+base = { repo = "pyflakes", commit = "4ed1ba41d1406dbb6c9ffbd369c2f523c2dc48f3" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Fix false positive with partially quoted annotations"
+pr = "https://github.com/PyCQA/pyflakes/pull/479"
+from = "4ed1ba41d1406dbb6c9ffbd369c2f523c2dc48f3"
+to = "c9708a18a17fbf17e0d88c1d1675ac1a926c4565"
+body = """
+Resolves #447
+
+There's a couple cases that needed handling here:
+- partially quoted annotations (as reported in the original issue)
+- annotations which are doubly forward annotations (I don't have a word for this or a document that explains them, but `mypy` handles them fine -- things like `-> \"foo['bar']\"`
+- quoted annotations while using `from __future__ import annotations`
+"""
+
+[b]
+title = "Warn about is comparison to tuple"
+pr = "https://github.com/PyCQA/pyflakes/pull/484"
+from = "c9708a18a17fbf17e0d88c1d1675ac1a926c4565"
+to = "0af480e3351ae40b4ae7f3ce7272a46fd4265dbd"
+body = """
+Resolves #483
+"""

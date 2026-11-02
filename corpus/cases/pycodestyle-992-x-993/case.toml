@@ -1,0 +1,27 @@
+base = { repo = "pycodestyle", commit = "0f079a061590217515421fc337df8dbf3563fed5", tests = "testsuite" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "improve performance of bare_except check"
+pr = "https://github.com/PyCQA/pycodestyle/pull/992"
+from = "0f079a061590217515421fc337df8dbf3563fed5"
+to = "8ba139df1997ac4cc65f4a13abf1173db7e55379"
+body = """
+- despite `re.compile(...)` being cached, this still amounts to 60% of the
+  overhead of the `bare_except` check
+- overall, this improved pycodestyle performance by about .25% (.0025)
+"""
+
+[b]
+title = "add performance hack to improve tokenize speed"
+pr = "https://github.com/PyCQA/pycodestyle/pull/993"
+from = "8ba139df1997ac4cc65f4a13abf1173db7e55379"
+to = "aa3417b6a51f5912e32d9c8c879e1b9dd660d5f8"
+body = """
+in profiles, this attributed somewhere between 4% and 14% of pycodestyle's execution time
+
+this is committed upstream in cpython 3.10, I've also used this to get pretty significant performance boosts in my formatter tools which are based on [tokenize-rt](https://github.com/asottile/tokenize-rt/blob/6911895baaf8e8c309c112d43e54f58a1f17efdd/tokenize_rt.py#L16-L22)
+"""

@@ -1,0 +1,27 @@
+base = { repo = "parse", commit = "5bc22a4c6dd1ed0913c73a469a75f328cbd308df", tests = "test_parse.py" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Add support for sign specifiers in number formats."
+pr = "https://github.com/r1chardj0n3s/parse/pull/134"
+from = "5bc22a4c6dd1ed0913c73a469a75f328cbd308df"
+to = "0477aa58673cd957c19d377e029347ce72c08b1b"
+body = """
+Closes https://github.com/r1chardj0n3s/parse/issues/88.
+"""
+
+[b]
+title = "Fix handling of unused alignment"
+pr = "https://github.com/r1chardj0n3s/parse/pull/132"
+from = "9a4a5558fe314effb47d17bc64ada56221ec9a66"
+to = "421c19919fbca4c61ec20c2f8292d19d93eecbc8"
+body = """
+This reverts a change introduced in 55467d28 (1.17) in order to resolve #112, but which broke more verbose use cases.
+
+The proper solution to #112 should have been to instructing the user to use the '{:^S},{^:S}' pattern instead, because in some cases format() is not really reversible so you ought to be more verbose in your format.
+
+This resolves #118.
+"""

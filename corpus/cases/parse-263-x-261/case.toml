@@ -1,0 +1,79 @@
+base = { repo = "parse", commit = "0d2d28fbccf023d0485be21aaccc95de88e92eaa" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Account for the capture groups %z adds to the generated pattern"
+pr = "https://github.com/r1chardj0n3s/parse/pull/263"
+from = "0d2d28fbccf023d0485be21aaccc95de88e92eaa"
+to = "4f76a3e2982a7b5c5491651283e718029a2cd6a1"
+body = """
+# Account for the capture groups `%z` adds to the generated pattern
+
+Fixes #262.
+
+`%z` expands to `[+|-][0-9]{2}(:?[0-9]{2})?(:?[0-9]{2})?`. Those `(:?` should be
+`(?:`: they capture nothing they need to capture, but they are real capture
+groups, so the datetime field silently added two groups to the generated pattern
+that the field's group accounting never counted. Every field after the datetime
+field is then read from the wrong groups:
+
+```python
+>>> from parse import parse
+>>> parse(\"{:%Y-%m-%d %H:%M:%S%z}|{}\", \"2020-03-04 05:06:07+0200|abc\").fixed[1]
+'00'          # the seconds captured by %z's second group, not 'abc'
+>>> parse(\"{:%Y-%m-%d %H:%M:%S%z} {} {}\", \"2020-03-04 05:06:07+0200 xyz 42\").fixed
+(datetime.datetime(2020, 3, 4, 5, 6, 7, tzinfo=...), '00', None)
+```
+
+With one trailing field the value is wrong; with two, the second is lost
+entirely. The same happens in the naive `%z`-without-colon case, and the
+datetime value itself was always correct — only the fields after it shift.
+
+The fix makes `%z`'s two groups non-capturing, and has the datetime branch
+account for however many capture groups the generated pattern actually contains
+(`self._group_index += re.compile(s).groups`), which is what keeps the two in
+step if a future format entry adds groups of its own. The same call now returns
+`'abc'` and `('xyz', '42')`.
+
+## Testing
+
+`tests/test_parse.py::test_datetime_group_count_with_timezone` covers it, next to
+the existing `test_datetime_group_count`:
+
+- `pytest` → `1 failed, 102 passed, 1 skipped` before, `103 passed, 1 skipped` after
+- `mypy parse/__init__.py` → `Success: no issues found`
+- the repo declares no linter; its CI runs `pytest` on 3.9–3.14, and the change is plain `re`/`parse` code that compiles on 3.11 here
+
+## Credit and an offer to stand down
+
+Issue #262 was filed by **@FengXiao1231**, who already identified the `(:?` →
+`(?:` mistake and the missing group accounting. I am not the reporter and did no
+diagnosis they had not already done: I reproduced the symptom on the current
+`master`, applied the fix as described there, and verified it. **If the reporter
+is preparing their own pull request, I am happy to close this one in their
+favour** — this is only here because the issue has no linked PR and nobody has
+picked it up in the day since it was filed.
+
+AI assistance: the change was produced with AI assistance (an autonomous coding
+agent) from the reporter's own analysis in #262. The reproduction, the
+before/after test run and the type check were executed locally, and a human
+reviewed the result before submission.
+
+"""
+
+[b]
+title = "Reject out-of-range timezone minutes"
+pr = "https://github.com/r1chardj0n3s/parse/pull/261"
+from = "4f76a3e2982a7b5c5491651283e718029a2cd6a1"
+to = "0abf338be4a685a370f559ab256759f0cb985d64"
+body = """
+Reject timezone minutes above 59 before constructing the offset. Previously, `parse(\"{:tt}\", \"12:00 +01:60\")` silently produced `+02:00`.
+
+Four regressions cover signed offsets with and without colons. All fail before the two-line fix.
+
+Checks on Windows/Python 3.13.15: 108 tests pass, one skipped; the CI mypy and stubtest commands pass.
+
+"""

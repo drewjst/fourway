@@ -1,0 +1,58 @@
+base = { repo = "pycodestyle", commit = "d5cc5f6430a5e033289de657152399893b1a83ef", tests = "testsuite" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Avoid relying on inspect to list functions."
+pr = "https://github.com/PyCQA/pycodestyle/pull/647"
+from = "d5cc5f6430a5e033289de657152399893b1a83ef"
+to = "54a11aa5b8aec78d29048093cf1e8d3af6819ad2"
+body = """
+This allow to run python3 -m cProfile ./pycodestyle.py …. Otherwise,
+as cProfile looks to wrap every functions (in a way I did not studied
+in depth), the inspection of test function found no function, and no
+test were run while running under cProfile, meaning that:
+
+$ time python3 ./pycodestyle.py coefficients-148K.py
+[loads and loads of errors properly reported]
+real 0m4.712s
+user 0m4.684s
+sys  0m0.024s
+
+$ time python3 -m cProfile ./pycodestyle.py /home/mdk/Downloads/pystyle/stats/git-clones/PmagPy/PmagPy/coefficients-148K.py
+[no error reported as no check were found by inspection]
+real   0m0.447s
+user   0m0.436s
+sys    0m0.008s
+
+With this patch:
+
+$ time python3 -m cProfile ./pycodestyle.py /home/mdk/Downloads/pystyle/stats/git-clones/PmagPy/PmagPy/coefficients-148K.py
+[loads and loads of errors properly reported]
+real 0m4.889s
+user 0m4.852s
+sys  0m0.032s
+"""
+
+[b]
+title = "Use bisect instead of iterating over every offsets."
+pr = "https://github.com/PyCQA/pycodestyle/pull/648"
+from = "54a11aa5b8aec78d29048093cf1e8d3af6819ad2"
+to = "727dc51ed5f47e2ade2869f0d994fa8410e6b8c1"
+body = """
+As the offsets looks already sorted (which looks logical so I assumed
+they always are), using a bisection if faster than iterating over all
+of them.
+
+On a \"worst case scenario\" I encontered, I got nice enhancement with this patch:
+
+$ time python3 ./pycodestyle.py ~/Downloads/PmagPy/PmagPy/coefficients-552K.py > /dev/null
+
+real 1m16.405s
+
+$ time python3 ./pycodestyle.py ~/Downloads/PmagPy/PmagPy/coefficients-552K.py > /dev/null
+
+real 0m3.318s
+"""

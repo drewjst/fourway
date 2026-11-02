@@ -1,0 +1,25 @@
+base = { repo = "pyflakes", commit = "4cf21896576b734fd901b0dbf6efb0a15162b4af" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "add support for match statement"
+pr = "https://github.com/PyCQA/pyflakes/pull/630"
+from = "4cf21896576b734fd901b0dbf6efb0a15162b4af"
+to = "cf75971656d9a04faa1b5aeaeb776da3567b8041"
+body = """
+
+"""
+
+[b]
+title = "Detect typing module attributes with 'import typing as <name>'"
+pr = "https://github.com/PyCQA/pyflakes/pull/632"
+from = "cf75971656d9a04faa1b5aeaeb776da3567b8041"
+to = "13cad915e6b181b2f6a85efc2ead4856b23bccc0"
+body = """
+Fixes #561
+
+See https://github.com/pallets/click/pull/1896#discussion_r632645323 for use case.
+"""

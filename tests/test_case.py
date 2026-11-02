@@ -1,4 +1,5 @@
 import os
+import time
 from pathlib import Path
 
 from fourway import gitops
@@ -35,3 +36,16 @@ def test_an_overlay_file_that_looks_unchanged_to_git_is_still_committed(tmp_path
     pair = materialize(case, tmp_path / "work")
     assert "payment.captured" in gitops.diff(pair.repo, pair.base, pair.b)
     assert "payment.captured" in gitops.git(pair.repo, "show", f"{pair.b}:events.py")
+
+
+def test_a_large_tree_leaves_no_maintenance_running_after_a_commit(tmp_path):
+    """git 2.54 packed tomli's 1,000-file tree in the background, and the work directory's cleanup failed."""
+    repo = gitops.init(tmp_path / "repo")
+    for i in range(1500):
+        (repo / f"f{i}.txt").write_text(f"{i}\n")
+    gitops.commit_all(repo, "many files")
+    packs = repo / ".git" / "objects" / "pack"
+    deadline = time.monotonic() + 3
+    while time.monotonic() < deadline:  # detached maintenance packs within a second when it runs
+        assert not any(packs.iterdir())
+        time.sleep(0.1)

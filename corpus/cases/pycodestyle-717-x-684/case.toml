@@ -1,0 +1,31 @@
+base = { repo = "pycodestyle", commit = "f8ead16fcc62a56d297584e362041a616a2c7675", tests = "testsuite" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Add E252 on missing whitespace for annotated parameter defaults"
+pr = "https://github.com/PyCQA/pycodestyle/pull/717"
+from = "f8ead16fcc62a56d297584e362041a616a2c7675"
+to = "6c8ea7bc4c000ee3ff48642540bc9144bb1e5e20"
+body = """
+Closes https://github.com/PyCQA/pycodestyle/issues/692
+"""
+
+[b]
+title = "Add W606 warning for async and await keywords in Python 3.7"
+pr = "https://github.com/PyCQA/pycodestyle/pull/684"
+from = "01ecae5a87d2bdf7df6528722e0c2ae36930d90f"
+to = "eb91b79ab38aad4d44a3b52b02605412f32ba5ae"
+body = """
+From https://docs.python.org/3/whatsnew/3.6.html#new-keywords
+
+> async and await are not recommended to be used as variable, class, function or module names. Introduced by PEP 492 in Python 3.5, they will become proper keywords in Python 3.7. Starting in Python 3.6, the use of async or await as names will generate a DeprecationWarning.
+
+By adding a warning to pycodestyle.py these future warnings and syntax errors can be caught during static code analysis.
+
+The await expression tests were taken from PEP-492.
+
+https://www.python.org/dev/peps/pep-0492/#id58
+"""

@@ -1,0 +1,25 @@
+base = { repo = "pycodestyle", commit = "bf0c5bc6e61cf728047b2fe43bd8e993581ff16c", tests = "testsuite" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Allow __all__ to be typed"
+pr = "https://github.com/PyCQA/pycodestyle/pull/1019"
+from = "bf0c5bc6e61cf728047b2fe43bd8e993581ff16c"
+to = "7046878584b5e7fb08ad3317505285957eb0cbc1"
+body = """
+Closes gh-1018
+"""
+
+[b]
+title = "Fix false-positive with star pattern"
+pr = "https://github.com/PyCQA/pycodestyle/pull/1003"
+from = "7046878584b5e7fb08ad3317505285957eb0cbc1"
+to = "174ec0231955ba99cc2fdf48e61064b3f95c959c"
+body = """
+Similar to #989: add ignore for soft keywords.
+
+Closes #1002
+"""

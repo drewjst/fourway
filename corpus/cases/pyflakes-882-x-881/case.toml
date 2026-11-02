@@ -1,0 +1,23 @@
+base = { repo = "pyflakes", commit = "1f77491c2ffc06253e35d2de054f18659f7fd567" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "remove check for has_annotations"
+pr = "https://github.com/PyCQA/pyflakes/pull/882"
+from = "1f77491c2ffc06253e35d2de054f18659f7fd567"
+to = "903aab672e4542b41789e1e7819395d6c734838a"
+body = """
+this is only relevant for .returns not stararg annotations
+"""
+
+[b]
+title = "remove FunctionScope.globals"
+pr = "https://github.com/PyCQA/pyflakes/pull/881"
+from = "903aab672e4542b41789e1e7819395d6c734838a"
+to = "fb52ee931cb3424473f923c04cff05be2fa5b3f1"
+body = """
+this has not done anything since 03ffc76367c2910f37908105391c425cc4ae52da 2015-05-27 and hides a potential error in `del`
+"""

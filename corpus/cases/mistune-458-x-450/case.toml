@@ -1,0 +1,60 @@
+base = { repo = "mistune", commit = "90b1a733f0b0a8ac9bc653d8c7bec135c881fb81" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Fix emphasis multiple-of-3 rule mis-rendering (e.g. *foo***bar*)"
+pr = "https://github.com/lepture/mistune/pull/458"
+from = "90b1a733f0b0a8ac9bc653d8c7bec135c881fb81"
+to = "fc15c87cc75c457c9d1297c6ed715c5ae70e2606"
+body = """
+The emphasis \"multiple of 3\" rule misuses the remaining delimiter run length, so `*foo***bar*` renders incorrectly. This is a regression from the new inline engine (commit 5de41fb). Triangulated against markdown-it-py and commonmark.py; 738 tests pass and a differential fuzz drops from 26 mismatches to 0.
+"""
+
+[b]
+title = "Fix MarkdownRenderer re-rendering of code spans containing backticks"
+pr = "https://github.com/lepture/mistune/pull/450"
+from = "fc15c87cc75c457c9d1297c6ed715c5ae70e2606"
+to = "10c918d975b209f2f5fed4f702896156ddfc3ca5"
+body = """
+### Problem
+
+`MarkdownRenderer.codespan` always wraps the content in a single backtick pair:
+
+```python
+return \"`\" + token[\"raw\"] + \"`\"
+```
+
+When the code-span content itself contains backticks, re-rendering the AST produces Markdown that no longer round-trips:
+
+- an inner backtick closes the span early, and
+- a code span whose raw content is a single `` ` `` renders as ```` ``` ```` , which re-parses as an empty fenced **code block**.
+
+This shows up through mistune's own round-trip oracle (`to_html(text)` vs `to_html(reformat(text))`):
+
+```python
+from mistune import create_markdown
+from mistune.renderers.markdown import MarkdownRenderer
+
+to_html = create_markdown(escape=False)
+reformat = create_markdown(renderer=MarkdownRenderer())
+
+src = \"``code with ` inside``\\n\"
+assert to_html(reformat(src)) == to_html(src)  # fails on main
+```
+
+### Fix
+
+Size the delimiter to one more than the longest backtick run inside the content, and add one space of padding on each side when the content begins or ends with a backtick. That matches both CommonMark and mistune's own `parse_codespan`, which strips a single surrounding space back off (`inline_parser.py`: `if code.startswith(\" \") and code.endswith(\" \"): code = code[1:-1]`).
+
+For content with no backticks the delimiter stays a single backtick, so output is byte-for-byte identical to before; only backtick-containing spans change.
+
+### Tests
+
+Added `test_codespan_containing_backticks` to `TestMarkdownRendererRoundTrip`, exercising single/double inner backticks plus leading, trailing, and surrounding backticks through the existing `assert_round_trip` helper. It fails before the change and passes after. Full suite: 985 passed; `ruff check`, `ruff format`, and `mypy` all clean.
+
+I used an AI assistant to help investigate this under my direction, and I have reviewed and verified the change myself.
+
+"""

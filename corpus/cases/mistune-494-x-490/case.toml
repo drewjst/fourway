@@ -1,0 +1,33 @@
+base = { repo = "mistune", commit = "26e544f9d3a28735ce6c3a58732b35829a470990" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "list: require a digit on an ordered list marker"
+pr = "https://github.com/lepture/mistune/pull/494"
+from = "26e544f9d3a28735ce6c3a58732b35829a470990"
+to = "f20f4402b042bc07f4660a791384808c45a65358"
+body = """
+## Summary
+`mistune.html(\"1. a\\n. b\\n\")` returned two list items. An ordered marker is 1 to 9 digits, so `. b` is not a marker. `) b` after `1) a` was a second item too. Both stay in the first item. `2. b` is still a second item, and a 9-digit marker still is too.
+
+## Test plan
+- [x] `pytest tests/test_misc.py::TestMiscCases::test_ordered_marker_needs_a_digit` (passed)
+- [x] `pytest tests/test_commonmark.py` (652 passed)
+
+"""
+
+[b]
+title = "fix: do not treat a full reference label as a link"
+pr = "https://github.com/lepture/mistune/pull/490"
+from = "f20f4402b042bc07f4660a791384808c45a65358"
+to = "029cd5f8f3c8f383763d729ecd3528a3a7ddb9bf"
+body = """
+get_link_range_index skipped an image's own brackets but then read the [label] of ![alt][label] as a shortcut reference link. parse_link saw that range inside the outer link text and rejected the outer link as nested, so [![alt][label]](/uri) was not parsed as a link.
+
+The label that completes a full reference now belongs to that reference and is not indexed as a link.
+
+Closes #489
+"""

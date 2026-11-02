@@ -1,0 +1,35 @@
+base = { repo = "pycodestyle", commit = "6faef2bfda5752c87d432872fe0000aa13316014", tests = "testsuite" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Fix missed quoting in E722 check"
+pr = "https://github.com/PyCQA/pycodestyle/pull/697"
+from = "6faef2bfda5752c87d432872fe0000aa13316014"
+to = "8e399cf652f8e9b1dfcb245f4b23ede0158854ee"
+body = """
+The warning looks fairly odd:
+
+E722 do not use bare except'
+
+change this to
+
+E722 do not use bare 'except'
+"""
+
+[b]
+title = "Allow continuation of verbosity level"
+pr = "https://github.com/PyCQA/pycodestyle/pull/663"
+from = "f810ae199e895d4274f527be1dd705fc275a2cb5"
+to = "c631809438660583b7b7f061d9858ff9e9ad27e4"
+body = """
+I've been having to do ```pycodestyle.StyleGuide(verbose=True, paths=['-v'])``` to achieve verbosity to the point where I can see the configuration files included such as: 
+```
+user configuration: /home/mjsir911/.config/pycodestyle
+cli configuration: setup.cfg
+```
+
+This simply allows ```pycodestyle.StyleGuide(verbose=True)``` to display these verbosity messages.
+"""

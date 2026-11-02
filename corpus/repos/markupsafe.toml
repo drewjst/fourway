@@ -1,0 +1,7 @@
+url = "https://github.com/pallets/markupsafe"
+license = "BSD-3-Clause"
+# The C speedups aren't built, so the suite tests the pure Python implementation.
+tests = "tests"
+former_tests = ["tests.py"]
+pythonpath = ["src"]
+packages = ["markupsafe/", "src/markupsafe/"]

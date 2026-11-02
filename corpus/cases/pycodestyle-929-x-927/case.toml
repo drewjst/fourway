@@ -1,0 +1,23 @@
+base = { repo = "pycodestyle", commit = "99f354dd37c872e457c0da27924c0ec95b8adffb", tests = "testsuite" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "E306: fix detection inside `async def`"
+pr = "https://github.com/PyCQA/pycodestyle/pull/929"
+from = "99f354dd37c872e457c0da27924c0ec95b8adffb"
+to = "a238201edd2883fcc0400df4a11cbb6fd5f6e5d7"
+body = """
+
+"""
+
+[b]
+title = "re-allow decorated one-liners"
+pr = "https://github.com/PyCQA/pycodestyle/pull/927"
+from = "a238201edd2883fcc0400df4a11cbb6fd5f6e5d7"
+to = "90026afea11298f0450194ed44af0b659ff6fc91"
+body = """
+Resolves #908
+"""

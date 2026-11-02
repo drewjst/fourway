@@ -1,0 +1,23 @@
+base = { repo = "pyflakes", commit = "22eaa069d49d211fe6e8f06c00711064a8d5e733" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Annotations no longer redefine names"
+pr = "https://github.com/PyCQA/pyflakes/pull/619"
+from = "22eaa069d49d211fe6e8f06c00711064a8d5e733"
+to = "3de8e61202910033b1f8af96a1afcf8faabc37a0"
+body = """
+Resolves #617
+"""
+
+[b]
+title = "remove old and unused \"tracing\" code"
+pr = "https://github.com/PyCQA/pyflakes/pull/625"
+from = "f3b1b44bf3d2d5927004fa1c2fcf1ab2def816b9"
+to = "da197ee94e791640d82940396c19d2d82ca8defb"
+body = """
+Removing the tracing lines based on the discussion in #623 
+"""

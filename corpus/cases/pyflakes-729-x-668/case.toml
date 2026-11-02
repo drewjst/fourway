@@ -1,0 +1,23 @@
+base = { repo = "pyflakes", commit = "7d6479e46f8f3e9607c9ef7975cc892db023d413" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "detect undefined name of variable defined by AnnAssign"
+pr = "https://github.com/PyCQA/pyflakes/pull/729"
+from = "7d6479e46f8f3e9607c9ef7975cc892db023d413"
+to = "4dcd92e45efeb0615ba1c96d45241a037d30abe0"
+body = """
+resolves #728
+"""
+
+[b]
+title = "Detect unused annotations in functions"
+pr = "https://github.com/PyCQA/pyflakes/pull/668"
+from = "4dcd92e45efeb0615ba1c96d45241a037d30abe0"
+to = "4a2407d7aa0834c37c9fe97e2db37fa8d01caa5b"
+body = """
+Closes #546
+"""

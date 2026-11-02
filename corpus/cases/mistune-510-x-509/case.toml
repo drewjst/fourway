@@ -1,0 +1,63 @@
+base = { repo = "mistune", commit = "d449488ce6baf5bcc386186cc01c40bf2afdc82c" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Preserve hard line breaks in ReST list items"
+pr = "https://github.com/lepture/mistune/pull/510"
+from = "d449488ce6baf5bcc386186cc01c40bf2afdc82c"
+to = "903ccd9462859c0d3ed2e0d178feb9972e05a191"
+body = """
+`RSTRenderer` handles hard breaks in paragraphs, but tight-list text goes through
+`block_text()` and leaves the internal `<linebreak>` marker in the output:
+
+```text
+- first<linebreak>second
+```
+
+Apply the existing paragraph line-block conversion to `block_text()` too, while
+keeping its single trailing newline. The same input then produces valid ReST:
+
+```rst
+- | first
+  | second
+```
+
+The regression covers unordered lists with two-space breaks and ordered lists
+with backslash breaks. It fails before the change. All 791 tests and strict
+mypy pass on Windows/Python 3.13. Ruff lint passes; formatting passes for the
+changed method/test, leaving existing formatting elsewhere alone. A separate
+Docutils parse confirms the output contains list-item line blocks for both
+marker styles, including a following paragraph.
+
+"""
+
+[b]
+title = "Preserve reference definitions parsed inside footnotes"
+pr = "https://github.com/lepture/mistune/pull/509"
+from = "903ccd9462859c0d3ed2e0d178feb9972e05a191"
+to = "29cbae09b9cee3a724bc763f9d82c8c9648756cd"
+body = """
+Reference definitions parsed inside multi-paragraph footnotes are lost because the footnote is block-parsed with an isolated environment. For example:
+
+```markdown
+Text[^one].
+
+[^one]: See [link][ref].
+
+    [ref]: /url
+
+    Final paragraph.
+```
+
+The definition disappears, but `[link][ref]` stays literal in the rendered footnote. If the definition ends the footnote, stripping its terminal newline also prevents the block parser from recognizing it.
+
+Create the footer's state with the existing `child_state()` helper and restore its terminal newline. This retains parsed reference definitions for footnote rendering and follows the existing shared-environment convention for nested blocks. Tests cover definitions in either position, precedence of an existing document definition, and missing references. This change concerns rendering footnote content; it does not add a pre-render pass for forward definitions inside footnotes used by already-rendered body text.
+
+Validation: three new tests fail on base `d449488`; the missing-reference control passes. All 1,187 tests pass on Python 3.12.13 with locked dependencies and Python 3.10.20 with current dependencies. The workflow's Ruff and mypy checks pass, as does the strict offline Sphinx dummy build. A separately installed wheel passed 14 HTML/AST API and real file-to-file CLI journeys, including existing outer references, definition precedence and cross-document isolation. Other interpreter/platform jobs await upstream CI.
+
+AI disclosure: prepared with OpenAI Codex. A separate Codex agent independently reviewed exact commit `15ad4b0` and ran 280 plugin tests successfully. This is automated review, not human maintainer review.
+
+"""

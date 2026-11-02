@@ -1,0 +1,25 @@
+base = { repo = "parse", commit = "c564b16f0482a64817156a4cb2bcd5b50a618e13", tests = "test_parse.py" }
+label = "clean"
+class = "mined, same file"
+runtime = []
+assisted = []
+
+[a]
+title = "Update README.rst"
+pr = "https://github.com/r1chardj0n3s/parse/pull/30"
+from = "c564b16f0482a64817156a4cb2bcd5b50a618e13"
+to = "56f97843f018efe42eebc33f77105ebb01bbfc2d"
+body = """
+Fix typo.
+
+"""
+
+[b]
+title = "Update README.rst"
+pr = "https://github.com/r1chardj0n3s/parse/pull/33"
+from = "56f97843f018efe42eebc33f77105ebb01bbfc2d"
+to = "54a534848f94a0d36c8309c5144e764d2f7ff356"
+body = """
+Fix another typo.
+
+"""

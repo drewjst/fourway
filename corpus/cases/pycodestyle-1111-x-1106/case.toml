@@ -1,0 +1,24 @@
+base = { repo = "pycodestyle", commit = "e9c846d03768ff12267569c77aba935f96827d31", tests = "testsuite" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Delete W601 -> W604 warnings"
+pr = "https://github.com/PyCQA/pycodestyle/pull/1111"
+from = "e9c846d03768ff12267569c77aba935f96827d31"
+to = "e119507f6322a69a4c4a228cf6793b2c01eb8ce0"
+body = """
+Closes https://github.com/PyCQA/pycodestyle/issues/1107
+"""
+
+[b]
+title = "E741 should work with lambdas"
+pr = "https://github.com/PyCQA/pycodestyle/pull/1106"
+from = "e119507f6322a69a4c4a228cf6793b2c01eb8ce0"
+to = "8b6d8471f3530ac94969bdbf18adb29c523f962d"
+body = """
+Closes https://github.com/PyCQA/pycodestyle/issues/959
+Closes https://github.com/PyCQA/pycodestyle/issues/935
+"""

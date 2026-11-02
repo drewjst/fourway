@@ -1,0 +1,25 @@
+base = { repo = "pycodestyle", commit = "3d37ea0aa2e369852c98bbbcaef8a89ed00996dc", tests = "testsuite" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "refs W606, only NAME can follow await"
+pr = "https://github.com/PyCQA/pycodestyle/pull/820"
+from = "3d37ea0aa2e369852c98bbbcaef8a89ed00996dc"
+to = "c507b725d9e0bed14505f87cd2397ac7ac489485"
+body = """
+`await NUMBER` or `await STRING` is not valid syntax
+
+@jdufresne could you help on this? If I miss some cases, I'll add NUMBER/STRING to tests
+"""
+
+[b]
+title = "Add whitespace around -> annotating operator"
+pr = "https://github.com/PyCQA/pycodestyle/pull/809"
+from = "c507b725d9e0bed14505f87cd2397ac7ac489485"
+to = "bd17ca651a57f8cdd278a8fac84d6a09a178a3eb"
+body = """
+Closes #803
+"""

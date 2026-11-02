@@ -1,0 +1,121 @@
+base = { repo = "pycodestyle", commit = "3d5962b3bdd019e0714a2c95ac15a0c4225e9582" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Use list comprehensions to avoid append() calls"
+pr = "https://github.com/PyCQA/pycodestyle/pull/1254"
+from = "3d5962b3bdd019e0714a2c95ac15a0c4225e9582"
+to = "fc2c2bad7e0c49b4bb13768e06677d292dd628be"
+body = """
+This provides a small speed-up on large codebases (~80ms).
+
+## Stats
+
+### Before
+
+```
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+ 12900025    2.590    0.000    2.590    0.000 {method 'append' of 'list' objects}
+```
+
+| Command | Mean [s] | Min [s] | Max [s] | Relative |
+|:---|---:|---:|---:|---:|
+| `pycodestyle .` | 18.178 ± 0.198 | 17.951 | 18.666 | 1.00 |
+
+
+### After
+
+```
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+  4457822    1.049    0.000    1.049    0.000 {method 'append' of 'list' objects}
+```
+
+| Command | Mean [s] | Min [s] | Max [s] | Relative |
+|:---|---:|---:|---:|---:|
+| `pycodestyle .` | 18.099 ± 0.132 | 17.887 | 18.346 | 1.00 |
+
+
+## Set-up
+I profiled pycodestyle with the yt-dlp codebase because it is similar in composition to a private codebase I have.
+
+```shell
+git clone https://github.com/yt-dlp/yt-dlp.git
+cd yt-dlp
+
+git checkout ef36d517f9b05785d61abca7691d9ab7d63cc75c
+
+# Callgraph command
+python -m cProfile -o stats $(which pycodestyle)
+
+# Benchmarking command
+hyperfine --ignore-failure --warmup 2 --runs 10 --export-markdown=baseline.md 'pycodestyle .'
+```
+
+**setup.cfg**
+```
+[pycodestyle]
+ignore = W504
+max-line-length = 100
+```
+"""
+
+[b]
+title = "Combine rstrip calls in trailing_whitespace check"
+pr = "https://github.com/PyCQA/pycodestyle/pull/1255"
+from = "fc2c2bad7e0c49b4bb13768e06677d292dd628be"
+to = "c8e36a0614c8ed2d1c4bd340f16eb5f5268b19e9"
+body = """
+This provides a small speed-up on large codebases (~90ms).
+
+## Stats
+
+### Before
+
+```
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+  1609756    0.432    0.000    0.432    0.000 {method 'rstrip' of 'str' objects}
+```
+
+| Command | Mean [s] | Min [s] | Max [s] | Relative |
+|:---|---:|---:|---:|---:|
+| `pycodestyle .` | 18.178 ± 0.198 | 17.951 | 18.666 | 1.00 |
+
+
+### After
+
+```
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+  1137564    0.311    0.000    0.311    0.000 {method 'rstrip' of 'str' objects}
+```
+
+| Command | Mean [s] | Min [s] | Max [s] | Relative |
+|:---|---:|---:|---:|---:|
+| `pycodestyle .` | 18.090 ± 0.155 | 17.784 | 18.264 | 1.00 |
+
+
+## Set-up
+I profiled pycodestyle with the yt-dlp codebase because it is similar in composition to a private codebase I have.
+
+```shell
+git clone https://github.com/yt-dlp/yt-dlp.git
+cd yt-dlp
+
+git checkout ef36d517f9b05785d61abca7691d9ab7d63cc75c
+
+# Callgraph command
+python -m cProfile -o stats $(which pycodestyle)
+
+# Benchmarking command
+hyperfine --ignore-failure --warmup 2 --runs 10 --export-markdown=baseline.md 'pycodestyle .'
+```
+
+**setup.cfg**
+```
+[pycodestyle]
+ignore = W504
+max-line-length = 100
+```
+"""

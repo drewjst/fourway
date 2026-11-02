@@ -1,0 +1,34 @@
+base = { repo = "pyflakes", commit = "dd446ed156837f50a06596ec79efc292e856954f" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "assignment expression in comprehension should target outer scope"
+pr = "https://github.com/PyCQA/pyflakes/pull/698"
+from = "dd446ed156837f50a06596ec79efc292e856954f"
+to = "e02336c3d47c621feed730f5bdaa792babca75be"
+body = """
+Closes #633
+
+I wasn't sure where to put the test, so I put it next to the other named expression test
+"""
+
+[b]
+title = "add tests for python3.11-specific syntax"
+pr = "https://github.com/PyCQA/pyflakes/pull/694"
+from = "e02336c3d47c621feed730f5bdaa792babca75be"
+to = "2a61f3c0a1dddb00453c66d1fa9f45d7b5b7897d"
+body = """
+fortunately we don't really need to make a new release for this thanks to the work I did in #490
+
+the only behaviour this \"fixes\" is this pattern which I highly doubt anyone would use in reality:
+
+```python
+try:
+    undefined_name
+except* NameError:
+    pass
+```
+"""

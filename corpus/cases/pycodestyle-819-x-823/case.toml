@@ -1,0 +1,23 @@
+base = { repo = "pycodestyle", commit = "9f8240e510284dce52b4d4a4d6ec9e4e388d59bd", tests = "testsuite" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "fix #811, corner cases for async/await check"
+pr = "https://github.com/PyCQA/pycodestyle/pull/819"
+from = "9f8240e510284dce52b4d4a4d6ec9e4e388d59bd"
+to = "8940d64045d908d5be84ba60e6eb7846e21adb7a"
+body = """
+
+"""
+
+[b]
+title = "Allow omitting blank lines around one-liner definitions."
+pr = "https://github.com/PyCQA/pycodestyle/pull/823"
+from = "8940d64045d908d5be84ba60e6eb7846e21adb7a"
+to = "db80d0750951e4a9d1ac82338285496534d6c061"
+body = """
+Fixes the E302 part of #231.
+"""

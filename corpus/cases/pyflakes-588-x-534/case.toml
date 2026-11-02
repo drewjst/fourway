@@ -1,0 +1,34 @@
+base = { repo = "pyflakes", commit = "dbb8fc4152c7d8dc4f7d666df4171860679f4b47" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Recognize __qualname__ when used in class scope"
+pr = "https://github.com/PyCQA/pyflakes/pull/588"
+from = "dbb8fc4152c7d8dc4f7d666df4171860679f4b47"
+to = "26cf0631fe89f61d5b0ef8d6949676f051e35796"
+body = """
+`pyflakes` doesn't recognize [`__qualname__`](https://docs.python.org/3/glossary.html#term-qualified-name).
+
+Reproducer:
+```
+$ echo -e \"class Foo:\\n    __qualname__\" | python3
+$ pyflakes --version
+2.2.0 Python 3.8.6 on Linux
+$ echo -e \"class Foo:\\n    __qualname__\" | pyflakes 
+<stdin>:2:5 undefined name '__qualname__'
+```
+
+Initially reported [here](https://gitlab.com/pycqa/flake8/-/issues/227), relates #259.
+"""
+
+[b]
+title = "Fix quoted type annotations in typing.TypeVar contexts"
+pr = "https://github.com/PyCQA/pyflakes/pull/534"
+from = "0e4194b238ffd006441f1a33373062d9c7272d0e"
+to = "d2ab3ec801a0b280ab0fbc66f5afbe3acf6f3701"
+body = """
+[`TypeVar`](https://docs.python.org/3/library/typing.html#typing.TypeVar) has such contexts in the positional arguments (for constraints) and in the `bound` keyword argument.
+"""

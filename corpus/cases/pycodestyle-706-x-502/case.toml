@@ -1,0 +1,33 @@
+base = { repo = "pycodestyle", commit = "4f5d398f9256727ad8fd7f67c45ea60a8fad5a4a", tests = "testsuite" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Fix handling of diffs with mnemonic prefixes"
+pr = "https://github.com/PyCQA/pycodestyle/pull/706"
+from = "4f5d398f9256727ad8fd7f67c45ea60a8fad5a4a"
+to = "4cee4a5fef6986aa90a3572ea1217ec8aff7629b"
+body = """
+fixes #701
+"""
+
+[b]
+title = "Add W504 for line breaks before binary operators"
+pr = "https://github.com/PyCQA/pycodestyle/pull/502"
+from = "4cee4a5fef6986aa90a3572ea1217ec8aff7629b"
+to = "534310014a1dad2a5aeca486fa2dccda93eb930b"
+body = """
+This flips the W503 rule to enforce line breaks before binary operators.
+
+Related #498 
+
+---
+
+TODO:
+- [x] Add W504 to list of codes
+- [x] Add W504 to default ignore
+- [x] Fix tests
+
+"""

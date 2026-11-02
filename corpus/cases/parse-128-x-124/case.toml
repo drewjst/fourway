@@ -1,0 +1,32 @@
+base = { repo = "parse", commit = "61880699abfec809e4ee1c0ba58dcf2cf14cfbca", tests = "test_parse.py" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Support slice access to results"
+pr = "https://github.com/r1chardj0n3s/parse/pull/128"
+from = "61880699abfec809e4ee1c0ba58dcf2cf14cfbca"
+to = "44e14b081e2682b13b0d449aad5b2be9016fff51"
+body = """
+Makes it slightly more ergonomic to access a subset of the results when there are many items.
+
+```
+>>> result = parse(\"({:d}, {:d}, {:d}) -> ({:d}, {:d}, {:d})\",  \"(1, 2, 3) -> (4, 5, 6)\")
+>>> start, stop = result[:3], result[3:]
+>>> start
+(1, 2, 3)
+>>> stop
+(4, 5, 6)
+```
+"""
+
+[b]
+title = "match trailing newline"
+pr = "https://github.com/r1chardj0n3s/parse/pull/124"
+from = "c669f8732b7f34a37967bfc8aedb7ac631e158e2"
+to = "126900688332414bfb4e3354860280dd61388bf7"
+body = """
+This PR aims at solving #123 
+"""

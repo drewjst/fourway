@@ -1,0 +1,23 @@
+base = { repo = "tomli", commit = "0bc66fcab1f766fe410ffeebfe9ec1ec646f1681" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Version 2.3.0"
+pr = "https://github.com/hukkin/tomli/pull/266"
+from = "0bc66fcab1f766fe410ffeebfe9ec1ec646f1681"
+to = "0b158821c3911df4f24441959d8ce18991619222"
+body = """
+
+"""
+
+[b]
+title = "Add shorthand for escape character"
+pr = "https://github.com/hukkin/tomli/pull/201"
+from = "871f2c1cf33bc451376c225eeff77611cf2dd5a9"
+to = "0921abf5cea9f937565e37793d5061a128c22ac5"
+body = """
+Merge when https://github.com/toml-lang/toml/pull/790 finds its way into a TOML release.
+"""

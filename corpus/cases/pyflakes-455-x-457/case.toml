@@ -1,0 +1,31 @@
+base = { repo = "pyflakes", commit = "cc2977ff8cbb0e2b668413a73a0c3a6a4b4f02e8" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "In PEP 484 type comments, allow text after \"# type: ignore\""
+pr = "https://github.com/PyCQA/pyflakes/pull/455"
+from = "cc2977ff8cbb0e2b668413a73a0c3a6a4b4f02e8"
+to = "fa92556ca04214fbe292b3d007b34059e8490b5e"
+body = """
+This is to support allowing typecheckers to implement ignores for
+specific errors, using syntax like `# type: ignore=E1000` or
+`# type: ignore[type-mismatch]` or some such.
+mypy is about to add support for ignoring specific errors following
+this design: https://github.com/python/mypy/issues/7239
+
+Support for extra text in type comments was implemented
+in CPython as https://bugs.python.org/issue36878
+and in typed_ast as https://github.com/python/typed_ast/pull/116.
+"""
+
+[b]
+title = "Add support for PEP 572 assignment expressions"
+pr = "https://github.com/PyCQA/pyflakes/pull/457"
+from = "fa92556ca04214fbe292b3d007b34059e8490b5e"
+to = "e422e53042ada656f7a485f2d053dc1885193026"
+body = """
+
+"""

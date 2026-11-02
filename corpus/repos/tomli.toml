@@ -1,0 +1,6 @@
+url = "https://github.com/hukkin/tomli"
+license = "MIT"
+# The suite is unittest classes; pytest collects them.
+tests = "tests"
+pythonpath = ["src"]
+packages = ["tomli/", "src/tomli/"]

@@ -1,0 +1,113 @@
+base = { repo = "mistune", commit = "b3a2a7a99b0da72209806ba6d0bf4df66a317232" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "fix(table): reject a non-delimiter second row instead of eating it"
+pr = "https://github.com/lepture/mistune/pull/467"
+from = "b3a2a7a99b0da72209806ba6d0bf4df66a317232"
+to = "7da7e1b69bedd9caecc53f1e7d0d37b31d9a0110"
+body = """
+## The bug
+
+Three lines of ordinary pipe-separated text get turned into a table, and the middle line silently disappears:
+
+```python
+import mistune
+md = mistune.create_markdown(plugins=['table'])
+print(md(\"Name | Age\\nJohn | 30\\nJane | 25\\n\"))
+```
+
+Today this renders as a `<table>` whose header is `Name | Age`, whose body is `Jane | 25`, and where **`John | 30` is gone** — it was consumed as the \"delimiter\" row.
+
+## Cause
+
+`_process_thead` checks that the alignment row has the same cell count as the header, but it never checks that the cells are actually delimiters. A cell that isn't a dash rule falls through to `aligns.append(None)`:
+
+```python
+if ALIGN_CENTER.match(v):
+    aligns.append(\"center\")
+elif ALIGN_LEFT.match(v):
+    aligns.append(\"left\")
+elif ALIGN_RIGHT.match(v):
+    aligns.append(\"right\")
+else:
+    aligns.append(None)   # <- also catches \"30\", \"bar\", ... , not just \"---\"
+```
+
+`None` is the legitimate value for a no-align `---` column, so a row like `John | 30` is accepted as a valid no-align delimiter, and the block becomes a table with that line eaten.
+
+## Fix
+
+Require each alignment cell to be a dash rule (optionally colon-flanked) or empty. Anything else means the second line isn't a delimiter row, so it isn't a table:
+
+```python
+elif ALIGN_NONE.match(v) or not v.strip():
+    aligns.append(None)
+else:
+    return None, None
+```
+
+Empty cells stay allowed, so existing tables such as
+
+```
+A |
+- |
+a | b
+```
+
+(the `Misc Table` fixture, where the delimiter cell is empty) keep working. This matches the delimiter-cell set from the php-markdown / GFM spec that the plugin follows.
+
+## Verification
+
+- Added two `tests/fixtures/table.txt` examples (a non-delimiter second row now stays a paragraph). They fail on `main` and pass with this change, across both the plain and `speedup` variants.
+- Full suite green: `1141 passed`. No existing table fixture changed — every valid table (alignment, empty delimiter cells, escaped pipes, `nptable`, mismatch handling) renders as before.
+- `ruff check` clean.
+
+---
+
+*Disclosure:* this PR was authored by an AI coding agent (Claude Code) running on this account: the AI found the bug, ran the repro, wrote the tests, and wrote this description. The human account holder reviews every change and is accountable for it. The verification above is real and re-runnable from the diff. If this isn't the kind of contribution you want, say so and I'll close it.
+
+"""
+
+[b]
+title = "Only treat a backslash as an escape before punctuation in a link destination"
+pr = "https://github.com/lepture/mistune/pull/466"
+from = "7da7e1b69bedd9caecc53f1e7d0d37b31d9a0110"
+to = "46da727365487b2414f097d019c0ad1f4b8d34df"
+body = """
+### Problem
+
+`[a](foo\\ bar)` renders as a link with an illegal href:
+
+```
+[a](foo\\ bar)   ->   <p><a href=\"foo%5C%20bar\">a</a></p>
+```
+
+That href contains a backslash (`%5C`) and a space (`%20`), which no reading of the syntax should produce — CommonMark and other parsers render this input as literal text.
+
+A space is not an escapable character, so `\\ ` is a literal backslash followed by a space that should end the bare destination (and make the whole link fail to parse). But `parse_link_href`'s scanner (`helpers.py`) skips the character after *any* backslash, so the `\\` hides the following space from the whitespace break, and the space is absorbed into the destination. The leftover `%5C` is the tell: the same module's `unescape_char` only unescapes a backslash before ASCII punctuation, so it refuses to remove this one — the scanner and the unescaper disagree about what is escapable.
+
+### Fix
+
+Gate the skip on the next character being punctuation, matching `unescape_char`:
+
+```python
+[a](foo\\ bar)   ->   <p>[a](foo\\ bar)</p>     # literal text, link fails to parse
+[a](foo\\*bar)   ->   <p><a href=\"foo*bar\">a</a></p>   # escaped punctuation still works
+```
+
+### Tests
+
+`test_backslash_space_in_link_destination_is_not_an_escape` covers both cases; it fails before this change and passes after. The full suite stays green (1140 passed, including the 652-example CommonMark set); `ruff check`, `ruff format`, and `mypy` pass.
+
+*Scope note:* this only changes the backslash-before-non-punctuation case in a bare destination. Adjacent behaviours where reference parsers themselves disagree (e.g. a backslash inside a `(title)`/`\"title\"`) are intentionally untouched.
+
+---
+
+*Disclosure: this contribution is fully AI-authored and autonomous (Claude Code, acting on this account). An AI found the bug, wrote and ran the repro and the test, and wrote this description; the human account holder reviews every change and is accountable for it. The verification above is real and re-runnable from the diff. If this isn't the kind of contribution you want, say so and I'll close it.*
+
+
+"""

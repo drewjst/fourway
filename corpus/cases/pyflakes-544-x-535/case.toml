@@ -1,0 +1,37 @@
+base = { repo = "pyflakes", commit = "2dce2ee2fe31357c5c5a080a6b4b63ea696b7f59" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Extend F822 to support tuple concatenation"
+pr = "https://github.com/PyCQA/pyflakes/pull/544"
+from = "2dce2ee2fe31357c5c5a080a6b4b63ea696b7f59"
+to = "cdb0606c85a417e961129aa88ebee210481f730d"
+body = """
+Fixes #543 
+
+// Thanks asottile for pointing me in the right direction
+
+"""
+
+[b]
+title = "Fix undefined name in annotations"
+pr = "https://github.com/PyCQA/pyflakes/pull/535"
+from = "cdb0606c85a417e961129aa88ebee210481f730d"
+to = "5fc37cbda5bf4e5afcb64c45caa62062979256b4"
+body = """
+Variable annotations without a value don't create a name, but they still
+can be used as variable annotation themselves as long as the annotation
+is quoted or \"from __future__ import annotations\" is used.
+
+The implementation introduces a new binding \"Annotation\" for these kinds
+of variable annotations. This can potentially be used for further
+annotation-related checks in the future.
+
+Annotation handling is extended to be able to detect both forms of postponed
+annotations (quoted and future import) during checks.
+
+Fixes #486
+"""

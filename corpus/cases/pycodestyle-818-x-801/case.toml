@@ -1,0 +1,35 @@
+base = { repo = "pycodestyle", commit = "b49f5e75be2e942f264f75acc6a7713c593c5615", tests = "testsuite" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Make W605 point to the invalid sequence"
+pr = "https://github.com/PyCQA/pycodestyle/pull/818"
+from = "b49f5e75be2e942f264f75acc6a7713c593c5615"
+to = "d288c073eb3ff268bab619961253ec41f3b97201"
+body = """
+Instead of having W605 point to the beginning of the string literal, make it point to the precise line and column of the invalid escape sequence.
+
+This is more helpful when you have multiline string literals.
+
+See #795.
+"""
+
+[b]
+title = "Keep compability with stdlib tokenize.py changes"
+pr = "https://github.com/PyCQA/pycodestyle/pull/801"
+from = "d288c073eb3ff268bab619961253ec41f3b97201"
+to = "3d37ea0aa2e369852c98bbbcaef8a89ed00996dc"
+body = """
+https://github.com/python/cpython/commit/c4ef4896eac86a6759901c8546e26de4695a1389
+is not yet part of any release of Python but has been backported to all
+versions in Git (includeing 2.7!). It causes the tokenize.py module to
+emit a synthetic NEWLINE token for files that do not in fact end with a
+newline, which confuses pycodestyle's checks for blank lines at the end
+of a file. Fortunately the synthetic NEWLINE tokens are easy to detect
+(the token text is \"\").
+
+Fixes #786
+"""

@@ -1,0 +1,65 @@
+base = { repo = "mistune", commit = "4f91db8d211a01374df50dc786e8fb452fe83f4a" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Fix premature HTML-escaping of inline code"
+pr = "https://github.com/lepture/mistune/pull/393"
+from = "4f91db8d211a01374df50dc786e8fb452fe83f4a"
+to = "77f925e1de25e453a4d8c190fc8099ad1bd2386b"
+body = """
+Fixes #372 by moving HTML-escaping of `codespan` from the parser into the HTML renderer.
+
+Passes all tests, and `test_ast_output` is enhanced to cover this case. (I just ran `pytest`, are there other tests or any linters I should run?)
+
+**Before** (parse to AST wrongly shows raw codespan content as `&amp;`, which is a **bug** for use-cases that never render to HTML - for comparison, `&` outside of codespan doesn't get escaped):
+
+```python
+>>> import mistune
+>>> md = mistune.Markdown()
+>>> md('`&`')
+[{'type': 'paragraph', 'children': [{'type': 'codespan', 'raw': '&amp;'}]}]
+```
+
+**After** (pure parse correctly shows raw code content is `&`):
+
+```python
+>>> import mistune
+>>> md = mistune.Markdown()
+>>> md('`&`')
+[{'type': 'paragraph', 'children': [{'type': 'codespan', 'raw': '&'}]}]
+```
+
+After (still works when rendering to HTML):
+
+```python
+>>> md.renderer = mistune.HTMLRenderer()
+>>> md('`&`')
+'<p><code>&amp;</code></p>\\n'
+```
+
+**Use-case example**: I have a script which publishes files written in Markdown as Tumblr posts. It walks through Mistune's AST, generating Tumblr's \"NPF\". I need the raw contents, because Tumblr takes the raw text and does its own HTML rendering+escaping server-side. Currently, my script has to have extra handling for `codespan` tokens to unescape the characters escaped by `mistune.util.escape`.
+
+P.S. Special thanks to @torokati44 for finding the exact line in the parser that was causing the problem.
+"""
+
+[b]
+title = "Fix premature (and incomplete) HTML-escaping of links"
+pr = "https://github.com/lepture/mistune/pull/395"
+from = "77f925e1de25e453a4d8c190fc8099ad1bd2386b"
+to = "498f0e82e0c7695019306834d2b427bef3a082da"
+body = """
+This fixes three bugs:
+
+1. links were being prematurely HTML-escaped (when being parsed into AST instead of waiting until rendering to HTML) ( #394 )
+2. image directive was double-escaping `target` links, and
+3. image directive wasn't escaping `src` links at all.
+
+Same idea as the fix in #393 - move the HTML-escaping out of the parse and into the *rendering*.
+
+Tests updated to catch all three bugs.
+
+You can merge this and #393 in any order (no merge conflicts either way).
+"""

@@ -1,0 +1,55 @@
+base = { repo = "parse", commit = "a38727d1963151e4c4daff9dceb2faf925e849b6" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Fix case-sensitive am/pm and Zulu conversion under case-insensitive matching"
+pr = "https://github.com/r1chardj0n3s/parse/pull/258"
+from = "a38727d1963151e4c4daff9dceb2faf925e849b6"
+to = "d843b6b13604a14eba063e31e52dd99c05282d2e"
+body = """
+`parse()` compiles its regexes with `re.IGNORECASE`, so lowercase `am`, `pm` and `z` match the datetime patterns — but `date_convert()` then compares them case-sensitively.
+
+Two consequences today:
+
+```python
+parse('{:tt}', '03:00 pm')[0]  # datetime.time(3, 0)      — silently wrong, should be 15:00
+parse('{:tt}', '12:30 am')[0]  # datetime.time(12, 30)    — should be 00:30
+parse('{:ti}', '2023-01-15T10:30:00z')
+# ValueError: invalid literal for int() with base 10: ''  — 'z' misses the
+# `if tz == \"Z\"` branch and falls into the numeric-offset parser
+```
+
+The fix normalises the captured meridiem with `.upper()` after stripping, and recognises the Zulu marker case-insensitively. Tests added next to the existing `{:tt}` cases in `test_datetimes` (fail before, pass after; full suite `102 passed, 1 skipped`).
+
+<sub>AI-assisted contribution (fix authored with an AI coding agent, verified by the human submitter).</sub>
+"""
+
+[b]
+title = "Resolve year-less strftime formats against the current year"
+pr = "https://github.com/r1chardj0n3s/parse/pull/256"
+from = "d843b6b13604a14eba063e31e52dd99c05282d2e"
+to = "175b52d5079dd632332bdc8a075f25867d5a6a17"
+body = """
+When a strftime-style format has no year directive, `strf_date_convert` ran `datetime.strptime()` first (which defaults to the non-leap year 1900) and only then replaced the year with the current one. As a result:
+
+```python
+>>> parse.parse(\"{:%m-%d}\", \"02-29\")
+ValueError: day is out of range for month
+>>> parse.parse(\"{:%d %b}\", \"29 Feb\")
+ValueError: day is out of range for month
+>>> parse.parse(\"{:%j}\", \"60\")    # in a leap year: should be Feb 29
+datetime.date(2024, 3, 1)
+>>> parse.parse(\"{:%j}\", \"366\")   # in a leap year: should be Dec 31
+datetime.date(2024, 1, 1)
+```
+
+On Python 3.13+ every year-less format with a day of month (e.g. `{:%m-%d}`) also emits a DeprecationWarning from strptime (python/cpython#70647), and the default is slated to change in 3.15.
+
+This appends the current year to both the input and the format before calling strptime, so the date is validated and `%j` is resolved in the year that is actually returned, and strptime never sees an ambiguous year-less date. Behaviour is otherwise unchanged: the current year is still used, and time-only formats still return `time` objects. In a non-leap current year `02-29` still raises ValueError, consistent with `{:%Y-%m-%d}` on `2023-02-29`.
+
+Tests pin the year via a `datetime` subclass so they don't depend on when they run; the suite also passes with `-W error::DeprecationWarning`.
+
+"""

@@ -139,7 +139,8 @@ def test_no_pull_request_appears_in_two_mined_pairs():
     urls = Counter(tomllib.loads((c.path / "case.toml").read_text())[s]["pr"] for c in mined for s in ("a", "b"))
     assert [url for url, n in urls.items() if n > 1] == []
     for case in mined:
-        assert case.label == "clean" and case.expect is None
+        # History can vouch only for "clean"; a relabeled conflict brings its own oracle.
+        assert (case.label, case.expect is None) in {("clean", True), ("conflict", False)}
         assert case.a.commits[0] == case.base.commit
 
 

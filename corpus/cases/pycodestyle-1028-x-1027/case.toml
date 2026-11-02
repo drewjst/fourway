@@ -1,0 +1,23 @@
+base = { repo = "pycodestyle", commit = "533073e22cb66b277e09ee41a034380494f9a11e", tests = "testsuite" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "add simple .pre-commit-config.yaml"
+pr = "https://github.com/PyCQA/pycodestyle/pull/1028"
+from = "533073e22cb66b277e09ee41a034380494f9a11e"
+to = "51de0fa957046d30e601769c48fafe1efe857dc4"
+body = """
+I didn't add too many checks, but just enough to get some basic checks and change the red X on the other PR
+"""
+
+[b]
+title = "Release 2.8.0"
+pr = "https://github.com/PyCQA/pycodestyle/pull/1027"
+from = "6737a316c1ce08f0997cf77e07beae550f179827"
+to = "5194e66093b58632b37f59da97e89d3e98bf0692"
+body = """
+
+"""

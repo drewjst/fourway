@@ -1,0 +1,44 @@
+base = { repo = "mistune", commit = "029cd5f8f3c8f383763d729ecd3528a3a7ddb9bf" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Preserve literal hashes at the end of headings"
+pr = "https://github.com/lepture/mistune/pull/486"
+from = "029cd5f8f3c8f383763d729ecd3528a3a7ddb9bf"
+to = "40c76b9ea964714b900520c348262a8c5e38f117"
+body = """
+Reformatting `foo #\\n---\\n` currently produces `## foo #`, whose final hash is consumed as an ATX closing delimiter on reparse. The heading silently changes from `foo #` to `foo`. Escaped hashes in ATX headings have the same problem.
+
+Escape a trailing hash run when it would become a closing delimiter. Tests compare the original and reformatted HTML for Setext and ATX headings, tabs, hash-only contents, and unaffected code/attached hashes.
+
+Validation: 1159 tests and 14 subtests passed on Python 3.11; ruff and mypy passed; public API and actual CLI roundtrips passed, including a 10,000-hash input. Other Python versions were not tested.
+
+AI disclosure: this patch and its tests were prepared with OpenAI Codex and verified by executing the tests and CLI.
+
+"""
+
+[b]
+title = "Only parse task markers in leading paragraphs"
+pr = "https://github.com/lepture/mistune/pull/499"
+from = "40c76b9ea964714b900520c348262a8c5e38f117"
+to = "e9e7b4e9611a71204dd12aca1aed033f9e98c601"
+body = """
+## Summary
+
+The task-list plugin currently removes literal `[ ]`/`[x]` text from headings at the start of list items and inserts a checkbox before the heading. For example, `- # [x] heading` becomes a checked task containing `<h1>heading</h1>`.
+
+[GFM §5.3](https://github.github.com/gfm/#task-list-items-extension-) requires a task marker to occur in the list item's first paragraph. Restrict the rewrite to `paragraph` and `block_text` tokens so headings keep their text. Nested task items continue to be processed.
+
+Add fixtures for ATX and setext headings, checked/unchecked/uppercase markers, a paragraph after a heading, and a valid nested task. Each fixture runs with and without the speedup plugin.
+
+## Validation
+
+- Baseline: 1,158 tests passed on Python 3.13.5.
+- New regressions before the source fix: all eight failed.
+- After the fix: all 1,166 tests passed on Python 3.12.14 and 3.13.5.
+- Ruff 0.11.12, mypy 1.16.0, and `git diff --check` passed.
+- The pinned lint environment and other supported interpreters were not run locally.
+"""

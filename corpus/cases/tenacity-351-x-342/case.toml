@@ -1,5 +1,6 @@
 base = { repo = "tenacity", commit = "a85896547de516efed5884dad1e6a0c7a6e7b2e4" }
-label = "clean"
+label = "conflict"
+expect = "differential_b"
 class = "mined, same file"
 runtime = ["a", "b"]
 assisted = []

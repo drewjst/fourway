@@ -1,0 +1,23 @@
+base = { repo = "pycodestyle", commit = "c50ba1573bd7fc863c0a04336a6eb505bfcef055" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "reduce \"module_imports_on_top_of_file\" execution time by ~20%"
+pr = "https://github.com/PyCQA/pycodestyle/pull/1292"
+from = "c50ba1573bd7fc863c0a04336a6eb505bfcef055"
+to = "db26deb50a67a2efa51e4cb12578d9ea0cd15c12"
+body = """
+[Benchmarks](https://github.com/PyCQA/pycodestyle/pull/1290#issue-3225528348)
+"""
+
+[b]
+title = "reduce \"python_3000_invalid_escape_sequence\" execution time by ~60%"
+pr = "https://github.com/PyCQA/pycodestyle/pull/1293"
+from = "db26deb50a67a2efa51e4cb12578d9ea0cd15c12"
+to = "09bd5bd5e1482ab102bc481390562bda49799621"
+body = """
+[Benchmarks](https://github.com/PyCQA/pycodestyle/pull/1290#issue-3225528348)
+"""

@@ -1,0 +1,31 @@
+base = { repo = "pycodestyle", commit = "6cb59d685e635a72db2230d75b61aed99ac86b29", tests = "testsuite" }
+label = "clean"
+class = "mined, same file"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Remove unused imports and assignments"
+pr = "https://github.com/PyCQA/pycodestyle/pull/540"
+from = "6cb59d685e635a72db2230d75b61aed99ac86b29"
+to = "1fcd279740c9f028214c2364b3de750653bbf407"
+body = """
+Neither the warnings modules, nor the two local assignments in
+pycodestyle's newest check were being used. This removes them and
+fixes pyflakes errors raised as a result.
+
+"""
+
+[b]
+title = "Update maximum_line_length to use Checker.noqa"
+pr = "https://github.com/PyCQA/pycodestyle/pull/539"
+from = "1fcd279740c9f028214c2364b3de750653bbf407"
+to = "f8af83d3cce2dace3d780c88ce0c580e30fc1dbd"
+body = """
+This also updates the Checker to update it's state for physical lines
+as well as logical lines. This allows maximum_line_length to rely on
+Checker state for its noqa check.
+
+Closes #538
+
+"""

@@ -1,0 +1,25 @@
+base = { repo = "pyflakes", commit = "e71a72fc7aab8938b2ec2be64a850f6ab6251e53" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Detect `pythonw` in shebang"
+pr = "https://github.com/PyCQA/pyflakes/pull/277"
+from = "e71a72fc7aab8938b2ec2be64a850f6ab6251e53"
+to = "59f15e9ea7024e3f97da8464ae165b9a4b3d1b76"
+body = """
+This addresses https://github.com/PyCQA/pyflakes/issues/149#issuecomment-305881232 by @asmeurer.
+
+https://docs.python.org/3/using/mac.html?highlight=pythonw#running-scripts-with-a-gui
+"""
+
+[b]
+title = "Support Python 3.7"
+pr = "https://github.com/PyCQA/pyflakes/pull/273"
+from = "4e77dc65ca94d9dafd9e0b61dce4698e0346f83f"
+to = "8baf19d9b7d0ebe31ae79017480752d26fde088a"
+body = """
+This fixes #271.
+"""

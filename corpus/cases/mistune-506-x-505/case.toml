@@ -1,0 +1,53 @@
+base = { repo = "mistune", commit = "117c6531b7016ff2dfd330f320f2465c9fd3d7b2" }
+label = "clean"
+class = "mined, other files"
+runtime = ["a", "b"]
+assisted = []
+
+[a]
+title = "Fix indented definition-list markers"
+pr = "https://github.com/lepture/mistune/pull/506"
+from = "117c6531b7016ff2dfd330f320f2465c9fd3d7b2"
+to = "61b905c36bc2402d76204193f3f97590b16c899e"
+body = """
+With `def_list` enabled, `Term\\n   : definition\\n` currently becomes a paragraph instead of a definition list. Indented markers after an existing definition can also be absorbed into its text.
+
+Allow zero to three leading spaces consistently when recognizing and removing definition markers, as permitted by the plugin's [Markdown Extra specification](https://michelf.ca/projects/php-markdown/extra/#def-list). The example now renders `<dl><dt>Term</dt><dd>definition</dd></dl>` (with normal output newlines). Existing unindented markers and space/tab separators remain supported; four-space indentation is still rejected.
+
+Add 42 public-API regression/control cases covering HTML and AST output, tight/loose definitions, mixed marker indentation, continuation text/code, and invalid/orphan markers.
+
+Validation on macOS arm64, CPython 3.13.12:
+
+- The new tests against the unchanged base: 30 failed, 12 passed; all 42 pass with the fix.
+- Full suite: 1,225 passed and 55 subtests passed, including plugin fixtures and CommonMark tests. A publication-time run initially failed the existing `test_mixed_emphasis_delimiters_are_near_linear` timing assertion; that test passed in isolation and the complete suite passed on rerun without changes.
+- `ruff check .`, changed-file `ruff format --check`, strict `mypy` (38 source files), and `git diff --check` passed.
+- Independent validation repeated baseline/regression checks, the full suite, lint/type checks, and additional boundary/compatibility probes.
+
+Other Python versions, PyPy, other operating systems, hosted CI, package build/install, documentation builds, formal benchmarks, every plugin combination, and arbitrary custom renderers were not run locally. The `speedup` plugin is a compatibility no-op at this revision.
+
+AI assistance was used to prepare the implementation and regression tests.
+
+"""
+
+[b]
+title = "Preserve non-line-break characters in list rendering"
+pr = "https://github.com/lepture/mistune/pull/505"
+from = "61b905c36bc2402d76204193f3f97590b16c899e"
+to = "397bade9aa6b8babacfa35bfd7cb19fa7f6526c5"
+body = """
+`MarkdownRenderer` silently changes list content when it contains characters such as U+2028 or U+0085. For example, reformatting a list item containing the code span `before\\u2028after` replaces the separator with LF; parsing that code span again turns it into a space. The shared list helper also changes plain text emitted by `RSTRenderer`.
+
+Split rendered list content only at LF. Mistune's Markdown entry point already normalizes CR and CRLF to LF, and [CommonMark defines line endings as CR, LF, or CRLF](https://spec.commonmark.org/0.31.2/#characters-and-lines). Remove one trailing LF before splitting to retain the existing list spacing.
+
+Add regressions for eight characters recognized by Python's `splitlines()` that are not Markdown line endings. These cover ordered, unordered, nested and loose lists, code spans, fenced code, and the shared RST path. CR/LF/CRLF controls verify normal line-ending handling.
+
+Validation on Windows / CPython 3.12.8:
+
+- Before the production change: all 72 content-preservation subcases fail; all three normal-line-ending controls pass.
+- After the change: full suite `793 passed, 130 subtests passed`; renderer suite `29 passed, 120 subtests passed`.
+- Ruff lint and strict mypy pass for the repository (38 source files). Changed code passes Ruff formatting; full-file formatting flags the same two pre-existing lines in the base test file.
+- `git diff --check` passes. No dependency or CI changes. Other runtimes await CI.
+
+AI assistance was used for investigation, implementation and test preparation; the checks above were run locally.
+
+"""
