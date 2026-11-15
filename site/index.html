@@ -691,35 +691,35 @@ def test_lost_response_never_captures_twice():
             <span class="bar-label" style="left: 50%">Bar: 50% or more</span>
             <span class="end end-l">0%</span><span class="end end-r">100%</span>
           </div>
-          <div class="verdict"><span class="tag tag-next">Above the bar</span><p>The 95% interval, 61% to 100%, is above the bar. Claude wrote both the cases and the tests, so they might share blind spots, and the three conflicts in real repositories follow one shape. Six cases can't separate 61% recall from 100%.</p></div>
+          <div class="verdict"><span class="tag tag-next">Above the bar</span><p>The 95% interval, 61% to 100%, is above the bar. Claude wrote both the cases and the tests, so they might share blind spots, and the three conflicts in real repositories follow one shape. Six cases can't separate 61% recall from 100%. The run also found a conflict that nobody seeded, in tenacity's history.</p></div>
         </li>
         <li class="measure">
           <span class="name">False alarms</span>
-          <span class="value">1 of 6<span>clean pairs</span></span>
-          <div class="track" role="img" aria-label="False alarms 1 of 6. The 95 percent interval runs from 3 to 56 percent. The bar is under 5 percent.">
+          <span class="value">2 of 81<span>clean pairs</span></span>
+          <div class="track" role="img" aria-label="False alarms 2 of 81, on a scale from 0 to 20 percent. The 95 percent interval runs from 1 to 9 percent. The bar is under 5 percent.">
             <div class="rail"></div>
-            <div class="interval" style="left: 3%; width: 53%"></div>
-            <div class="point" style="left: 16.7%"></div>
-            <div class="bar" style="left: 5%"></div>
-            <span class="bar-label bar-start" style="left: 0">Bar: under 5%</span>
-            <span class="end end-l">0%</span><span class="end end-r">100%</span>
+            <div class="interval" style="left: 3.4%; width: 39.4%"></div>
+            <div class="point" style="left: 12.3%"></div>
+            <div class="bar" style="left: 25%"></div>
+            <span class="bar-label" style="left: 25%">Bar: under 5%</span>
+            <span class="end end-l">0%</span><span class="end end-r">20%</span>
           </div>
-          <div class="verdict"><span class="tag tag-exploring">Not proven yet</span><p>The flagged pair has a real bug in one change alone. A test that also used the other change's new code made it read as a conflict, and the benchmark's rules count that against the generator. Proving under 5% takes at least 73 clean pairs with none flagged.</p></div>
+          <div class="verdict"><span class="tag tag-exploring">Not proven yet</span><p>Of three flagged pairs, two had a real bug in one change alone that a test reached through the other change's new code, and the benchmark's rules count both against the generator. The third was a conflict the project's history missed. The interval runs from 1% to 9%, and at this rate it falls under 5% near 260 clean pairs.</p></div>
         </li>
         <li class="measure">
           <span class="name">Model cost</span>
-          <span class="value">$0.24<span>per pair</span></span>
-          <div class="track" role="img" aria-label="Cost 24 cents per pair. The bar is under 5 dollars.">
+          <span class="value">$0.42<span>per pair</span></span>
+          <div class="track" role="img" aria-label="Cost 42 cents per pair. The bar is under 5 dollars.">
             <div class="rail"></div>
-            <div class="point" style="left: 4%"></div>
+            <div class="point" style="left: 7%"></div>
             <div class="bar" style="left: 83.3%"></div>
             <span class="bar-label bar-end" style="left: 83.3%">Bar: under $5</span>
             <span class="end end-l">$0</span><span class="end end-r">$6</span>
           </div>
-          <div class="verdict"><span class="tag tag-built">Clears the bar</span><p>$2.82 in total for twelve pairs, with one model call per pair. Pairs in real repositories averaged $0.39, and none cost more than $0.50.</p></div>
+          <div class="verdict"><span class="tag tag-built">Clears the bar</span><p>$36.97 in total for 88 pairs, with one model call per pair. The most expensive pair cost $1.35, because one of its changes adds a 1,661-line lock file.</p></div>
         </li>
       </ul>
-      <p class="bench-foot"><a href="https://github.com/drewjst/fourway/tree/main/results/2026-10-30-claude-opus-5-5-run3">Run 3</a>, Claude Opus 5.5, 2026-10-30, on twelve cases: six conflicts and six clean pairs, half of each seeded into real open-source repositories. Corpus v4 adds 24 clean pairs mined from real pull requests, and no generator has run on v4 yet. Published test-generation research found about a third of semantic conflicts (SAM detected 9 of 29).</p>
+      <p class="bench-foot"><a href="https://github.com/drewjst/fourway/tree/main/results/2026-10-31-claude-opus-5-5-run4">Run 4</a>, Claude Opus 5.5, 2026-10-31, on 88 cases: twelve seeded cases, six conflicts and six clean pairs, plus 76 clean pairs mined from real pull requests in six open-source repositories. Every test ran in a sandboxed container. Corpus v6 adds the conflict this run found and 72 more mined pairs, and no generator has run on v6 yet. Published test-generation research found about a third of semantic conflicts (SAM detected 9 of 29).</p>
     </div>
   </section>
 
